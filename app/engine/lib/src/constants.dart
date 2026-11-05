@@ -14,6 +14,34 @@ final class EngineConfig {
   final double candidateDistanceM, candidateHalfAngleDeg, minConfidence;
   final double fastWalkingMps, crossingDistanceM, minBlur, minBrightness;
 
+  // ---- ここから下は tasks/README.md 2.5 にない、engine の内部の仮の値（実機で調整する）----
+
+  /// これより遅いと止まっているとみなす（m/s）。最接近の計算と先読みで使う。
+  final double minMovingMps;
+
+  /// 読み上げの速さの見積もり（1秒あたりの文字数）。話し終える前に通り過ぎないかの判定に使う。
+  final double ttsCharsPerSecond;
+
+  /// 見積もった読み上げ時間を過ぎても `TtsFinished` が来ないとき、さらに待つ時間。
+  /// 過ぎたら話し終えたとみなす（読み上げ終了の取りこぼしで止まり続けないため）。
+  final int ttsFinishGraceMs;
+
+  /// 要求したタイルが届かないとき、もう一度要求するまでの時間。
+  final int tileRetryMs;
+
+  /// 先読みで予測軌跡を区切る間隔と、各点の周りで取るタイルの余白（m）。
+  final int prefetchStepMs;
+  final double prefetchMarginM;
+
+  /// カルマンフィルタの加速度の標準偏差（m/s²）と、速度の観測の標準偏差（m/s）。
+  final double kalmanAccelNoise, kalmanVelocityNoise;
+
+  /// センサーがこれより長く途切れたら、位置の推定を作り直す。
+  final int kalmanResetGapMs;
+
+  /// このレベル以上の警報は今の読み上げに割り込む（CLAUDE.md 4章）。
+  final int alertInterruptLevel;
+
   const EngineConfig({
     this.sensorIntervalMs = 1000,
     this.defaultRadiusM = 25,
@@ -33,6 +61,16 @@ final class EngineConfig {
     this.crossingDistanceM = 15,
     this.minBlur = 0.5,
     this.minBrightness = 0.2,
+    this.minMovingMps = 0.3,
+    this.ttsCharsPerSecond = 6,
+    this.ttsFinishGraceMs = 30000,
+    this.tileRetryMs = 30000,
+    this.prefetchStepMs = 10000,
+    this.prefetchMarginM = 150,
+    this.kalmanAccelNoise = 0.5,
+    this.kalmanVelocityNoise = 0.5,
+    this.kalmanResetGapMs = 30000,
+    this.alertInterruptLevel = 4,
   });
 }
 

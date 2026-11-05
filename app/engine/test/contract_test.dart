@@ -24,18 +24,29 @@ void main() {
     });
   }
 
-  test('歩行ログ全行を同じイベントとして再生でき、空のEngineは指示を出さない', () {
+  test('歩行ログ全行を同じイベントとして再生でき、2つのEngineが同じ判断を出す', () {
     final rows = File.fromUri(examples.uri.resolve('walk_short.jsonl'))
         .readAsLinesSync();
     final engine = Engine();
     final secondEngine = Engine();
     expect(rows, isNotEmpty);
+    String describe(List<Command> commands) => jsonEncode([
+      for (final c in commands)
+        switch (c) {
+          Speak() => {'speak': c.utteranceId, 'text': c.text},
+          FetchTiles() => {'fetch': c.tiles.map((t) => t.toJson()).toList()},
+          CaptureAndSearch() => {'search': c.searchId},
+          LogDecision() => c.decision.toJson(),
+        },
+    ]);
     for (final line in rows.where((line) => line.trim().isNotEmpty)) {
       final json = jsonDecode(line) as Map<String, dynamic>;
       final event = eventFromJson(json);
       expect(eventToJson(event), equals(json));
-      expect(engine.handle(event), isEmpty);
-      expect(secondEngine.handle(eventFromJson(copyJson(json))), isEmpty);
+      expect(
+        describe(engine.handle(event)),
+        describe(secondEngine.handle(eventFromJson(copyJson(json)))),
+      );
     }
   });
 
