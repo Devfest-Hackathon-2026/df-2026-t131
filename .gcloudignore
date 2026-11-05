@@ -1,0 +1,11 @@
+# gcloud builds submit でアップロードしないもの（.gitignore の中身も除く）
+#!include:.gitignore
+.git/
+.github/
+.devcontainer/
+app/
+docs/
+tasks/
+cloud/data/raw/
+**/tests/
+**/__pycache__/

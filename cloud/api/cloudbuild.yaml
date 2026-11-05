@@ -1,0 +1,18 @@
+# API のコンテナを Cloud Build で作り、Artifact Registry に置く。
+# リポジトリの一番上で実行する（手順は cloud/api/README.md）:
+#   gcloud builds submit --config cloud/api/cloudbuild.yaml .
+substitutions:
+  _REGION: asia-northeast1
+  _REPO: app
+  _IMAGE: api
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - cloud/api/Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE}:latest
+      - .
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE}:latest

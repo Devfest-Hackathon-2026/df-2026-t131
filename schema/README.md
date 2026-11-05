@@ -30,3 +30,20 @@
 * 方位は真北0°・時計回り。B で送る方位は10°単位の整数
 * 地図タイルは z16 固定
 * すべての JSON に `schema_version`。合流3（A の MVP）を通った後は項目の追加だけ
+
+## API のエラーコード
+
+エラーのときは HTTP の状態コードと `{"error": "<コード>"}` を返す。中身の詳細は返さない。
+B が失敗したとき、mobile は `visual_error` の `error`（`eventlog.schema.json` で決まった4つの値）に置き換えてエンジンへ渡す：API がエラーを返した → `server`、mobile の8秒のタイムアウト → `timeout`、つながらない → `network`。API のコードそのものはエンジンに渡さない（判断には使わないため）。
+
+| コード | HTTP | いつ |
+| :---- | :---- | :---- |
+| `unauthorized` | 401 | `X-App-Token` が無い・違う |
+| `bad_request` | 400 | 送信が schema に合わない、JSON が壊れている、タイル番号が範囲外 |
+| `not_found` | 404 | ルートが無い（z が16以外など） |
+| `method_not_allowed` | 405 | GET と POST の取り違え |
+| `image_too_large` | 413 | 画像が上限を超えた |
+| `rate_limited` | 429 | B の1日の上限に達した |
+| `gemini_timeout` | 504 | Gemini が時間内（6秒）に返らなかった |
+| `gemini_error` | 502 | Gemini の呼び出しが失敗した |
+| `internal` | 500 | それ以外のサーバーの不具合 |
