@@ -120,10 +120,13 @@ for name, _, schema_rel, key in DATA_FILES:
         check(schema_rel, data, f"cloud/data/manual/{name}")
         check_items(data.get(key, []), f"cloud/data/manual/{name}")
 
-walks = ROOT / "app" / "engine" / "test" / "fixtures" / "walks"
-if walks.exists():
-    for p in sorted(walks.glob("*.jsonl")):
-        check_jsonl("eventlog.schema.json", p)
+FIX = ROOT / "app" / "engine" / "test" / "fixtures"
+# 実機で録った歩行ログ（メンバー3 → メンバー2 経由で置く）
+for p in sorted((FIX / "walks").glob("*.jsonl")):
+    check_jsonl("eventlog.schema.json", p)
+# engine が歩行ログを再生して書き出した判断ログ（メンバー2のテストが書き出す）
+for p in sorted((FIX / "decisions").glob("*.jsonl")):
+    check_jsonl("decision.schema.json", p)
 
 if failed:
     print(f"\n{failed} 件の不一致があります")

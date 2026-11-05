@@ -33,7 +33,8 @@
 
 ## validate.py が確かめること
 
-* 見本・`cloud/data/manual/`（`landmarks.json`・`timetable.json`・`events.json`）・engine の歩行ログが schema に合うか
+* 見本・`cloud/data/manual/`（`landmarks.json`・`timetable.json`・`events.json`）が schema に合うか
+* engine のテストの fixtures：`app/engine/test/fixtures/walks/*.jsonl`（実機の歩行ログ）と `app/engine/test/fixtures/decisions/*.jsonl`（engine が再生して書き出した判断ログ）
 * `manual/` と見本の ID の重複
 * ランドマーク・電停・イベント・横断歩道の位置がデモ範囲（いまは富山市を囲む四角）の中にあるか。緯度と経度が逆なら教えてくれる
 * 判断ログの理由コードが `reason_codes.json` にあるか
