@@ -1,11 +1,12 @@
 # gcloud builds submit でアップロードしないもの（.gitignore の中身も除く）
+# 先頭の / はリポジトリの一番上だけ（/app/ は Flutter の app/。cloud/api/app/ は除かない）
 #!include:.gitignore
-.git/
-.github/
-.devcontainer/
-app/
-docs/
-tasks/
-cloud/data/raw/
+/.git/
+/.github/
+/.devcontainer/
+/app/
+/docs/
+/tasks/
+/cloud/data/raw/
 **/tests/
 **/__pycache__/
