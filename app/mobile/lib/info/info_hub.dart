@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../executors/speak_executor.dart';
+import 'heard_store.dart';
 import 'info_kind.dart';
 import 'info_source.dart';
 
@@ -43,7 +44,11 @@ class InfoHub {
     required this.now,
     this.onAccepted,
     this.isEnabled,
+    this.heard,
   });
+
+  /// 受け付けた情報の ID を、起動し直しても覚えておく所（null なら覚えない）。
+  final HeardStore? heard;
 
   InfoSink sink;
   final int Function() now;
@@ -73,6 +78,11 @@ class InfoHub {
   Future<void> start() async {
     if (_started) return;
     _started = true;
+    final h = heard;
+    if (h != null) {
+      await h.load(nowMs: now());
+      _seen.addAll(h.keys);
+    }
     for (final s in _sources.values) {
       _listen(s);
     }
@@ -87,9 +97,12 @@ class InfoHub {
   bool accept(InfoItem item) {
     if (isEnabled != null && !isEnabled!(item.kind)) return false;
     // 同じ情報の再送は無視する（schema/README.md「FCM の警報の送り方」）
-    if (!_seen.add('${item.kind.name}:${item.id}')) return false;
+    final key = '${item.kind.name}:${item.id}';
+    if (!_seen.add(key)) return false;
     final exp = item.expiresMs;
     if (exp != null && now() > exp) return false;
+    final h = heard;
+    if (h != null) unawaited(h.add(key, nowMs: now()));
     onAccepted?.call(item);
     sink.deliver(item);
     return true;

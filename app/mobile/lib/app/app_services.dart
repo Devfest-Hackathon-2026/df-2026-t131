@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../core/sensor_ticker.dart';
 import '../dev/fake_gps.dart';
@@ -11,6 +13,7 @@ import '../executors/voice_catalog.dart';
 import '../info/alert_list_fetcher.dart';
 import '../info/alert_message.dart';
 import '../info/fcm_alerts.dart';
+import '../info/heard_store.dart';
 import '../info/info_hub.dart';
 import '../info/info_kind.dart';
 import '../info/info_source.dart';
@@ -41,6 +44,7 @@ class AppServices {
     SpeakExecutor? speaker,
     this.fakeGps,
     this.useFcm = false,
+    this.heardStore,
     ApiClient? api,
     AppSettings initialSettings = const AppSettings(),
   }) : api =
@@ -75,6 +79,7 @@ class AppServices {
     settings.addListener(() => this.speaker.useVoice(settings.value.voice));
     // 外から届く情報（警報・気象・交通・イベント）。今は警報だけ中身があり、ほかは骨組み
     info = InfoHub(
+      heard: heardStore,
       sink: DirectSpeakSink(this.speaker),
       now: () => DateTime.now().toUtc().millisecondsSinceEpoch,
       onAccepted: (item) {
@@ -155,6 +160,11 @@ class AppServices {
       speaker: speaker,
       fakeGps: fakeGps,
       useFcm: true,
+      heardStore: HeardStore(
+        () async => File(
+          '${(await getApplicationSupportDirectory()).path}/heard_alerts.json',
+        ),
+      ),
       camera: camera,
       ticker: SensorTicker(
         locationSource: fakeGps.location,
@@ -237,6 +247,9 @@ class AppServices {
       _checkingServer = false;
     }
   }
+
+  /// 聞いた警報の ID を起動し直しても覚えておく所（テストでは null）。
+  final HeardStore? heardStore;
 
   /// FCM で警報を受けるか（テストでは使わない）。
   final bool useFcm;

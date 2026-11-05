@@ -6,7 +6,8 @@
 
 - **`google-services.json` はメンバー1から受け取って `android/app/` に置く。コミットしない**（`.gitignore` 済み。API キーを含むため）。
 - 無くてもビルドでき、アプリは警報を受けずに動く（Gradle は、ファイルがあるときだけ Firebase の設定を読む）。
-- 起動時に警報のトピック `alert_16201`（富山市）を購読する。中身の形は `schema/README.md`「FCM の警報の送り方」と `schema/fcm/alert.data.schema.json`。
+- 起動時に警報のトピック `alert_1620100`（富山市の区域コード7桁。移行の間は前の `alert_16201` も）を購読する。同じ `alert_id` は2つのトピックから届いても1回だけ話し、聞いた警報は起動し直しても覚えている（48時間）。
+- FCM の取りこぼしの保険に、公開の `alerts/current/1620100.json` を起動時・計測開始時・計測中15分ごとに取りに行く。開発者モードでは模擬の一覧 `mock_1620100.json` も取るが、書き換えから10分より前のものは読まない。中身の形は `schema/README.md`「FCM の警報の送り方」と `schema/fcm/alert.data.schema.json`。
 
 ## 開発者モード
 

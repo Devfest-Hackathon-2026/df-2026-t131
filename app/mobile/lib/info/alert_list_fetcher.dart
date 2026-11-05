@@ -23,6 +23,7 @@ class AlertListFetcher {
     RateLimiter? limiter,
     this.timeout = const Duration(seconds: 8),
   }) : _client = client ?? http.Client(),
+       _now = now ?? _systemMs,
        limiter =
            limiter ??
            RateLimiter(
@@ -39,6 +40,12 @@ class AlertListFetcher {
   /// 一覧の警報1件ずつ（FCM の data と同じ形）を渡す先。
   final void Function(Map<String, Object?> data) onData;
   final http.Client _client;
+  final int Function() _now;
+
+  /// 模擬の一覧は、書き換えからこれより経っていたら読まない。
+  /// サーバーの模擬の一覧には最後に送った模擬の警報が残り続けるので、起動し直すたびに
+  /// 古い模擬の警報を読まないため（撮影中に鳴らさない）。本物の一覧には使わない。
+  static const mockMaxAge = Duration(minutes: 10);
   final RateLimiter limiter;
   final Duration timeout;
   final Map<String, String> _etags = {};
@@ -96,6 +103,16 @@ class AlertListFetcher {
         return 0;
       }
       if (etag != null) _etags[key] = etag;
+      if (mock) {
+        final updated = json['updated_at_ms'];
+        final ageMs = updated is int ? _now() - updated : null;
+        if (ageMs == null || ageMs > mockMaxAge.inMilliseconds) {
+          lastResult = ageMs == null
+              ? '$name：書き換えの時刻が無いので読みません'
+              : '$name：${ageMs ~/ 60000}分前のものなので読みません';
+          return 0;
+        }
+      }
       for (final d in list) {
         onData(d);
       }

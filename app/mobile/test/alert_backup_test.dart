@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:mobile/info/alert_list_fetcher.dart';
 import 'package:mobile/info/alert_message.dart';
+import 'package:mobile/info/heard_store.dart';
 import 'package:mobile/info/info_hub.dart';
 import 'package:mobile/info/info_source.dart';
 import 'package:mobile/info/pending_alerts.dart';
@@ -115,6 +116,66 @@ void main() {
     expect(got.single.data['level'], '3');
     // 取り出したら消える
     expect(await store.drain(nowMs: 10000, maxAgeMs: 5000), isEmpty);
+    await dir.delete(recursive: true);
+  });
+  test('模擬の一覧は書き換えから10分より前なら読まない（本物の一覧は読む）', () async {
+    const now = 100 * 60 * 1000;
+    Map<String, Object?> listAt(int updated) => {
+      ..._list,
+      'updated_at_ms': updated,
+      'alerts': [
+        {
+          'alert_id': 'mock_$updated',
+          'level': '4',
+          'kind': '大雨危険警報',
+          'text': 'これはデモ用の模擬の警報です。',
+        },
+      ],
+    };
+    var updated = now - 11 * 60 * 1000;
+    final got = <Object?>[];
+    final f = AlertListFetcher(
+      baseUrl: 'https://example.test/b',
+      onData: (d) => got.add(d['alert_id']),
+      now: () => now,
+      client: MockClient(
+        (req) async =>
+            http.Response.bytes(utf8.encode(jsonEncode(listAt(updated))), 200),
+      ),
+    );
+    expect(await f.fetch(mock: true), 0);
+    expect(f.lastResult, contains('11分前'));
+    expect(await f.fetch(), 1); // 本物の一覧は古くても読む（続いている警報）
+    updated = now - 9 * 60 * 1000;
+    expect(await f.fetch(mock: true), 1);
+    expect(got, [
+      'mock_${now - 11 * 60 * 1000}',
+      'mock_${now - 9 * 60 * 1000}',
+    ]);
+  });
+
+  test('聞いた警報は起動し直しても2回話さない（48時間で忘れる）', () async {
+    final dir = await Directory.systemTemp.createTemp('heard');
+    File file() => File('${dir.path}/heard.json');
+    var now = 1000;
+    Future<_Sink> boot() async {
+      final sink = _Sink();
+      final alerts = AlertSource(now: () => now);
+      final hub = InfoHub(
+        sink: sink,
+        now: () => now,
+        heard: HeardStore(() async => file()),
+      )..register(alerts);
+      await hub.start();
+      alerts.receive(mockAlertData(level: 4, nowMs: 1)); // 同じ alert_id
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      return sink;
+    }
+
+    expect((await boot()).got, hasLength(1)); // 1回目の起動：話す
+    expect((await boot()).got, isEmpty); // 起動し直し：話さない
+    now += const Duration(hours: 49).inMilliseconds;
+    expect((await boot()).got, hasLength(1)); // 48時間を過ぎたら忘れる
     await dir.delete(recursive: true);
   });
 }
