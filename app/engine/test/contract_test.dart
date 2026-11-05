@@ -17,6 +17,7 @@ void main() {
     (file) => file.path.endsWith('.json'),
   )) {
     final name = file.uri.pathSegments.last;
+    if (examplesOutsideEngine.contains(name)) continue;
     test('見本をJSONへ戻しても項目と値が変わらない: $name', () {
       final json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
       expect(roundtripExample(name, json), equals(json));
@@ -208,5 +209,84 @@ void main() {
     final fetch = FetchTiles(tiles: tiles);
     tiles.clear();
     expect(fetch.tiles.single.toJson(), request.tile.toJson());
+  });
+
+  test('見本はすべて、往復テストの対象かengineの対象外のどちらかに分けてある', () {
+    const jsonl = {'walk_short.jsonl', 'decisions_short.jsonl'};
+    for (final file in examples.listSync().whereType<File>()) {
+      final name = file.uri.pathSegments.last;
+      if (jsonl.contains(name) || examplesOutsideEngine.contains(name)) {
+        continue;
+      }
+      expect(
+        () => roundtripExample(name, readExample(name)),
+        returnsNormally,
+        reason: '新しい見本 $name をfixture_models.dartのどちらかに追加する',
+      );
+    }
+  });
+
+  test('CaptureAndSearchと画像から作ったBの送信JSONが見本と一致する', () {
+    final example = readExample('visual_search_request.json');
+    final request = VisualSearchRequest.fromJson(example);
+    final command = CaptureAndSearch(
+      searchId: 's_000001',
+      tile: TileId(x: 57746, y: 25576),
+      gazeAzDeg10: 180,
+      candidateIds: const ['lm_0001', 'lm_0002'],
+      area: request.area,
+    );
+    // 送信には常にengineの版を入れる。見本の版との差（0.2→0.3の移行中）はここでは比べない。
+    expect(
+      visualSearchRequestToJson(command, '/9j/4AAQSkZJRgABAQ=='),
+      equals({...example, 'schema_version': currentSchemaVersion}),
+    );
+  });
+
+  test('エリアの外ではBの送信JSONのareaがnullになる', () {
+    final json = visualSearchRequestToJson(
+      CaptureAndSearch(
+        searchId: 's_000002',
+        tile: TileId(x: 57746, y: 25576),
+        gazeAzDeg10: 0,
+        candidateIds: const [],
+      ),
+      'AAAA',
+    );
+    expect(json.containsKey('area'), isTrue);
+    expect(json['area'], isNull);
+    expect(json['candidate_ids'], isEmpty);
+  });
+
+  test('Bの送信JSONも方位が10度単位でなければ作らない', () {
+    expect(
+      () => visualSearchRequestToJson(
+        CaptureAndSearch(
+          searchId: 's_000003',
+          tile: TileId(x: 57746, y: 25576),
+          gazeAzDeg10: 185,
+          candidateIds: const [],
+        ),
+        'AAAA',
+      ),
+      throwsFormatException,
+    );
+  });
+
+  test('コミット済みの判断ログが、歩行ログを今のEngineで再生した結果と一致する', () {
+    for (final MapEntry(key: walk, value: target)
+        in decisionFixtureTargets().entries) {
+      final name = target.uri.pathSegments.last;
+      expect(
+        target.existsSync(),
+        isTrue,
+        reason: '$name がない。dart run tool/write_decision_fixtures.dart で書き出す',
+      );
+      expect(
+        target.readAsStringSync(),
+        decisionsFileContent(replayDecisions(walk.readAsLinesSync())),
+        reason: '$name が古い。dart run tool/write_decision_fixtures.dart で書き出し直す',
+      );
+    }
   });
 }

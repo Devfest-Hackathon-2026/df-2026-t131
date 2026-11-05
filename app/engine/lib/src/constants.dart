@@ -1,4 +1,4 @@
-const currentSchemaVersion = '0.2';
+const currentSchemaVersion = '0.3';
 
 /// tasks/README.md 2.5の初期値。時間の単位はミリ秒。
 final class EngineConfig {

@@ -41,3 +41,20 @@ final class LogDecision implements Command {
   final Decision decision;
   const LogDecision({required this.decision});
 }
+
+/// Bの送信JSON（`POST /v1/visual-search`）を、engineが出した指示と画像から作る。
+///
+/// 画像はmobileが顔をぼかしてJPEGにしたもの。engineは画像を保持・記録せず、
+/// この関数も受け取った値をJSONへ詰めるだけにする。形の検査は
+/// `VisualSearchRequest` の変換と同じものを通す。
+Map<String, dynamic> visualSearchRequestToJson(
+  CaptureAndSearch command,
+  String imageJpegBase64,
+) => VisualSearchRequest(
+  searchId: command.searchId,
+  tile: command.tile,
+  gazeAzDeg: command.gazeAzDeg10,
+  candidateIds: command.candidateIds,
+  imageJpegBase64: imageJpegBase64,
+  area: command.area,
+).toJson();
