@@ -23,6 +23,7 @@
 
 * 現在の版は **0.3**
   * 0.2 → 0.3：電停・イベント・横断歩道の形を `stop`・`event`・`crossing` の schema に切り出し（タイル応答の形は変わらない）、`manual/timetable.json`・`manual/events.json`・`osm/crossings.json` と FCM の警報の形を追加、`validate.py` に ID の重複とデモ範囲の確認を追加
+  * 0.3 に任意項目を追加（版は上げない。今あるデータはそのまま通るため）：判断ログ `decision` に `sources`（B の答えの出典。`answer` のときだけ）
   * 0.1 → 0.2：エリア、B の送信に `area`、応答に `named`・`sources`、理由コード2つを追加
 * `examples/` の地名・原稿は**実在しない仮のもの**。位置は富山駅南口付近（z16 タイル `16/57746/25576`）
 * `walk_short.jsonl` は南へ 1.3 m/s で60秒歩くログ。1秒後にタイル到着、25〜33秒に読み上げ、40秒目に B の計測、42秒目に B の結果（候補外）

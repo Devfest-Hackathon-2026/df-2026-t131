@@ -54,6 +54,32 @@
       ],
       "minimum": 1,
       "maximum": 6
+    },
+    "sources": {
+      "type": "array",
+      "description": "任意。kind が answer のときだけ。B の答えの裏付けに使った出典（visual_search の応答の sources をそのまま入れる）。判断画面で「なぜその名前と言ったか」を示すため",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "uri"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "uri": {
+            "type": "string"
+          },
+          "place_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
     }
   }
 }
