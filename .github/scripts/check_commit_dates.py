@@ -42,7 +42,8 @@ def main() -> int:
         added = 0
         for row in git("show", "--numstat", "--format=", h).splitlines():
             parts = row.split("\t")
-            if len(parts) == 3 and parts[0].isdigit() and parts[2].startswith(WATCH_PREFIXES)                     and not parts[2].endswith(GENERATED_SUFFIXES):
+            if len(parts) == 3 and parts[0].isdigit() and parts[2].startswith(WATCH_PREFIXES) \
+                    and not parts[2].endswith(GENERATED_SUFFIXES):
                 added += int(parts[0])
         if added >= BIG_COMMIT_LINES:
             # GitHub Actions の警告として PR の画面に出る
