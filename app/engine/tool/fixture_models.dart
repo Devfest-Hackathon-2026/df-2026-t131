@@ -30,6 +30,8 @@ const examplesOutsideEngine = <String>{
   'timetable_sample.json',
   'events_sample.json',
   'fcm_alert_data.json',
+  // 横断歩道はタイル応答の crossings として読む。単独の見本（osm/crossings.json の形）は対象外
+  'crossings_sample.json',
 };
 
 /// 入力イベントのログ（JSONL）を新しいEngineに流し、出た判断ログを1行ずつJSONにする。
