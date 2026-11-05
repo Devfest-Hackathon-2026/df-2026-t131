@@ -63,8 +63,9 @@ curl -H "X-App-Token: local-test" localhost:8080/v1/tiles/16/57746/25576
 | `EVENT_STATUS` | `file` | `firestore` でイベントの開催状態を Firestore の `event_status/<ID>.status`（`scheduled`・`held`・`cancelled`）で上書き。30秒ごとに読み直す。デモで「中止」に切り替えるとき用 |
 | `APP_TOKEN` | 空 | `X-App-Token` の値。空だと `/v1/` はすべて 401。Cloud Run では Secret Manager から渡す |
 | `GEMINI_MODE` | `fake` | `real` は Cloud Run の環境変数で明示したときだけ |
-| `GEMINI_GROUNDING` | `off` | `maps` で Google マップでのグラウンディングを付ける |
-| `VERTEX_LOCATION` / `GEMINI_MODEL` | `asia-northeast1` / `gemini-2.5-flash` | 仮。本物の検索に取りかかる前に確定する |
+| `GEMINI_GROUNDING` | `off` | `maps` で Google マップでのグラウンディングを付ける。**11/5 の確認では使わない**（遅い・答えが JSON で読めないことがあった） |
+| `VERTEX_LOCATION` / `GEMINI_MODEL` | `global` / `gemini-3.6-flash` | 11/5 に実際の写真で比べて決めた（3.6-flash は global だけ） |
+| `GEMINI_THINKING_LEVEL` | `LOW` | 考える量。LOW で 2〜3 秒、MEDIUM 以上だと 4〜8 秒で 6 秒のタイムアウトを超えやすい |
 | `GOOGLE_CLOUD_PROJECT` | 空 | `real` のときに必須 |
 | `VISUAL_MIN_CONFIDENCE` | `0.3` | これ未満の自信は `unknown` |
 | `DESCRIPTION_MAX_CHARS` | `100` | 説明の長さ |

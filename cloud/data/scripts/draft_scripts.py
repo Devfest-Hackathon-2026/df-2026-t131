@@ -37,7 +37,7 @@ DRAFTS = ROOT / "cloud" / "data" / "drafts"
 JST = timezone(timedelta(hours=9))
 
 # TODO(メンバー1): GCP の準備ができたら、実際に呼んで地域とモデル名を確定する
-DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 DEFAULT_LOCATION = os.environ.get("VERTEX_LOCATION", "global")
 
 SHORT_TARGET, SHORT_MAX = 60, 80     # 目安と schema の上限
@@ -100,7 +100,10 @@ class VertexGenerator:
         from google.genai import types
 
         self._types = types
-        self._client = genai.Client(vertexai=True, project=project, location=location)
+        # ウイルス対策ソフトが HTTPS を検査している PC では、SSL_CERT_FILE に証明書の束を指定する（cloud/data/README.md）
+        ca = os.environ.get("SSL_CERT_FILE")
+        opts = types.HttpOptions(timeout=120_000, client_args={"verify": ca} if ca else None)
+        self._client = genai.Client(vertexai=True, project=project, location=location, http_options=opts)
         self._model = model
         tools = [types.Tool(google_search=types.GoogleSearch())] if grounding == "search" else None
         self._config = types.GenerateContentConfig(temperature=0.2, tools=tools)

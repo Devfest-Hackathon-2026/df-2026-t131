@@ -31,10 +31,12 @@ class Settings:
     gemini_mode: str = field(default_factory=lambda: _env("GEMINI_MODE", "fake"))
     # maps：Google マップでのグラウンディングを付ける／off：付けない（CLAUDE.md 6章）
     gemini_grounding: str = field(default_factory=lambda: _env("GEMINI_GROUNDING", "off"))
-    # TODO(メンバー1): 本物の /v1/visual-search に取りかかる前に、地域とモデル名を確定する
-    #   （Google マップでのグラウンディングが使える地域かも確かめる）
-    vertex_location: str = field(default_factory=lambda: _env("VERTEX_LOCATION", "asia-northeast1"))
-    gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-2.5-flash"))
+    # 11/5 に実際の写真で比べて決めた（tasks/member1_progress.md）。gemini-3.6-flash は global でだけ使える。
+    # 考える量を LOW にすると 2〜3 秒で、写っていない名前を言う誤りもなかった
+    vertex_location: str = field(default_factory=lambda: _env("VERTEX_LOCATION", "global"))
+    gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-3.6-flash"))
+    # MINIMAL / LOW / MEDIUM / HIGH。空なら指定しない（モデルの既定）
+    gemini_thinking_level: str = field(default_factory=lambda: _env("GEMINI_THINKING_LEVEL", "LOW"))
     gcp_project: str = field(default_factory=lambda: _env("GOOGLE_CLOUD_PROJECT", ""))
     # これ未満の自信は unknown にする（明らかに自信のない答えを外すだけ。話すかの本当のしきい値は engine の 0.6）
     visual_min_confidence: float = field(default_factory=lambda: float(_env("VISUAL_MIN_CONFIDENCE", "0.3")))

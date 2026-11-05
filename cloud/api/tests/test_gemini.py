@@ -117,6 +117,7 @@ def test_search_prompt_has_candidates_and_drops_unknown_ids():
     assert "lm_0099" not in prompt                 # DB に無い候補は渡さない
     assert r["result"] == "unknown"                # DB に無い候補と答えても信じない
     assert c.calls[0].config.response_schema is not None   # グラウンディングなしは構造化出力
+    assert c.calls[0].config.thinking_config.thinking_level == "LOW"   # 考える量を抑えて速くする
 
 
 def test_search_in_area_with_maps_grounding():

@@ -47,6 +47,10 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 - 候補ではないが何か分かるなら result="unlisted"。object_name に名前を入れる。
   固有の名前（例：〇〇橋）まで分かったときだけ named=true、一般的な名前（例：木造の蔵）なら named=false
   description に、歩きながら一度聞いて分かる話し言葉の説明を入れる（目安{max_chars}字以内、1〜2文）
+- 固有の名前は、写真に写っている形・色・看板の文字などから、それだと確かに見分けられるときだけ答える。
+  エリアの中にいるからといって、エリアで有名な場所の名前を当てはめない（写っていないものの名前を言わない）
+- 中央に写っているのが道・地面・水面・空・人などで、名前の付いたものが写っていないときは、
+  一般的な名前（例：運河沿いの散策路）で named=false にするか、result="unknown" にする
 - 分からない・自信がないなら result="unknown"。推測で答えない
 - 年号・数字・人数・高さなどの数は書かない
 - 「右手に」「正面に」など方向の言葉は書かない
@@ -167,14 +171,17 @@ class GeminiVisualSearch:
     def _config(self, req: dict):
         from google.genai import types
 
+        thinking = types.ThinkingConfig(thinking_level=self._s.gemini_thinking_level) if self._s.gemini_thinking_level else None
         if not self._use_maps(req):
             return types.GenerateContentConfig(
                 temperature=0.1, response_mime_type="application/json", response_schema=RESPONSE_SCHEMA,
+                thinking_config=thinking,
             )
         s, n, w, e = tile_bounds(req["tile"]["x"], req["tile"]["y"])
         # グラウンディングは構造化出力と一緒に使えないことがあるので、JSON はプロンプトで頼んで後処理で読む
         return types.GenerateContentConfig(
             temperature=0.1,
+            thinking_config=thinking,
             tools=[types.Tool(google_maps=types.GoogleMaps())],
             tool_config=types.ToolConfig(retrieval_config=types.RetrievalConfig(
                 lat_lng=types.LatLng(latitude=(s + n) / 2, longitude=(w + e) / 2), language_code="ja",
