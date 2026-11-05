@@ -32,6 +32,7 @@
 * `walk_short.jsonl` は南へ 1.3 m/s で60秒歩くログ。1秒後にタイル到着、25〜33秒に読み上げ、40秒目に B の計測、42秒目に B の結果（候補外）
 * `decisions_short.jsonl` は、エンジンが出す判断の**形の見本**。中身（時刻・どれを話すか）が正解という意味ではない
 * `lm_0004` はエリア（`kind: area`、半径200m）の見本。`visual_search_request.json` はこのエリアの中から送った想定、`visual_search_response_named.json` はエリア内の名前付きの対象を特定した応答の見本（出典つき）
+* `examples/alerts/` は alert-job → mobile の警報の一覧の見本（engine の見本の往復テストの対象外なので、フォルダを分けている）
 * `lm_0003` は `status: draft` なので、タイル応答には入っていない（`reviewed` だけが返る決まりの見本）
 * **`tile_response.json` は形の見本で、中身は地理的に1つのタイルに収まっていない**（電停・イベントは `16/57746/25577`、公園は `16/57747/25577` にある）。本物の API は、点のもの（ランドマーク・電停・横断歩道・イベント）を位置が入るタイルだけに、エリアを範囲が重なるタイルすべてに入れて返す。engine はタイルをまたいで同じ ID が来たら1つにまとめる
 * `timetable_sample.json`・`events_sample.json`・`crossings_sample.json` は `manual/timetable.json`・`manual/events.json`・`osm/crossings.json` の見本（中身はタイル応答の見本と同じ）
@@ -48,10 +49,20 @@
 
 ## FCM の警報の送り方
 
-* トピック：`alert_<市町村コード5桁>`（富山市は `alert_16201`）。mobile は起動時にデモ地域のトピックを購読する
+全国版と同じ形で、範囲だけを設定で富山市（区域コード `1620100`）に絞っている（`cloud/alert-job/README.md`）。
+
+* トピック：`alert_<区域コード7桁>`（富山市は `alert_1620100`）。区域コードは気象庁の「気象警報・注意報」の区域（市町村等）
+  * **移行の間**は前のトピック `alert_16201` にも同じものを送る。mobile が `alert_1620100` に切り替えたら、メンバー1が止める
 * data だけのメッセージ（notification は付けない。読み上げはアプリが行うため）、Android の優先度は high
-* data の値はすべて文字列（FCM の決まり）。mobile は `level` を整数に直し、受信時刻を `t_ms` にして `AlertReceived` を作る
+* data の値はすべて文字列（FCM の決まり）。`area_code`（7桁）を含む。mobile は `level` を整数に直し、受信時刻を `t_ms` にして `AlertReceived` を作る
 * 同じ `alert_id` を2回受けたら、mobile（または engine）は2回目を無視する
+
+### 今出ている警報の一覧（プッシュが届かなかったときの保険）
+
+* `https://storage.googleapis.com/<バケット>/alerts/current/<区域7桁>.json`（形は `api/alerts_current.schema.json`、見本は `examples/alerts/current_1620100.json`）
+* 区域の一覧が変わったときに alert-job が書き換える。警報が無いときも `"alerts": []` で置く。`Cache-Control: public, max-age=60`、ETag つきで取れる
+* 各要素は FCM の data と同じ `alert_id`・`level`（文字列）・`kind`・`text` を持つ（mobile は同じ読み方で読める）。text は「発表されています」
+* デモ用の模擬の警報の一覧は `alerts/current/mock_<区域7桁>.json` に分けてある
 
 ## 決まり（抜粋）
 

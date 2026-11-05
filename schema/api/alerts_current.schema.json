@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/api/alerts_current.schema.json",
+  "title": "GET alerts/current/<区域7桁>.json：その区域に今出ている警報の一覧",
+  "description": "alert-job が、区域の警報のレベルが変わったときに書き換える（公開の Cloud Storage。Cache-Control: public, max-age=60）。端末は歩き始めと、歩いている間15分ごとに ETag つきで取りに来る（FCM のプッシュが届かなかったときの保険）。警報が出ていないときも alerts を [] にして置く（ファイルが無い＝データがない、と区別するため）。デモ用の模擬の警報は alerts/current/mock_<区域7桁>.json に分けて書く",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "area_code",
+    "area_name",
+    "updated_at_ms",
+    "alerts"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "../common.schema.json#/$defs/schema_version"
+    },
+    "area_code": {
+      "$ref": "../common.schema.json#/$defs/area_code"
+    },
+    "area_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updated_at_ms": {
+      "$ref": "../common.schema.json#/$defs/t_ms",
+      "description": "この一覧を書き換えた時刻（UTC の UNIX ミリ秒）"
+    },
+    "alerts": {
+      "type": "array",
+      "description": "今出ている ALERT_MIN_LEVEL（既定3）以上の警報。分野（大雨・暴風など）ごとに1つ、レベルの高い順",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "alert_id",
+          "level",
+          "kind",
+          "text"
+        ],
+        "properties": {
+          "alert_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "FCM で送ったものと同じ ID（端末は同じ ID の2回目を捨てる）。同じ警報が続いている間は変わらない"
+          },
+          "level": {
+            "type": "string",
+            "pattern": "^[1-5]$",
+            "description": "警戒レベル（FCM の data と同じく文字列。端末は同じ parseAlertData で読む）"
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1,
+            "description": "気象庁の発表の名前のまま（例：大雨危険警報）"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "description": "読み上げる文（テンプレート）。後から入った人向けに「発表されています」。FCM の text は「発表されました」"
+          }
+        }
+      }
+    }
+  }
+}

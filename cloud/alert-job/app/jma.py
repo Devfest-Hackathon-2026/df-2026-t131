@@ -8,6 +8,7 @@
 import re
 import unicodedata
 import xml.etree.ElementTree as ET
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -27,14 +28,30 @@ class FeedEntry:
     updated: str
     link: str
 
+    @property
+    def office(self) -> str:
+        """電文の URL の末尾（…_160000.xml）から気象台のコード。"""
+        return self.link.rsplit("_", 1)[-1].removesuffix(".xml")
+
+    @property
+    def file_id(self) -> str:
+        """電文のファイル名（拡張子なし）。元の電文の記録の名前に使う。"""
+        return self.link.rsplit("/", 1)[-1].removesuffix(".xml")
+
+
+Kinds = list[tuple[int, str]]  # (レベル, 名前) の高い順。名前は「大雨危険警報」のようにレベルを除いたもの
+
 
 @dataclass(frozen=True)
 class Telegram:
-    """1つの電文から読み取った、対象の市町村の状態。"""
+    """1つの電文から読み取った、対象の区域ごとの状態。"""
     category: str          # 電文の題名（例：気象警報・注意報（Ｒ０６）（大雨））＝分野
     status: str            # 通常 / 訓練 / 試験
     report_datetime: str   # 発表時刻（例：2026-11-05T11:20:00+09:00）
-    kinds: list[tuple[int, str]]  # (レベル, 名前)。名前は「大雨危険警報」のようにレベルを除いたもの
+    areas: dict[str, Kinds]  # 区域コード → その区域の警報・注意報（電文に載っていない区域は入らない）
+
+    def kinds(self, area_code: str) -> Kinds:
+        return self.areas.get(area_code, [])
 
 
 class FeedSource(Protocol):
@@ -44,15 +61,16 @@ class FeedSource(Protocol):
     def fetch_telegram(self, url: str) -> bytes: ...
 
 
-def parse_feed(xml: bytes, office_code: str) -> list[FeedEntry]:
+def parse_feed(xml: bytes, office_codes: Iterable[str]) -> list[FeedEntry]:
     """対象の気象台（府県予報区コード、例：富山 160000）の新しい体系の警報・注意報だけ。古い順。"""
+    offices = {office_codes} if isinstance(office_codes, str) else set(office_codes)
     root = ET.fromstring(xml)
     out = []
     for e in root.findall("a:entry", ATOM):
         title = e.findtext("a:title", "", ATOM)
         link_el = e.find("a:link", ATOM)
         link = link_el.get("href", "") if link_el is not None else ""
-        if title.startswith(TITLE_PREFIX) and link.endswith(f"_{office_code}.xml"):
+        if title.startswith(TITLE_PREFIX) and any(link.endswith(f"_{o}.xml") for o in offices):
             out.append(FeedEntry(e.findtext("a:id", link, ATOM), title, e.findtext("a:updated", "", ATOM), link))
     return sorted(out, key=lambda x: (x.updated, x.id))
 
@@ -62,19 +80,23 @@ def _level_and_name(raw: str) -> tuple[int, str] | None:
     return (int(m.group(1)), m.group(2)) if m else None
 
 
-def parse_telegram(xml: bytes, municipality_code: str) -> Telegram:
+def parse_telegram(xml: bytes, area_codes: Iterable[str]) -> Telegram:
+    """電文から、対象の区域（市町村等、7桁）の警報・注意報を読む。対象外の区域・一次細分区域は読まない。"""
+    targets = {area_codes} if isinstance(area_codes, str) else set(area_codes)
     root = ET.fromstring(xml)
     control = root.find(f"{{{NS_CONTROL}}}Control")
     head = root.find(f"{{{NS_HEAD}}}Head")
     body = root.find(f"{{{NS_BODY}}}Body")
-    kinds: list[tuple[int, str]] = []
+    areas: dict[str, Kinds] = {}
     if body is not None:
         for w in body.findall(f"{{{NS_BODY}}}Warning"):
             if w.get("type") != MUNICIPAL_TYPE:
                 continue
             for item in w.findall(f"{{{NS_BODY}}}Item"):
-                if item.findtext(f"{{{NS_BODY}}}Area/{{{NS_BODY}}}Code") != municipality_code:
+                code = item.findtext(f"{{{NS_BODY}}}Area/{{{NS_BODY}}}Code")
+                if code not in targets:
                     continue
+                kinds = areas.setdefault(code, [])
                 for kind in item.findall(f"{{{NS_BODY}}}Kind"):
                     name = kind.findtext(f"{{{NS_BODY}}}Name")
                     st = kind.findtext(f"{{{NS_BODY}}}Status", "")
@@ -87,7 +109,7 @@ def parse_telegram(xml: bytes, municipality_code: str) -> Telegram:
         category=control.findtext(f"{{{NS_CONTROL}}}Title", "") if control is not None else "",
         status=control.findtext(f"{{{NS_CONTROL}}}Status", "") if control is not None else "",
         report_datetime=head.findtext(f"{{{NS_HEAD}}}ReportDateTime", "") if head is not None else "",
-        kinds=sorted(kinds, reverse=True),
+        areas={code: sorted(k, reverse=True) for code, k in areas.items()},
     )
 
 

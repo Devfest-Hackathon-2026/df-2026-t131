@@ -54,6 +54,11 @@
       "type": "string",
       "pattern": "^lm_\\d{4}$"
     },
+    "area_code": {
+      "type": "string",
+      "pattern": "^\\d{7}$",
+      "description": "気象庁の「気象警報・注意報」の区域（市町村等）のコード7桁。例：富山市は 1620100"
+    },
     "stop_id": {
       "type": "string",
       "pattern": "^st_\\d{4}$"

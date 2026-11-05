@@ -113,6 +113,21 @@ else:
     print("NG fcm_alert_data.json: FCM の data の値はすべて文字列にする")
     failed += 1
 
+# 今出ている警報の一覧（alert-job → 公開の Cloud Storage → mobile）。
+# engine の見本の往復テストの対象外なので、examples/alerts/ に分けて置く
+for p in sorted((E / "alerts").glob("*.json")):
+    cur = load(p)
+    rel = f"alerts/{p.name}"
+    check("api/alerts_current.schema.json", cur, rel)
+    if p.stem != f"current_{cur.get('area_code')}":
+        print(f"NG {rel}: ファイル名は current_<area_code>.json にする")
+        failed += 1
+    # 一覧の各要素は、FCM の data と同じ読み方（parseAlertData）で読めること
+    for i, a in enumerate(cur.get("alerts", [])):
+        as_fcm = {"schema_version": cur["schema_version"], "type": "alert", "area_code": cur["area_code"],
+                  "area_name": cur["area_name"]} | a
+        check("fcm/alert.data.schema.json", as_fcm, f"{rel} の alerts[{i}] を FCM の data の形にしたもの")
+
 # ランドマークの本物は1件1ファイル：cloud/data/manual/landmarks/<ID>.json（ファイル名と id を同じにする）
 LM_DIR = ROOT / "cloud" / "data" / "manual" / "landmarks"
 if (ROOT / "cloud" / "data" / "manual" / "landmarks.json").exists():
