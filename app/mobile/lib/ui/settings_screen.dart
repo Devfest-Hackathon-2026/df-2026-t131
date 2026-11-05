@@ -6,6 +6,7 @@ import '../config.dart';
 import '../dev/dev_settings_section.dart';
 import '../logging/walk_log_store.dart';
 import '../info/info_kind.dart';
+import '../net/api_client.dart';
 import 'caption.dart';
 import 'style.dart';
 
@@ -86,6 +87,9 @@ class SettingsScreen extends StatelessWidget {
           const Divider(),
           const _Header('記録した歩行ログ'),
           _WalkLogsSection(store: services.walkLogs),
+          const Divider(),
+          const _Header('サーバー（Cloud Run の API）'),
+          _ServerSection(services: services),
           const Divider(),
           const _Header('このアプリについて'),
           ListTile(
@@ -348,4 +352,63 @@ class _InfoKindTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// サーバーとのつながり：接続先・トークンの有無（値は出さない）・確認結果・確かめるボタン。
+class _ServerSection extends StatelessWidget {
+  const _ServerSection({required this.services});
+
+  final AppServices services;
+
+  @override
+  Widget build(BuildContext context) {
+    final api = services.api;
+    return ValueListenableBuilder<ServerStatus?>(
+      valueListenable: services.serverStatus,
+      builder: (context, st, _) => Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.dns_outlined),
+            title: Text(api.host),
+            subtitle: Text(
+              'モード ${AppConfig.apiModeLabel}・トークン ${api.hasToken ? '設定済み' : '未設定'}',
+            ),
+            trailing: FilledButton.tonalIcon(
+              onPressed: api.hasUrl ? services.checkServer : null,
+              icon: const Icon(Icons.sync),
+              label: const Text('接続を確かめる'),
+            ),
+          ),
+          if (!api.hasUrl)
+            const ListTile(
+              contentPadding: EdgeInsets.only(left: 72, right: 16),
+              title: Text('URL が未設定です（--dart-define=API_BASE_URL=… でビルド）'),
+            ),
+          if (st != null) ...[
+            _CheckRow(name: '生存確認（/health）', check: st.health),
+            _CheckRow(name: 'トークンの確認（タイル1枚）', check: st.auth),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CheckRow extends StatelessWidget {
+  const _CheckRow({required this.name, required this.check});
+
+  final String name;
+  final ApiCheck check;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    dense: true,
+    contentPadding: const EdgeInsets.only(left: 72, right: 16),
+    leading: Icon(
+      check.ok ? Icons.check_circle : Icons.error_outline,
+      color: check.ok ? AppColors.ok : AppColors.warn,
+    ),
+    title: Text(name),
+    trailing: Text(check.label),
+  );
 }

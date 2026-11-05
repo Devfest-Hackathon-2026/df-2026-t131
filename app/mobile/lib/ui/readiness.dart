@@ -1,3 +1,4 @@
+import '../net/api_client.dart';
 import '../app/app_settings.dart';
 import '../sources/audio_state_source.dart';
 import '../sources/gaze_source.dart';
@@ -24,6 +25,8 @@ List<ReadinessItem> buildReadiness({
   required bool cameraReady,
   required AudioState audio,
   required AppSettings settings,
+  ServerStatus? server,
+  bool serverConfigured = false,
 }) {
   return [
     if (location == null)
@@ -54,6 +57,19 @@ List<ReadinessItem> buildReadiness({
       const ReadinessItem('音声', 'イヤホン', CheckLevel.ok)
     else
       const ReadinessItem('音声', 'スピーカー（イヤホン推奨）', CheckLevel.warn),
+    if (serverConfigured)
+      if (server == null)
+        const ReadinessItem('サーバー', '確かめています', CheckLevel.waiting)
+      else if (server.ok)
+        ReadinessItem(
+          'サーバー',
+          'つながっています（${server.health.elapsedMs} ms）',
+          CheckLevel.ok,
+        )
+      else if (server.health.ok)
+        ReadinessItem('サーバー', '生存確認OK・${server.auth.label}', CheckLevel.warn)
+      else
+        ReadinessItem('サーバー', server.health.label, CheckLevel.warn),
   ];
 }
 

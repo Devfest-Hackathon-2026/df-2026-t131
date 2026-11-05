@@ -52,6 +52,8 @@ class _StartScreenState extends State<StartScreen> {
       cameraReady: services.camera.latestFrame() != null,
       audio: t.audio,
       settings: settings,
+      server: services.serverStatus.value,
+      serverConfigured: services.api.hasUrl,
     );
     final ready = canStart(location: t.location, gaze: t.gaze);
     final l = Layout.of(context);
@@ -266,7 +268,7 @@ class _ReadinessRow extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           SizedBox(
-            width: 56,
+            width: 72,
             child: Text(
               item.label,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),

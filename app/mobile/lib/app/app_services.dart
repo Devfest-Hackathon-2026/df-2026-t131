@@ -12,6 +12,8 @@ import '../info/fcm_alerts.dart';
 import '../info/info_hub.dart';
 import '../info/info_kind.dart';
 import '../info/sources.dart';
+import '../net/api_client.dart';
+import '../config.dart';
 import '../logging/walk_log_store.dart';
 import '../sources/activity_source.dart';
 import '../sources/audio_state_source.dart';
@@ -36,8 +38,12 @@ class AppServices {
     SpeakExecutor? speaker,
     this.fakeGps,
     this.useFcm = false,
+    ApiClient? api,
     AppSettings initialSettings = const AppSettings(),
-  }) : settings = ValueNotifier(initialSettings),
+  }) : api =
+           api ??
+           ApiClient(baseUrl: AppConfig.apiBaseUrl, token: AppConfig.appToken),
+       settings = ValueNotifier(initialSettings),
        speaker =
            speaker ??
            SpeakExecutor(
@@ -143,6 +149,24 @@ class AppServices {
     now: () => DateTime.now().toUtc().millisecondsSinceEpoch,
   );
 
+  /// Cloud Run の API。URL とトークンは --dart-define で渡す（コードに書かない）。
+  final ApiClient api;
+
+  /// サーバーとのつながりの最新の確認結果（まだ確かめていなければ null）。
+  final ValueNotifier<ServerStatus?> serverStatus = ValueNotifier(null);
+  bool _checkingServer = false;
+
+  /// サーバーにつながるか確かめる（起動時と、設定画面のボタン）。重ねて呼ばない。
+  Future<ServerStatus?> checkServer() async {
+    if (_checkingServer) return serverStatus.value;
+    _checkingServer = true;
+    try {
+      return serverStatus.value = await api.check();
+    } finally {
+      _checkingServer = false;
+    }
+  }
+
   /// FCM で警報を受けるか（テストでは使わない）。
   final bool useFcm;
   FcmAlerts? _fcm;
@@ -164,6 +188,7 @@ class AppServices {
       // 起動を待たせないよう、裏でつなぐ。つながらなくてもアプリは動く
       final fcm = _fcm = FcmAlerts(alerts);
       unawaited(fcm.connect());
+      unawaited(checkServer());
     }
   }
 
@@ -198,6 +223,8 @@ class AppServices {
     await _finishedSub?.cancel();
     await info.stop();
     _fcm?.dispose();
+    api.close();
+    serverStatus.dispose();
     await alerts.close();
     fakeGps?.dispose();
     await speaker.dispose();
