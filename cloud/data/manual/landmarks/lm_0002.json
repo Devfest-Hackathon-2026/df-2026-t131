@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0002",
+  "name": "富山駅",
+  "name_kana": "とやまえき",
+  "lat": 36.701609,
+  "lon": 137.212874,
+  "kind": "building",
+  "radius_m": null,
+  "script_short": "富山駅は、明治41年にいまの場所で開業しました。この駅で、南北へ向かう路面電車がつながっています。",
+  "script_long": "富山駅は、明治41年にいまの場所で開業しました。それから長いあいだ、街は線路で駅の南と北に分かれていました。南北へ向かう路面電車がこの駅でつながったことで、「富山市民100年の夢」と言われた南北の一体化が実現しました。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "富山市「富山駅路面電車南北接続開業記念事業」",
+      "url": "https://www.city.toyama.lg.jp/shisei/machizukuri/1010796/1006464.html",
+      "license": "富山市ホームページの利用条件に従う"
+    },
+    {
+      "title": "OpenStreetMap（位置：node/5591348357）",
+      "url": "https://www.openstreetmap.org/node/5591348357",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "reviewed"
+}
