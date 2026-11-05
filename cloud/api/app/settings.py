@@ -33,6 +33,11 @@ class Settings:
     #   （Google マップでのグラウンディングが使える地域かも確かめる）
     vertex_location: str = field(default_factory=lambda: _env("VERTEX_LOCATION", "asia-northeast1"))
     gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-2.5-flash"))
+    gcp_project: str = field(default_factory=lambda: _env("GOOGLE_CLOUD_PROJECT", ""))
+    # これ未満の自信は unknown にする（明らかに自信のない答えを外すだけ。話すかの本当のしきい値は engine の 0.6）
+    visual_min_confidence: float = field(default_factory=lambda: float(_env("VISUAL_MIN_CONFIDENCE", "0.3")))
+    # B の説明の長さ（目安100字＝約15秒。schema の上限は120字）
+    description_max_chars: int = field(default_factory=lambda: int(_env("DESCRIPTION_MAX_CHARS", "100")))
     gemini_timeout_s: float = field(default_factory=lambda: float(_env("GEMINI_TIMEOUT_S", "6")))  # mobile の 8 秒より短く
     # 1日あたりの B の呼び出し上限（端末側の上限が壊れても予算を守る）。日付は日本時間で区切る
     visual_search_daily_limit: int = field(default_factory=lambda: int(_env("VISUAL_SEARCH_DAILY_LIMIT", "300")))

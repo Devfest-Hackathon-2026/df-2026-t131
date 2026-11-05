@@ -21,6 +21,9 @@ def _load_example(name: str) -> dict:
 class TileSource(Protocol):
     def get_tile(self, x: int, y: int) -> dict: ...
 
+    def landmarks_by_id(self, ids: list[str]) -> dict[str, dict]:
+        """B の候補の名前・見た目の説明を引く。知らない ID は入らない。"""
+
 
 class VisualSearch(Protocol):
     def search(self, request: dict) -> dict: ...
@@ -44,6 +47,9 @@ class FakeTileSource:
             "crossings": [],
             "events": [],
         }
+
+    def landmarks_by_id(self, ids: list[str]) -> dict[str, dict]:
+        return {lm["id"]: copy.deepcopy(lm) for lm in self._sample["landmarks"] if lm["id"] in ids}
 
 
 class SqliteTileSource:
@@ -86,6 +92,17 @@ class SqliteTileSource:
                 continue
             out[self._KEYS[kind]].append(item)
         return out
+
+    def landmarks_by_id(self, ids: list[str]) -> dict[str, dict]:
+        if not ids:
+            return {}
+        con = self._connect()
+        try:
+            q = ",".join("?" * len(ids))
+            rows = con.execute(f"SELECT id, json FROM features WHERE kind = 'landmark' AND id IN ({q})", ids).fetchall()
+        finally:
+            con.close()
+        return {i: json.loads(js) for i, js in rows}
 
 
 class FakeVisualSearch:

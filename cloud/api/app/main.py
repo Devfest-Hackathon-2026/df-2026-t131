@@ -21,16 +21,12 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import contracts
+from .errors import ApiError
 from .settings import Settings
 from .sources import FakeTileSource, FakeVisualSearch, SqliteTileSource, TileSource, VisualSearch
 
 log = logging.getLogger("api")
 JST = timezone(timedelta(hours=9))
-
-
-class ApiError(Exception):
-    def __init__(self, status: int, code: str):
-        self.status, self.code = status, code
 
 
 class DailyLimiter:
@@ -63,16 +59,20 @@ def create_app(
 ) -> FastAPI:
     settings = settings or Settings()
     settings.check()
-    if settings.gemini_mode == "real" and visual_search is None:
-        # TODO(メンバー1): 4章で GeminiVisualSearch を実装して差し込む
-        raise RuntimeError("GEMINI_MODE=real はまだ実装していない")
     if not settings.app_token:
         log.warning("APP_TOKEN が未設定のため、/v1/ はすべて 401 を返す")
 
     if tile_source is None:
         tile_source = SqliteTileSource(settings.tiles_db_path) if settings.tile_source == "sqlite" else FakeTileSource()
     tiles = tile_source
-    visual = visual_search or FakeVisualSearch()
+    if visual_search is None:
+        if settings.gemini_mode == "real":
+            from .gemini import GeminiVisualSearch  # real のときだけ読み込む
+
+            visual_search = GeminiVisualSearch(settings, tiles)
+        else:
+            visual_search = FakeVisualSearch()
+    visual = visual_search
     limiter = DailyLimiter(settings.visual_search_daily_limit)
 
     app = FastAPI(title="アンビエント・ナラティブガイド API", docs_url=None, redoc_url=None, openapi_url=None)
