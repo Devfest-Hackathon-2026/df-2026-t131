@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 検証用の見本：富山駅 北口 → 天門橋（時刻付き＝この速さで流す）。公共の場所だけ。自宅付近のデータはここに置かない。 -->
+<gpx version="1.1" creator="dfhack26-mobile">
+  <trk><name>見本 富山駅→天門橋（時刻付き）</name><trkseg>
+    <trkpt lat="36.70220" lon="137.21330"><time>2026-11-05T01:00:00Z</time></trkpt>
+    <trkpt lat="36.70420" lon="137.21380"><time>2026-11-05T01:02:50Z</time></trkpt>
+    <trkpt lat="36.70420" lon="137.21380"><time>2026-11-05T01:03:20Z</time></trkpt>
+    <trkpt lat="36.70705" lon="137.21512"><time>2026-11-05T01:07:30Z</time></trkpt>
+    <trkpt lat="36.70950" lon="137.21470"><time>2026-11-05T01:11:00Z</time></trkpt>
+    <trkpt lat="36.71150" lon="137.21410"><time>2026-11-05T01:14:00Z</time></trkpt>
+  </trkseg></trk>
+</gpx>
