@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0003",
+  "name": "ブールバール",
+  "name_kana": "ぶーるばーる",
+  "lat": 36.70513,
+  "lon": 137.215592,
+  "kind": "street",
+  "radius_m": null,
+  "script_short": "ブールバールは、富山駅北線とも呼ばれる、駅の北の通りです。",
+  "script_long": "ブールバールは、富山駅北線とも呼ばれる、駅の北の通りです。昭和63年度に作られた「とやま都市MIRAI計画」で整えられました。鉄道の跡地や運河の舟だまりなど、使われていなかった土地を生かす町づくりで、平成12年7月に主な工事の完成式が行われました。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "富山県「とやま都市MIRAI計画」",
+      "url": "https://www.pref.toyama.jp/1506/kendodukuri/toshikeikaku/keikaku-tochi/kj00019152.html",
+      "license": "富山県ホームページの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "OpenStreetMap（位置：way/118519870）",
+      "url": "https://www.openstreetmap.org/way/118519870",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "draft"
+}

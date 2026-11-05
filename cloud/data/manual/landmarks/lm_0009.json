@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0009",
+  "name": "松川べり",
+  "name_kana": "まつかわべり",
+  "lat": 36.694948,
+  "lon": 137.213856,
+  "kind": "street",
+  "radius_m": null,
+  "script_short": "松川べりは、神通川のもとの流れである松川に沿った遊歩道です。",
+  "script_long": "松川べりは、神通川のもとの流れである松川に沿った遊歩道です。ソメイヨシノなど470本あまりの桜並木が続き、日本さくら名所100選に選ばれています。桜橋から上流の7つの橋を中心に彫刻が置かれ、松川べり彫刻公園になっています。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "富山県「松川」",
+      "url": "https://www.pref.toyama.jp/1706/kurashi/kankyoushizen/kankyou/mizuhozen/1shirou/meisui/02/61.html",
+      "license": "富山県ホームページの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "OpenStreetMap（位置：way/593382662）",
+      "url": "https://www.openstreetmap.org/way/593382662",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "draft"
+}

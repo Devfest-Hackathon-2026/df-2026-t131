@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0006",
+  "name": "ラバーズ像",
+  "name_kana": "らばーずぞう",
+  "lat": 36.70318,
+  "lon": 137.214206,
+  "kind": "monument",
+  "radius_m": null,
+  "script_short": "ラバーズは、富山市出身の芸術家、吉野美奈子さんによる大理石の像です。",
+  "script_long": "ラバーズは、ニューヨークを拠点に活動する富山市出身の芸術家、吉野美奈子さんによる大理石の像です。日本神話のイザナギとイザナミを題材に、イタリアで作られました。2020年3月に、ここ富山駅北口に置かれました。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "吉野美奈子 公式 YouTube「『ラバーズ』富山駅設置インタビュー｜吉野美奈子」の説明文（2023年4月公開）",
+      "url": "https://www.youtube.com/watch?v=nwnyyqxFMk4",
+      "license": "制作者本人の発信（事実の参照のみ。映像・写真は使わない）"
+    },
+    {
+      "title": "OpenStreetMap（位置：node/13758880422）",
+      "url": "https://www.openstreetmap.org/node/13758880422",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "draft"
+}

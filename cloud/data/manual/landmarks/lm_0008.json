@@ -1,0 +1,32 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0008",
+  "name": "富山城址公園",
+  "name_kana": "とやまじょうしこうえん",
+  "lat": 36.6932,
+  "lon": 137.210827,
+  "kind": "area",
+  "radius_m": 160,
+  "script_short": "富山城址公園は、富山城の跡にある公園です。",
+  "script_long": "富山城址公園は、富山城の跡にある公園です。公園の北側には、神通川のもとの流れである松川が流れています。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "富山市オープンデータ「インフォマップとやま＿観光情報マップ＿文化財情報」",
+      "url": "https://opdt.city.toyama.lg.jp/dataset/infomap-toyama12",
+      "license": "CC BY（富山市）"
+    },
+    {
+      "title": "富山県「松川」",
+      "url": "https://www.pref.toyama.jp/1706/kurashi/kankyoushizen/kankyou/mizuhozen/1shirou/meisui/02/61.html",
+      "license": "富山県ホームページの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "OpenStreetMap（位置：way/338862862）",
+      "url": "https://www.openstreetmap.org/way/338862862",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "draft"
+}

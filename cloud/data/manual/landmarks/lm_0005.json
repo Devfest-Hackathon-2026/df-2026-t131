@@ -1,0 +1,32 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0005",
+  "name": "オーバード・ホール",
+  "name_kana": "おーばーど・ほーる",
+  "lat": 36.703519,
+  "lon": 137.213339,
+  "kind": "building",
+  "radius_m": null,
+  "script_short": "オーバード・ホールは、富山市芸術文化ホールのことで、二つのホールを持つ芸術文化の発信拠点です。",
+  "script_long": "オーバード・ホールは、富山市芸術文化ホールのことです。平成8年に大ホールが開館し、令和5年7月には中ホールも開館しました。大ホールは、国内有数の三面半舞台を備えています。駅の北の町づくり「とやま都市MIRAI計画」で整えられた施設の一つです。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "オーバード・ホール「オーバード・ホールについて」",
+      "url": "https://www.aubade.or.jp/about/",
+      "license": "施設公式サイトの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "富山県「とやま都市MIRAI計画」",
+      "url": "https://www.pref.toyama.jp/1506/kendodukuri/toshikeikaku/keikaku-tochi/kj00019152.html",
+      "license": "富山県ホームページの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "OpenStreetMap（位置：way/198741385）",
+      "url": "https://www.openstreetmap.org/way/198741385",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "draft"
+}

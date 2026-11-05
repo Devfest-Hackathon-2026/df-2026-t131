@@ -1,0 +1,32 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0007",
+  "name": "YKK AP ARENA",
+  "name_kana": "わいけーけーえーぴー ありーな",
+  "lat": 36.70675,
+  "lon": 137.214056,
+  "kind": "building",
+  "radius_m": null,
+  "script_short": "YKK AP ARENAは、もとの富山市総合体育館で、令和8年10月に新しく開きました。",
+  "script_long": "YKK AP ARENAは、もとの富山市総合体育館です。改修工事を経て、令和8年10月に富山市まちなかアリーナとして新しく開きました。男子プロバスケットボールのBプレミアなどの試合が開かれ、試合のない日は市民がスポーツを楽しめます。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "富山市「富山市まちなかアリーナ（YKK APアリーナ）」",
+      "url": "https://www.city.toyama.lg.jp/shisei/shisetsu/1011061/1011062/1019453.html",
+      "license": "富山市ホームページの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "富山市「富山市総合体育館のネーミングライツ・パートナーと愛称について」",
+      "url": "https://www.city.toyama.lg.jp/bunka/sports/1010564/1016385.html",
+      "license": "富山市ホームページの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "OpenStreetMap（位置：way/198741387）",
+      "url": "https://www.openstreetmap.org/way/198741387",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "draft"
+}

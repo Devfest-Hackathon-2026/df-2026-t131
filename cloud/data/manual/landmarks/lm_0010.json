@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0010",
+  "name": "桜橋",
+  "name_kana": "さくらばし",
+  "lat": 36.695729,
+  "lon": 137.21603,
+  "kind": "other",
+  "radius_m": null,
+  "script_short": "桜橋は、松川に架かる鋼のアーチ橋で、国の登録有形文化財です。",
+  "script_long": "桜橋は、昭和10年に松川に架けられた、鋼のアーチ橋です。道路の向きに合わせて、幅の広い斜めの橋として架けられました。平成11年に国の登録有形文化財になりました。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "文化遺産オンライン「桜橋」",
+      "url": "https://kunishitei.bunka.go.jp/heritage/detail/101/00001410",
+      "license": "文化庁の利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "OpenStreetMap（位置：way/1369530727）",
+      "url": "https://www.openstreetmap.org/way/1369530727",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "draft"
+}
