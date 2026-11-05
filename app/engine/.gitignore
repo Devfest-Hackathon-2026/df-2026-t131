@@ -1,0 +1,2 @@
+# Dartの生成キャッシュ。pubspec.lockは共通ルールに従ってコミットする。
+.dart_tool/
