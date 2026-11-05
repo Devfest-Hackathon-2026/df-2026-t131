@@ -27,7 +27,9 @@ from .storage import Archive, Publisher, current_path, raw_path
 
 log = logging.getLogger("alert-job")
 
-MOCK_PREFIX = "これはデモ用の模擬の警報です。"
+# 模擬の警報は、実際の警報と取り違えないよう、頭に断りを入れ、「気象庁が発表した」とは言わない
+# （気象業務法 第23条：気象庁以外の者は警報をしてはならない。伝えるのは気象庁の発表だけ）
+MOCK_PREFIX = "これは訓練用の模擬の警報で、実際の警報ではありません。"
 
 
 # ======================================================================
@@ -35,12 +37,15 @@ MOCK_PREFIX = "これはデモ用の模擬の警報です。"
 # ======================================================================
 
 def build_text(area_name: str, level: int, kind_name: str, mock: bool, current: bool = False) -> str:
-    """current=False は FCM 用（発表されました）、True は一覧用（後から入った人向け：発表されています）。"""
-    parts = [MOCK_PREFIX] if mock else []
-    if current:
-        parts.append(f"{area_name}には、警戒レベル{level}の{kind_name}が発表されています。")
+    """current=False は FCM 用（発表しました）、True は一覧用（後から入った人向け：発表しています）。
+    本物は「気象庁は、〜を発表しました」と、気象庁の発表を伝えていることが分かる文にする（CLAUDE.md 3章8）。
+    模擬は「〜が出た、という想定です」とし、気象庁の名前は出さない。"""
+    if mock:
+        parts = [MOCK_PREFIX, f"{area_name}に警戒レベル{level}の{kind_name}が出た、という想定です。"]
+    elif current:
+        parts = [f"気象庁は、{area_name}に警戒レベル{level}の{kind_name}を発表しています。"]
     else:
-        parts.append(f"{area_name}に、警戒レベル{level}の{kind_name}が発表されました。")
+        parts = [f"気象庁は、{area_name}に警戒レベル{level}の{kind_name}を発表しました。"]
     if level >= 4:
         parts.append("危険な場所から離れ、安全を確保してください。最新の情報を確認してください。")
     else:
@@ -257,6 +262,15 @@ class AlertJob:
             self.store.save_area(u.area_code, u.state)
         if result.feed_changed:
             self.store.save_feed(feed)
+        return result
+
+    def clear_mock(self, now_ms: int | None = None) -> RunResult:
+        """デモ用：模擬の警報の一覧（alerts/current/mock_<区域7桁>.json）を空に戻す。
+        テストのあとに呼ぶ（残ったままだと、一覧を取りに来た端末が古い模擬の警報を読んでしまう）。"""
+        now_ms = now_ms if now_ms is not None else _now_ms()
+        result = RunResult()
+        updates = [AreaUpdate(a, AreaState(), [], []) for a in self.s.areas]
+        self.distributor.run(updates, now_ms, result, mock=True)
         return result
 
     def run_mock(self, telegram_xml: bytes, now_ms: int | None = None) -> RunResult:

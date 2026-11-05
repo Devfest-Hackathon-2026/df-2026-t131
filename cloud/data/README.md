@@ -21,6 +21,8 @@ pip install -r cloud/data/requirements.txt
 
 `manual/landmarks/<ID>.json` に `status: "draft"` で登録したランドマークの原稿の下書きを、Gemini が作ります。
 
+**スクリプトが、登録ファイルの `sources` にある公式のページの本文を取ってきて Gemini に渡し、「この本文に書いてある事実だけで書く」よう頼みます。**Google 検索のグラウンディングは使いません（Google Cloud の利用条件で、グラウンディングの結果を保存したりデータベース作りに使ったりできないため。11/6 に変更）。なので、先に `sources` に公式のページの URL を入れておいてください（OpenStreetMap の URL は位置の出典なので読みません）。
+
 ```sh
 # 1. お試し（お金はかからない。仮の文が出るだけ）
 python cloud/data/scripts/draft_scripts.py --fake
@@ -49,7 +51,7 @@ GOOGLE_CLOUD_PROJECT=<プロジェクトID> python cloud/data/scripts/draft_scri
 | `numbers_to_check` | 原稿に出てくる数字・年号。**出典と一字一句合っているか確かめる**。合わない・確かめられないなら消す |
 | `facts` | 原稿に使った事実と、その根拠の URL。URL を開いて本当に書いてあるか確かめる |
 | `uncertain` | Gemini が確かめられなかったこと（原稿には入っていない） |
-| `grounding_sources` | Gemini が検索で見たページ |
+| `source_pages` | 本文を読んだ出典のページと文字数（0 なら読めなかった。そのページの事実は使われていない） |
 
 確かめて直したら、`landmarks/<ID>.json` に `script_short`・`script_long` を写し、`status` を `"reviewed"` にして、`python schema/validate.py` を動かします。**確かでない内容は入れない**（数が足りないほうが、間違った情報を話すよりよい）。
 

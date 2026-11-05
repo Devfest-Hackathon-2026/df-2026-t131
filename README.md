@@ -20,6 +20,16 @@ DevFest GDGoC Japan Hackathon 2026（カテゴリ：観光）の提出作品。�
 | `app/mobile/` | Android アプリ（Flutter） | メンバー3 |
 | `docs/` | 出典・ライセンス（`attribution.md`）など | メンバー4 |
 
+## データの出典
+
+| データ | 出典 | ライセンス・条件 |
+| :---- | :---- | :---- |
+| 気象警報 | **出典：気象庁ホームページ（防災情報XML）** https://www.data.jma.go.jp/developer/xml/feed/extra.xml 。気象庁の電文から、対象の区域・種類・レベルを取り出し、テンプレートの文に**加工して作成**（読み上げる文・警報の一覧） | 気象庁ホームページのコンテンツ利用条件（公共データ利用規約 第1.0版） |
+| 地図データ（ランドマークの位置、横断歩道・信号） | **© OpenStreetMap contributors** https://www.openstreetmap.org/copyright | ODbL 1.0。横断歩道・信号の抽出データ（`cloud/data/osm/crossings.json`）とそこから作ったタイルのデータも ODbL |
+| ランドマークの原稿 | 自治体・施設の公式ページなど（ランドマークごとに [`docs/attribution.md`](docs/attribution.md)） | 事実だけを参照し、自分たちの言葉で書いた。写真・他人の文章は使っていない |
+
+気象警報は気象庁の発表をそのまま伝えるだけで、自分たちで予想や警報はしない（気象業務法 第17条・第23条）。デモ用の模擬の警報は、文の頭で「訓練用の模擬の警報で、実際の警報ではありません」と断っている。
+
 ## はじめに（全員）
 
 ```sh

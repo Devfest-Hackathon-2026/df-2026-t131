@@ -31,7 +31,7 @@ Cloud Scheduler（1分おき）→ POST /run
 | ② 一覧 | `https://storage.googleapis.com/<ALERT_BUCKET>/alerts/current/<区域7桁>.json` | `schema/api/alerts_current.schema.json`（見本 `schema/examples/alerts/current_1620100.json`） | 一覧が変わったとき。警報が無くても `"alerts": []` で置く |
 
 * ① と ② の同じ警報は**同じ `alert_id`**。同じ警報が続いている間は ID が変わらないので、端末は ② を取り直しても同じ警報として捨てられる
-* ① の文は「発表されました」、② の文は後から入った人向けに「発表されています」
+* ① の文は「気象庁は、富山市に警戒レベル4の大雨危険警報を発表しました。」、② の文は後から入った人向けに「…を発表しています。」。**気象庁の発表を伝えていることが分かる文にする**（気象業務法 第23条：気象庁以外の者は警報をしてはならない。CLAUDE.md 3章8）
 * ② は `Cache-Control: public, max-age=60`。端末は ETag をつけて取りに来る（変わっていなければ 304）
 * **移行の間**は、富山市の ① を前のトピック `alert_16201` にも送る（mobile が `alert_1620100` に切り替えたら `FCM_LEGACY_TOPIC=""` で止める）
 
@@ -50,12 +50,14 @@ Cloud Scheduler（1分おき）→ POST /run
 
 ```
 POST /mock-alert                       # app/mock/level4_heavy_rain.xml（レベル4 大雨危険警報）
+POST /mock-alert/clear                 # 模擬の一覧を空に戻す（テストのあと）
 ```
 
-* 送る文の頭に「これはデモ用の模擬の警報です。」が入り、`alert_id` は `mock_` で始まる
+* 送る文は「これは訓練用の模擬の警報で、実際の警報ではありません。富山市に警戒レベル4の大雨危険警報が出た、という想定です。…」。**気象庁の名前は出さない**（模擬を気象庁の発表のように言わない）。`alert_id` は `mock_` で始まる
 * `alert_id` の最後に送った時刻（UTC ミリ秒）が付くので、毎回別の ID になる（端末は同じ ID の2回目を捨てるため。アプリを起動したままでも何度でも鳴る）。本物の警報の ID は時刻を足さず、同じ発表なら同じ ID
 * ① は本物と同じトピック（`alert_1620100` と移行の間の `alert_16201`）に送る。② は本物と分けて `alerts/current/mock_1620100.json` に書く
 * 本物の判定の状態（Firestore）と本物の一覧には影響しない。何度でも鳴らせる
+* **テストが終わったら `POST /mock-alert/clear` で模擬の一覧を空に戻す**（残ったままだと、開発者モードの端末が歩き始めるたびに古い模擬の警報を読む）
 * デモ動画では「模擬の警報を、実際の判定の仕組みに流している」ことを明示する（偽装にしない）
 
 ## 手元で動かす
@@ -100,7 +102,8 @@ curl -X POST localhost:8081/mock-alert
 
 ## 公開バケットを用意する（人がやる。1回だけ）
 
-地図などの非公開のデータとは**別の**バケットにする（中身はすべて公開になるため）。② と元の電文（`raw/`）を置く。どちらも気象庁の公開情報から作ったもので、秘密は入らない。
+地図などの非公開のデータとは**別の**バケットにする（中身はすべて公開になるため）。公開のバケットには ② だけを置く。
+**元の電文（`raw/`）は、非公開の別のバケット `ambient-guide-toyama-2026-alerts-raw` に置く**（記録用で公開する必要がない。気象庁の電文をそのまま再配布しない。11/6 に変更）。
 
 ```sh
 # 1. バケットを作る（東京、一様なアクセス制御）
@@ -111,6 +114,11 @@ gcloud storage buckets add-iam-policy-binding gs://ambient-guide-toyama-2026-ale
 
 # 3. raw/ だけ30日で消す（cloud/alert-job/lifecycle.json）
 gcloud storage buckets update gs://ambient-guide-toyama-2026-alerts --lifecycle-file=cloud/alert-job/lifecycle.json
+
+# 3'. 元の電文用の非公開のバケット（外から読めない設定、raw/ を30日で消す）
+gcloud storage buckets create gs://ambient-guide-toyama-2026-alerts-raw --location=asia-northeast1 --uniform-bucket-level-access --public-access-prevention
+gcloud storage buckets update gs://ambient-guide-toyama-2026-alerts-raw --lifecycle-file=cloud/alert-job/lifecycle.json
+gcloud storage buckets add-iam-policy-binding gs://ambient-guide-toyama-2026-alerts-raw --member=serviceAccount:566419227445-compute@developer.gserviceaccount.com --role=roles/storage.objectCreator
 
 # 4. 警報ジョブ（Cloud Run のサービスアカウント）に、このバケットへの書き込み（上書きを含む）を許す
 gcloud storage buckets add-iam-policy-binding gs://ambient-guide-toyama-2026-alerts --member=serviceAccount:566419227445-compute@developer.gserviceaccount.com --role=roles/storage.objectAdmin
@@ -129,7 +137,7 @@ gcloud run deploy alert-job \
   --region=asia-northeast1 \
   --no-allow-unauthenticated \
   --max-instances=1 \
-  --update-env-vars=ALERT_SENDER=fcm,ALERT_STATE=firestore,ALERT_AREAS=1620100,ALERT_PUBLISHER=gcs,ALERT_ARCHIVE=gcs,ALERT_BUCKET=ambient-guide-toyama-2026-alerts
+  --update-env-vars=ALERT_SENDER=fcm,ALERT_STATE=firestore,ALERT_AREAS=1620100,ALERT_PUBLISHER=gcs,ALERT_ARCHIVE=gcs,ALERT_BUCKET=ambient-guide-toyama-2026-alerts,ALERT_ARCHIVE_BUCKET=ambient-guide-toyama-2026-alerts-raw
 
 # Cloud Scheduler（1分おき、サービスアカウントの ID トークンで呼ぶ）
 gcloud scheduler jobs create http alert-job-every-minute \

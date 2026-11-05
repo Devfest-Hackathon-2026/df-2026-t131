@@ -4,6 +4,7 @@
   POST /run                    気象庁のフィードを見て、上がった警報を FCM へ。今出ている警報の一覧を書き換える
   POST /mock-alert?name=...    デモ用：模擬電文（app/mock/<name>.xml）を同じ判定に通して FCM へ。
                                一覧は alerts/current/mock_<区域>.json に書く（本物の一覧は汚さない）
+  POST /mock-alert/clear       デモ用：模擬の警報の一覧を空に戻す（テストのあとに呼ぶ）
 
 Cloud Run は認証ありでデプロイする（--no-allow-unauthenticated）。呼べるのは Cloud Scheduler と
 起動者の権限を持つ人だけ。
@@ -51,6 +52,11 @@ def create_app(job: AlertJob | None = None) -> FastAPI:
             return JSONResponse({"error": "internal"}, status_code=500)
         return {"feed_changed": r.feed_changed, "telegrams": r.telegrams, "sent": len(r.sent),
                 "published": len(r.published)}
+
+    @app.post("/mock-alert/clear")
+    def mock_clear():
+        r = job.clear_mock()
+        return {"published": r.published}
 
     @app.post("/mock-alert")
     def mock_alert(name: str = "level4_heavy_rain"):

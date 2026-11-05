@@ -58,7 +58,21 @@ def test_drafts_only_draft_landmarks_and_never_touches_manual(files):
     d = json.loads((drafts / "lm_0003.json").read_text(encoding="utf-8"))
     assert d["landmark_id"] == "lm_0003" and d["script_short"] == "見本の原稿です。"
     assert d["generated_by"] == META
-    assert d["grounding_sources"] == [{"title": "t", "uri": "https://example.com/g"}]
+    # Google 検索のグラウンディングの結果は保存しない（Service Terms 20(k)）
+    assert "grounding_sources" not in d
+
+
+class DictReader:
+    """出典のページの本文を決まった文字列で返す偽物。"""
+
+    def __init__(self, pages: dict[str, str]):
+        self.pages, self.read_urls = pages, []
+
+    def read(self, url):
+        self.read_urls.append(url)
+        if url not in self.pages:
+            raise OSError("読めない")
+        return self.pages[url]
 
 
 def test_prompt_has_sources_and_rules(files):
@@ -69,6 +83,40 @@ def test_prompt_has_sources_and_rules(files):
     assert "https://example.com/sample" in p
     assert "年号・数字は出典にあるものだけ" in p
     assert "方向の言葉は入れない" in p
+    assert "出典の本文」に書いてある事実だけ" in p
+    assert "読めた本文がありません" in p                          # 本文が無いときは事実を書かせない
+
+
+def test_source_page_text_goes_into_prompt_and_osm_is_skipped(tmp_path):
+    d = tmp_path / "landmarks"
+    d.mkdir()
+    item = json.loads((ROOT / "schema" / "templates" / "landmark_point.json").read_text(encoding="utf-8"))
+    item["sources"] = [
+        {"title": "公式", "url": "https://example.com/official", "license": "x"},
+        {"title": "OSM", "url": "https://www.openstreetmap.org/node/1", "license": "ODbL 1.0"},
+        {"title": "読めない", "url": "https://example.com/broken", "license": "x"},
+    ]
+    (d / f"{item['id']}.json").write_text(json.dumps(item, ensure_ascii=False), encoding="utf-8")
+    reader = DictReader({"https://example.com/official": "この建物は見本の年に建てられた。"})
+    gen = ScriptedGenerator(good_response())
+    assert ds.run(d, tmp_path / "drafts", gen, META, [], False, 30, reader) == 0
+    assert "この建物は見本の年に建てられた。" in gen.prompts[0]
+    assert "https://www.openstreetmap.org/node/1" not in reader.read_urls   # 位置だけの出典は読みに行かない
+    out = json.loads((tmp_path / "drafts" / f"{item['id']}.json").read_text(encoding="utf-8"))
+    assert out["source_pages"] == [{"url": "https://example.com/official", "chars": 16},
+                                   {"url": "https://example.com/broken", "chars": 0}]
+
+
+def test_html_and_youtube_text_extraction():
+    raw = "<html><head><style>x{}</style><script>var a=1;</script></head><body><nav>メニュー</nav><p>本文 です</p></body></html>"
+    assert ds.html_to_text(raw) == "本文 です"
+    yt = 'xx "shortDescription":"2020年3月、\\n大理石の像" yy'
+    assert ds.youtube_description(yt) == "2020年3月、\n大理石の像"
+
+
+def test_vertex_generator_has_no_search_grounding():
+    src = (ROOT / "cloud" / "data" / "scripts" / "draft_scripts.py").read_text(encoding="utf-8")
+    assert "GoogleSearch(" not in src and "google_search=" not in src
 
 
 def test_existing_draft_is_skipped_unless_force(files):

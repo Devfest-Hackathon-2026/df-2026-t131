@@ -61,7 +61,7 @@
 
 * `https://storage.googleapis.com/<バケット>/alerts/current/<区域7桁>.json`（形は `api/alerts_current.schema.json`、見本は `examples/alerts/current_1620100.json`）
 * 区域の一覧が変わったときに alert-job が書き換える。警報が無いときも `"alerts": []` で置く。`Cache-Control: public, max-age=60`、ETag つきで取れる
-* 各要素は FCM の data と同じ `alert_id`・`level`（文字列）・`kind`・`text` を持つ（mobile は同じ読み方で読める）。text は「発表されています」
+* 各要素は FCM の data と同じ `alert_id`・`level`（文字列）・`kind`・`text` を持つ（mobile は同じ読み方で読める）。text は「気象庁は、〜を発表しています」（FCM は「〜を発表しました」）
 * デモ用の模擬の警報の一覧は `alerts/current/mock_<区域7桁>.json` に分けてある
 
 ## 決まり（抜粋）

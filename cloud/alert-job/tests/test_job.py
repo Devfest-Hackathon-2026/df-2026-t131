@@ -142,7 +142,7 @@ def test_sends_when_level_rises_to_warning_and_not_again():
     data = sent[0]
     assert data["level"] == "4" and data["kind"] == "大雨危険警報"
     assert data["area_code"] == TOYAMA_CITY and data["area_name"] == "富山市"
-    assert "警戒レベル4の大雨危険警報が発表されました" in data["text"]
+    assert data["text"].startswith("気象庁は、富山市に警戒レベル4の大雨危険警報を発表しました。")
     assert p.sent_to("alert_16201") == [data]                    # 移行の間は前のトピックにも同じもの
     p.run("3_0_VPWW55_160000.xml", telegram(["レベル４大雨危険警報"], report="2026-11-07T09:30:00+09:00"),
           "2026-11-07T00:20:00Z")
@@ -199,7 +199,7 @@ def test_current_list_follows_level_and_shares_alert_id_with_fcm():
     a = doc["alerts"][0]
     assert a["alert_id"] == fcm["alert_id"]                      # 端末は ① と ② を同じ ID で1回にまとめる
     assert a["level"] == "4" and a["kind"] == "大雨危険警報"
-    assert a["text"].startswith("富山市には、警戒レベル4の大雨危険警報が発表されています。")
+    assert a["text"].startswith("気象庁は、富山市に警戒レベル4の大雨危険警報を発表しています。")
 
     # 継続（発表時刻だけ新しい電文）：ID も一覧も変えない
     p.run("2_0_VPWW55_160000.xml", telegram(["レベル４大雨危険警報"], report="2026-11-07T10:00:00+09:00"),
@@ -283,13 +283,14 @@ def test_mock_alert_goes_through_same_logic_and_says_mock():
     assert len(r.sent) == 1
     d = r.sent[0]
     assert d["level"] == "4" and d["alert_id"].startswith("mock_") and d["area_code"] == TOYAMA_CITY
-    assert d["text"].startswith("これはデモ用の模擬の警報です。")
+    assert d["text"].startswith("これは訓練用の模擬の警報で、実際の警報ではありません。")
+    assert "気象庁" not in d["text"]                             # 模擬を気象庁の発表のように言わない（気象業務法23条）
     # 新しいトピックと前のトピックの両方へ
     assert [t for t, _ in p.sender.sent] == ["alert_1620100", "alert_16201"]
     # 一覧は本物と分けて mock_ に書く。本物の一覧・状態は汚さない
     mock_doc = p.publisher.files["alerts/current/mock_1620100.json"]
     assert mock_doc["alerts"][0]["alert_id"] == d["alert_id"]
-    assert mock_doc["alerts"][0]["text"].startswith("これはデモ用の模擬の警報です。富山市には、")
+    assert mock_doc["alerts"][0]["text"].startswith("これは訓練用の模擬の警報で、実際の警報ではありません。富山市に警戒レベル4")
     assert "alerts/current/1620100.json" not in p.publisher.files
     assert p.store.load_area(TOYAMA_CITY).categories == {}
     # 何度でも鳴らせる
@@ -315,9 +316,24 @@ def test_real_alert_id_is_stable_for_same_report():
 
 
 def test_text_is_template_only():
-    assert build_text("富山市", 3, "大雨警報", mock=False) == "富山市に、警戒レベル3の大雨警報が発表されました。今後の情報に注意してください。"
+    assert build_text("富山市", 3, "大雨警報", mock=False) == "気象庁は、富山市に警戒レベル3の大雨警報を発表しました。今後の情報に注意してください。"
     assert build_text("富山市", 3, "大雨警報", mock=False, current=True) == \
-        "富山市には、警戒レベル3の大雨警報が発表されています。今後の情報に注意してください。"
+        "気象庁は、富山市に警戒レベル3の大雨警報を発表しています。今後の情報に注意してください。"
+    assert build_text("富山市", 4, "大雨危険警報", mock=True) == (
+        "これは訓練用の模擬の警報で、実際の警報ではありません。富山市に警戒レベル4の大雨危険警報が出た、という想定です。"
+        "危険な場所から離れ、安全を確保してください。最新の情報を確認してください。")
+
+
+def test_clear_mock_empties_mock_list_only():
+    p = Parts()
+    xml = (MOCK_DIR / "level4_heavy_rain.xml").read_bytes()
+    p.job.run(now_ms=NOW)                                        # 本物の一覧（[]）
+    p.job.run_mock(xml, now_ms=NOW + 1)
+    assert len(p.publisher.files["alerts/current/mock_1620100.json"]["alerts"]) == 1
+    r = p.job.clear_mock(now_ms=NOW + 2)
+    assert r.published == ["alerts/current/mock_1620100.json"] and r.sent == []
+    assert p.publisher.files["alerts/current/mock_1620100.json"]["alerts"] == []
+    assert p.publisher.files["alerts/current/1620100.json"]["updated_at_ms"] == NOW   # 本物は触らない
 
 
 # ---- HTTP ----
@@ -330,5 +346,6 @@ def test_http_endpoints():
     r = c.post("/mock-alert").json()
     assert r["sent"][0]["level"] == "4" and r["sent"][0]["area_code"] == TOYAMA_CITY
     assert r["published"] == ["alerts/current/mock_1620100.json"]
+    assert c.post("/mock-alert/clear").json() == {"published": ["alerts/current/mock_1620100.json"]}
     assert c.post("/mock-alert?name=../../etc").status_code == 404
     assert c.post("/mock-alert?name=nothing").status_code == 404

@@ -7,6 +7,13 @@
 | データ | 出典 | ライセンス | 使い方 |
 | :-- | :-- | :-- | :-- |
 | ランドマークの位置（緯度・経度） | OpenStreetMap（© OpenStreetMap contributors） https://www.openstreetmap.org/copyright | ODbL 1.0 | 各ランドマークの中心の位置を確かめて登録 |
+| 横断歩道・信号（`cloud/data/osm/crossings.json`、365件） | OpenStreetMap（© OpenStreetMap contributors）を Overpass API で取り出した https://www.openstreetmap.org/copyright | ODbL 1.0 | 文脈ゲート（横断歩道の手前では話さない）。タイル API で配る。抽出データとタイルのデータも ODbL |
+
+## 気象データ
+
+| データ | 出典 | ライセンス・条件 | 使い方 |
+| :-- | :-- | :-- | :-- |
+| 気象警報（防災情報XML 随時フィード） | 出典：気象庁ホームページ https://www.data.jma.go.jp/developer/xml/feed/extra.xml | 気象庁ホームページのコンテンツ利用条件（公共データ利用規約 第1.0版） https://www.jma.go.jp/jma/kishou/info/coment.html | 富山市の警報の種類とレベルを取り出し、テンプレートの文（「気象庁は、富山市に〜を発表しました。」）に**加工して作成**。FCM で配り、今出ている警報の一覧を公開の Cloud Storage に置く。元の電文は非公開のバケットに30日だけ残す。予想や独自の警報はしない（気象業務法 第17条・第23条） |
 
 ## ランドマーク
 
