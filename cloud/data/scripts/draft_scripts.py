@@ -11,12 +11,12 @@
     （プロジェクトは環境変数 GOOGLE_CLOUD_PROJECT か --project で指定）
 
 決まり（CLAUDE.md 3章2・7、tasks/member1_leader.md 3章）:
-  - 読むのは cloud/data/manual/landmarks.json。書くのは cloud/data/drafts/<ID>.json だけ
+  - 読むのは cloud/data/manual/landmarks/<ID>.json（1件1ファイル）。書くのは cloud/data/drafts/<ID>.json だけ
     （manual/ と reviewed の原稿は絶対に書き換えない）
   - 下書きを作るのは status が draft のランドマークだけ
   - 既に下書きがあるものは作らない（お金を無駄にしない）。作り直すときは --force
   - 使ったモデル名・日時・根拠にした URL を下書きに残す
-  - 下書きは人が出典で確かめてから landmarks.json に写し、status を reviewed にする
+  - 下書きは人が出典で確かめてから landmarks/<ID>.json に写し、status を reviewed にする
 """
 import argparse
 import json
@@ -32,7 +32,7 @@ from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[3]
 SCHEMA = ROOT / "schema"
-LANDMARKS = ROOT / "cloud" / "data" / "manual" / "landmarks.json"
+LANDMARKS = ROOT / "cloud" / "data" / "manual" / "landmarks"
 DRAFTS = ROOT / "cloud" / "data" / "drafts"
 JST = timezone(timedelta(hours=9))
 
@@ -176,7 +176,7 @@ def make_draft(lm: dict, gen: Generator, meta: dict, schema_version: str) -> dic
         "landmark_id": lm["id"],
         "name": lm["name"],
         "kind": lm["kind"],
-        "review": "下書きです。facts と numbers_to_check を出典で確かめ、直してから landmarks.json に写し、status を reviewed にしてください",
+        "review": "下書きです。facts と numbers_to_check を出典で確かめ、直してから landmarks/<ID>.json に写し、status を reviewed にしてください",
         "script_short": short,
         "script_long": long,
         "warnings": warnings_for(short, long, facts),
@@ -193,7 +193,23 @@ def load_landmarks(path: Path) -> tuple[dict | None, list[str]]:
     for p in SCHEMA.rglob("*.schema.json"):
         sch = json.loads(p.read_text(encoding="utf-8"))
         reg = reg.with_resource(sch["$id"], Resource.from_contents(sch))
-    v = Draft202012Validator(json.loads((SCHEMA / "landmarks_file.schema.json").read_text(encoding="utf-8")), registry=reg)
+    def validator(name: str) -> Draft202012Validator:
+        return Draft202012Validator(json.loads((SCHEMA / name).read_text(encoding="utf-8")), registry=reg)
+
+    if path.is_dir():  # 1件1ファイル（cloud/data/manual/landmarks/<ID>.json）
+        v = validator("landmark_entry.schema.json")
+        items, errs = [], []
+        for p in sorted(path.glob("*.json")):
+            try:
+                item = json.loads(p.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                errs.append(f"{p.name}: JSON として読めない")
+                continue
+            errs += [f"{p.name}: {'/'.join(map(str, e.path))}: {e.message}" for e in v.iter_errors(item)]
+            items.append(item)
+        data = {"schema_version": items[0].get("schema_version", "0.3") if items else "0.3", "landmarks": items}
+        return (None, errs) if errs else (data, [])
+    v = validator("landmarks_file.schema.json")
     data = json.loads(path.read_text(encoding="utf-8"))
     errs = [f"{'/'.join(map(str, e.path))}: {e.message}" for e in v.iter_errors(data)]
     return (None, errs) if errs else (data, [])
@@ -213,7 +229,7 @@ def run(landmarks: Path, drafts: Path, gen: Generator, meta: dict, only: list[st
     targets = [lm for lm in data["landmarks"] if lm["status"] == "draft" and (not only or lm["id"] in only)]
     missing = sorted(set(only) - {lm["id"] for lm in data["landmarks"]})
     if missing:
-        print(f"  注意：landmarks.json に無い ID {missing}")
+        print(f"  注意：登録されていない ID {missing}")
     todo, skipped = [], []
     for lm in targets:
         (skipped if (drafts / f"{lm['id']}.json").exists() and not force else todo).append(lm)

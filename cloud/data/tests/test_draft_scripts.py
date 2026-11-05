@@ -135,3 +135,15 @@ def test_fake_generator_end_to_end(files):
     assert ds.run(lm, drafts, ds.FakeGenerator(), META, [], False, 30) == 0
     d = json.loads((drafts / "lm_0003.json").read_text(encoding="utf-8"))
     assert "仮の原稿" in d["script_short"]
+
+
+def test_reads_one_file_per_landmark(tmp_path):
+    d = tmp_path / "landmarks"
+    d.mkdir()
+    for src in ("landmark_point.json", "landmark_area.json"):
+        item = json.loads((ROOT / "schema" / "templates" / src).read_text(encoding="utf-8"))
+        (d / f"{item['id']}.json").write_text(json.dumps(item, ensure_ascii=False), encoding="utf-8")
+    drafts = tmp_path / "drafts"
+    gen = ScriptedGenerator(good_response())
+    assert ds.run(d, drafts, gen, META, [], False, 30) == 0
+    assert sorted(p.name for p in drafts.iterdir()) == ["lm_0001.json", "lm_0004.json"]  # どちらも draft

@@ -2,14 +2,14 @@
 
 | 場所 | 中身 | 担当 |
 | :---- | :---- | :---- |
-| `manual/` | 確認済みのデータ（`landmarks.json`・`timetable.json`・`events.json`）。Git 管理 | メンバー4（確認はメンバー1） |
+| `manual/` | 確認済みのデータ。ランドマークは1件1ファイル（`landmarks/lm_0001.json`…）、ほかに `events.json`・`timetable.json`（交通は余裕があれば）。Git 管理 | メンバー4（確認はメンバー1） |
 | `drafts/` | Gemini が作った原稿の下書き（確認前）。Git 管理 | メンバー4 |
 | `osm/` | OpenStreetMap から取り出した横断歩道・信号（`crossings.json`） | メンバー1（スクリプト） |
 | `scripts/` | 変換・生成のスクリプト | メンバー1 |
 | `raw/` | 元データ。Git 管理外 | — |
 | `build/` | 生成した SQLite。Git 管理外 | — |
 
-形は `schema/`（`landmarks_file`・`timetable_file`・`events_file`・`crossings_file`）。見本は `schema/examples/`。
+形は `schema/`（`landmark_entry`・`timetable_file`・`events_file`・`crossings_file`）。ランドマークのひな形は `schema/templates/`、見本は `schema/examples/`。
 
 ## 最初に1回だけ
 
@@ -19,7 +19,7 @@ pip install -r cloud/data/requirements.txt
 
 ## 原稿の下書きを作る（メンバー4）
 
-`manual/landmarks.json` に `status: "draft"` で登録したランドマークの原稿の下書きを、Gemini が作ります。
+`manual/landmarks/<ID>.json` に `status: "draft"` で登録したランドマークの原稿の下書きを、Gemini が作ります。
 
 ```sh
 # 1. お試し（お金はかからない。仮の文が出るだけ）
@@ -34,7 +34,7 @@ GOOGLE_CLOUD_PROJECT=<プロジェクトID> python cloud/data/scripts/draft_scri
 ```
 
 * 出てくる場所：`cloud/data/drafts/lm_0003.json` のように1件1ファイル
-* `manual/landmarks.json` は**書き換えません**。下書きが既にあるものは作りません（お金の無駄を防ぐ）
+* `manual/landmarks/` は**書き換えません**。下書きが既にあるものは作りません（お金の無駄を防ぐ）
 * `--fake` で作った下書きは仮の文なので、本番の前に消すか `--force` で作り直してください
 
 ### 下書きの確かめ方
@@ -50,7 +50,7 @@ GOOGLE_CLOUD_PROJECT=<プロジェクトID> python cloud/data/scripts/draft_scri
 | `uncertain` | Gemini が確かめられなかったこと（原稿には入っていない） |
 | `grounding_sources` | Gemini が検索で見たページ |
 
-確かめて直したら、`landmarks.json` の同じ ID のところに `script_short`・`script_long` を写し、`status` を `"reviewed"` にして、`python schema/validate.py` を動かします。**確かでない内容は入れない**（数が足りないほうが、間違った情報を話すよりよい）。
+確かめて直したら、`landmarks/<ID>.json` に `script_short`・`script_long` を写し、`status` を `"reviewed"` にして、`python schema/validate.py` を動かします。**確かでない内容は入れない**（数が足りないほうが、間違った情報を話すよりよい）。
 
 ## SQLite を作る（API 用）
 

@@ -6,7 +6,7 @@
     python cloud/data/scripts/build_sqlite.py --out path/to/tiles.sqlite
 
 入力（無いファイルは0件として扱う）:
-    cloud/data/manual/landmarks.json   ランドマーク（status が reviewed のものだけ入れる。draft は入れない）
+    cloud/data/manual/landmarks/*.json ランドマーク1件1ファイル（status が reviewed のものだけ入れる。draft は入れない）
     cloud/data/manual/timetable.json   電停と時刻表
     cloud/data/manual/events.json      イベント
     cloud/data/osm/crossings.json      横断歩道・信号（extract_osm.py の出力）
@@ -36,7 +36,7 @@ DEFAULT_OUT = ROOT / "cloud" / "data" / "build" / "tiles.sqlite"
 
 # (種類, schema, 中の配列のキー, 本物の置き場所, 見本)
 INPUTS = [
-    ("landmark", "landmarks_file.schema.json", "landmarks", "cloud/data/manual/landmarks.json", "schema/examples/landmarks_sample.json"),
+    ("landmark", "landmarks_file.schema.json", "landmarks", "cloud/data/manual/landmarks", "schema/examples/landmarks_sample.json"),
     ("stop", "timetable_file.schema.json", "stops", "cloud/data/manual/timetable.json", "schema/examples/timetable_sample.json"),
     ("event", "events_file.schema.json", "events", "cloud/data/manual/events.json", "schema/examples/events_sample.json"),
     ("crossing", "crossings_file.schema.json", "crossings", "cloud/data/osm/crossings.json", "schema/examples/crossings_sample.json"),
@@ -79,6 +79,32 @@ def validate(rel: str, data, schema_rel: str, key: str, reg: Registry) -> list[s
     return errors
 
 
+def load_landmark_dir(d: Path, reg: Registry) -> tuple[dict, list[str], bytes]:
+    """1件1ファイルのランドマークを集めて landmarks.json と同じ形にする。(データ, エラー, ハッシュ用の中身)"""
+    v = Draft202012Validator(_load(SCHEMA / "landmark_entry.schema.json"), registry=reg)
+    items, errors, raw_all = [], [], b""
+    for p in sorted(d.glob("*.json")):
+        rel = p.relative_to(ROOT).as_posix() if p.is_relative_to(ROOT) else str(p)
+        raw = p.read_bytes()
+        raw_all += rel.encode() + b"\0" + raw + b"\0"
+        try:
+            item = json.loads(raw.decode("utf-8"))
+        except json.JSONDecodeError as e:
+            errors.append(f"{rel}: JSON として読めません（{e.msg}、{e.lineno}行目）")
+            continue
+        errs = [f"{rel}: {'.'.join(map(str, e.path)) or '（ファイル全体）'}: {e.message}" for e in v.iter_errors(item)]
+        if isinstance(item, dict) and item.get("id") != p.stem:
+            errs.append(f"{rel}: ファイル名（{p.stem}）と id（{item.get('id')}）を同じにしてください")
+        if errs:
+            errors += errs
+            continue
+        items.append({k: val for k, val in item.items() if k != "schema_version"})
+    ids = [it["id"] for it in items]
+    for dup in sorted({i for i in ids if ids.count(i) > 1}):
+        errors.append(f"{d.name}/: ID が重複 {dup}")
+    return {"schema_version": "0.3", "landmarks": items}, errors, raw_all
+
+
 def bbox(kind: str, item: dict) -> tuple[float, float, float, float]:
     """(min_lat, max_lat, min_lon, max_lon)。エリアは半径の分だけ広げる。"""
     lat, lon = item["lat"], item["lon"]
@@ -103,10 +129,14 @@ def build(out: Path, use_examples: bool = False) -> int:
         if not p.exists():
             counts[kind] = 0
             continue
-        raw = p.read_bytes()
-        digest.update(rel.encode() + b"\0" + raw + b"\0")
-        data = json.loads(raw.decode("utf-8"))
-        errs = validate(rel, data, schema_rel, key, reg)
+        if p.is_dir():  # ランドマークの1件1ファイル
+            data, errs, raw = load_landmark_dir(p, reg)
+            digest.update(raw)
+        else:
+            raw = p.read_bytes()
+            digest.update(rel.encode() + b"\0" + raw + b"\0")
+            data = json.loads(raw.decode("utf-8"))
+            errs = validate(rel, data, schema_rel, key, reg)
         if errs:
             errors += errs
             continue

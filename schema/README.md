@@ -7,7 +7,10 @@
 | `common.schema.json` | 共通の型（時刻・座標・方位・タイル・ID・出典） | — |
 | `eventlog.schema.json` | 歩行ログ1行＝エンジンへの入力イベント1件 | mobile → engine・viewer |
 | `decision.schema.json` | 判断ログ1行 | engine → mobile・viewer |
-| `landmark.schema.json` / `landmarks_file.schema.json` | ランドマーク1件（エリア `kind: area` を含む） / `landmarks.json` 全体 | data → api |
+| `landmark.schema.json` | ランドマーク1件の中身（エリア `kind: area` を含む） | — |
+| `landmark_entry.schema.json` | **本物の置き方**：`cloud/data/manual/landmarks/<ID>.json`（1件1ファイル、`schema_version` 必須、ファイル名＝ID） | data → api |
+| `landmarks_file.schema.json` | 見本 `examples/landmarks_sample.json` の形（複数件を1つのファイルに） | — |
+| `templates/landmark_area.json`・`templates/landmark_point.json` | 登録するときにコピーするひな形（エリア／それ以外） | data |
 | `stop.schema.json` / `timetable_file.schema.json` | 電停1件と当日の発車予定 / `manual/timetable.json` 全体 | data → api |
 | `event.schema.json` / `events_file.schema.json` | イベント1件 / `manual/events.json` 全体 | data → api |
 | `crossing.schema.json` / `crossings_file.schema.json` | 横断歩道・信号1件 / `cloud/data/osm/crossings.json` 全体（`extract_osm.py` の出力） | data scripts → api |
@@ -23,7 +26,7 @@
 
 * 現在の版は **0.3**
   * 0.2 → 0.3：電停・イベント・横断歩道の形を `stop`・`event`・`crossing` の schema に切り出し（タイル応答の形は変わらない）、`manual/timetable.json`・`manual/events.json`・`osm/crossings.json` と FCM の警報の形を追加、`validate.py` に ID の重複とデモ範囲の確認を追加
-  * 0.3 に任意項目を追加（版は上げない。今あるデータはそのまま通るため）：判断ログ `decision` に `sources`（B の答えの出典。`answer` のときだけ）
+  * 0.3 に追加（版は上げない。今あるデータはそのまま通るため）：ランドマークを1件1ファイルに（`landmark_entry`、`templates/`）、判断ログ `decision` に `sources`（B の答えの出典。`answer` のときだけ）
   * 0.1 → 0.2：エリア、B の送信に `area`、応答に `named`・`sources`、理由コード2つを追加
 * `examples/` の地名・原稿は**実在しない仮のもの**。位置は富山駅南口付近（z16 タイル `16/57746/25576`）
 * `walk_short.jsonl` は南へ 1.3 m/s で60秒歩くログ。1秒後にタイル到着、25〜33秒に読み上げ、40秒目に B の計測、42秒目に B の結果（候補外）
@@ -36,7 +39,7 @@
 
 ## validate.py が確かめること
 
-* 見本・`cloud/data/manual/`（`landmarks.json`・`timetable.json`・`events.json`）・`cloud/data/osm/crossings.json` が schema に合うか
+* 見本・ひな形・`cloud/data/manual/`（`landmarks/<ID>.json`・`timetable.json`・`events.json`）・`cloud/data/osm/crossings.json` が schema に合うか。ランドマークはファイル名と `id` が同じか
 * engine のテストの fixtures：`app/engine/test/fixtures/walks/*.jsonl`（実機の歩行ログ）と `app/engine/test/fixtures/decisions/*.jsonl`（engine が再生して書き出した判断ログ）
 * `manual/` と見本の ID の重複
 * ランドマーク・電停・イベント・横断歩道の位置がデモ範囲（いまは富山市を囲む四角）の中にあるか。緯度と経度が逆なら教えてくれる

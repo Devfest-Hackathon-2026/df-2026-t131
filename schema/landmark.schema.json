@@ -18,6 +18,10 @@
     "status"
   ],
   "properties": {
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/schema_version",
+      "description": "1件1ファイル（cloud/data/manual/landmarks/<ID>.json）のときは必須（landmark_entry.schema.json）"
+    },
     "id": {
       "$ref": "common.schema.json#/$defs/landmark_id"
     },

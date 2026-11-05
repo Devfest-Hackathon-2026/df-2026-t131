@@ -145,3 +145,28 @@ def test_rejects_db_with_other_schema_version(db):
     con.close()
     with pytest.raises(RuntimeError):
         SqliteTileSource(db)
+
+
+def test_build_from_one_file_per_landmark(tmp_path, monkeypatch):
+    d = tmp_path / "landmarks"
+    d.mkdir()
+    for src, status in (("landmark_point.json", "reviewed"), ("landmark_area.json", "draft")):
+        item = json.loads((ROOT / "schema" / "templates" / src).read_text(encoding="utf-8")) | {"status": status}
+        (d / f"{item['id']}.json").write_text(json.dumps(item, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(build_sqlite, "INPUTS", [("landmark", "landmarks_file.schema.json", "landmarks", str(d), str(d))])
+    out = tmp_path / "t.sqlite"
+    assert build_sqlite.build(out) == 0
+    got = SqliteTileSource(out).get_tile(*SAMPLE_TILE)
+    assert [lm["id"] for lm in got["landmarks"]] == ["lm_0001"]          # reviewed だけ
+    assert "schema_version" not in got["landmarks"][0]                    # タイル応答の形に戻す
+    assert not list(contracts.validator(contracts.TILE_RESPONSE).iter_errors(got))
+
+
+def test_build_stops_when_filename_and_id_differ(tmp_path, monkeypatch, capsys):
+    d = tmp_path / "landmarks"
+    d.mkdir()
+    item = json.loads((ROOT / "schema" / "templates" / "landmark_point.json").read_text(encoding="utf-8"))
+    (d / "lm_0099.json").write_text(json.dumps(item, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(build_sqlite, "INPUTS", [("landmark", "landmarks_file.schema.json", "landmarks", str(d), str(d))])
+    assert build_sqlite.build(tmp_path / "t.sqlite") == 1
+    assert "ファイル名（lm_0099）と id（lm_0001）" in capsys.readouterr().out

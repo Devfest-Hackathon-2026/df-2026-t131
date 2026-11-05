@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0001",
+  "name": "見本の石碑",
+  "name_kana": "みほんのせきひ",
+  "lat": 36.70025945945946,
+  "lon": 137.21370000000002,
+  "kind": "monument",
+  "radius_m": null,
+  "script_short": "右手の石碑は、見本のために置いた架空の石碑です。",
+  "script_long": "右手の石碑は、見本のために置いた架空の石碑です。合流のテストで、話す位置と長さを確かめるために使います。",
+  "visual_hint": "灰色の細長い石碑",
+  "sources": [
+    {
+      "title": "見本データ（実在しない）",
+      "url": "https://example.com/sample",
+      "license": "CC0"
+    }
+  ],
+  "status": "draft"
+}

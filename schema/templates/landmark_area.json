@@ -1,0 +1,22 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0004",
+  "name": "見本の公園",
+  "name_kana": "みほんのこうえん",
+  "lat": 36.6973,
+  "lon": 137.2145,
+  "kind": "area",
+  "radius_m": 200,
+  "script_short": "ここは見本のための架空の公園です。",
+  "script_long": "ここは見本のための架空の公園です。中にある橋や建物は、カメラの映像から名前を調べてお伝えします。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "見本データ（実在しない）",
+      "url": "https://example.com/sample",
+      "license": "CC0"
+    }
+  ],
+  "status": "draft"
+}

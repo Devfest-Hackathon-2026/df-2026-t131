@@ -78,7 +78,7 @@ def check_items(items: list, label: str):
 
 # (本物の置き場所, 見本, schema, 中の配列のキー)。本物も見本も同じ規則で確かめる
 DATA_FILES = [
-    ("cloud/data/manual/landmarks.json", "landmarks_sample.json", "landmarks_file.schema.json", "landmarks"),
+    (None, "landmarks_sample.json", "landmarks_file.schema.json", "landmarks"),  # 本物は1件1ファイル（下）
     ("cloud/data/manual/timetable.json", "timetable_sample.json", "timetable_file.schema.json", "stops"),
     ("cloud/data/manual/events.json", "events_sample.json", "events_file.schema.json", "events"),
     ("cloud/data/osm/crossings.json", "crossings_sample.json", "crossings_file.schema.json", "crossings"),
@@ -113,7 +113,35 @@ else:
     print("NG fcm_alert_data.json: FCM の data の値はすべて文字列にする")
     failed += 1
 
+# ランドマークの本物は1件1ファイル：cloud/data/manual/landmarks/<ID>.json（ファイル名と id を同じにする）
+LM_DIR = ROOT / "cloud" / "data" / "manual" / "landmarks"
+if (ROOT / "cloud" / "data" / "manual" / "landmarks.json").exists():
+    print("NG cloud/data/manual/landmarks.json: ランドマークは1件1ファイル（cloud/data/manual/landmarks/<ID>.json）に変わりました。分けてください")
+    failed += 1
+lm_items = []
+for p in sorted(LM_DIR.glob("*.json")) if LM_DIR.exists() else []:
+    rel = p.relative_to(ROOT).as_posix()
+    try:
+        data = load(p)
+    except json.JSONDecodeError as e:
+        print(f"NG {rel}: JSON として読めません（{e.msg}、{e.lineno}行目）")
+        failed += 1
+        continue
+    check("landmark_entry.schema.json", data, rel)
+    if isinstance(data, dict):
+        if data.get("id") != p.stem:
+            print(f"NG {rel}: ファイル名（{p.stem}）と id（{data.get('id')}）を同じにしてください")
+            failed += 1
+        lm_items.append(data)
+check_items(lm_items, "cloud/data/manual/landmarks/")
+
+# 登録用のひな形（メンバー4がコピーして使う）
+for p in sorted((S / "templates").glob("landmark_*.json")):
+    check("landmark_entry.schema.json", load(p), p.relative_to(ROOT).as_posix())
+
 for rel, _, schema_rel, key in DATA_FILES:
+    if rel is None:
+        continue
     p = ROOT / rel
     if p.exists():
         data = load(p)
