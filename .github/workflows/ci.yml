@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # コミットの日時を確かめるため、履歴を全部取る
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -25,6 +27,8 @@ jobs:
         run: python schema/validate.py
       - name: 禁止事項の検出（画像・秘密情報・engine の決定論）
         run: python .github/scripts/check_forbidden.py
+      - name: 開発開始前の日時のコミットが無いか
+        run: python .github/scripts/check_commit_dates.py
 
   cloud-tests:
     name: cloud の pytest
