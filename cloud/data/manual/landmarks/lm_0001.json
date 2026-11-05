@@ -1,0 +1,32 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0001",
+  "name": "富岩運河環水公園",
+  "name_kana": "ふがんうんがかんすいこうえん",
+  "lat": 36.709696,
+  "lon": 137.212295,
+  "kind": "area",
+  "radius_m": 200,
+  "script_short": "富岩運河環水公園は、かつての運河と舟だまりを生かしてつくられた、水と緑が広がる親水公園です。",
+  "script_long": "富岩運河環水公園は、かつての運河と舟だまりを生かしてつくられた、水と緑が広がる親水公園です。富山の発展を支えた富岩運河は一度埋め立てが検討されましたが、貴重な水辺として保存・整備され、公園になりました。公園名の「環水」には、めぐる水の豊かさや人々のつながりへの願いが込められています。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "富山県「運河のまちを愛する会へようこそ！」",
+      "url": "https://www.pref.toyama.jp/1504/kendodukuri/dourokouwan/kouwan/kj00005433/kj00005433-001-01.html",
+      "license": "富山県ホームページの利用条件に従う"
+    },
+    {
+      "title": "富山県富岩運河環水公園 公式「公園案内とマップ」",
+      "url": "https://www.kansui-park.jp/how-to-enjoy-the-park/map/",
+      "license": "施設公式サイトの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "OpenStreetMap（位置：way/338875394）",
+      "url": "https://www.openstreetmap.org/way/338875394",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "reviewed"
+}
