@@ -6,4 +6,4 @@
 {"schema_version":"0.3","t_ms":1793836830000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57746/25577","text":null,"priority":null}
 {"schema_version":"0.3","t_ms":1793836830000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57747/25577","text":null,"priority":null}
 {"schema_version":"0.3","t_ms":1793836830000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57747/25576","text":null,"priority":null}
-{"schema_version":"0.3","t_ms":1793836833000,"kind":"speak","reason":"speak:closest_approach","target_id":"lm_0001","text":"右手の石碑は、見本のために置いた架空の石碑です。","priority":5}
+{"schema_version":"0.3","t_ms":1793836833000,"kind":"speak","reason":"speak:closest_approach","target_id":"lm_0001","text":"左前方に見本の石碑があります。右手の石碑は、見本のために置いた架空の石碑です。","priority":5}

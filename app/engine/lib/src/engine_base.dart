@@ -418,7 +418,9 @@ class Engine {
         if (window != null &&
             window.closestS <= config.proximityHorizonMs / 1000) {
           final useLong = still && rel.length <= r;
-          final text = useLong ? lm.scriptLong : lm.scriptShort;
+          final text =
+              _directionLead(lm, rel) +
+              (useLong ? lm.scriptLong : lm.scriptShort);
           if (window.exitS * 1000 >= _durationMs(text)) {
             candidate = _Candidate(
               lm,
@@ -450,6 +452,17 @@ class Engine {
       return byTime != 0 ? byTime : a.landmark.id.compareTo(b.landmark.id);
     });
     return result;
+  }
+
+  /// 原稿の前に付ける方向の一言（例「右手に見本の石碑があります。」）。テンプレートで作る。
+  ///
+  /// 原稿には方向の言葉を書かない決まり（cloud/data/scripts/draft_scripts.py）なので、ここで付ける。
+  /// 基準は、歩いているときは進行方向、止まっているときは視線（スマホの向き）。
+  String _directionLead(Landmark lm, Vec2 rel) {
+    final v = _velocity;
+    final heading = v.length > 0 ? v.bearingDeg : _sensor!.gazeAzDeg;
+    return '${directionWord(angleDiffDeg(rel.bearingDeg, heading), config)}に'
+        '${lm.name}があります。';
   }
 
   /// 等速で進んだとき、半径 r の円の中にいる時間帯。今を0秒とする。
@@ -534,4 +547,15 @@ final class _Candidate {
 final class _Window {
   final double closestS, exitS;
   const _Window(this.closestS, this.exitS);
+}
+
+/// 進行方向（または視線）から見た角度を、方向の言葉にする。右が正、左が負（度）。
+String directionWord(double relDeg, EngineConfig config) {
+  final a = relDeg.abs();
+  final right = relDeg > 0;
+  if (a <= config.directionFrontDeg) return '正面';
+  if (a <= config.directionDiagonalDeg) return right ? '右前方' : '左前方';
+  if (a <= config.directionSideDeg) return right ? '右手' : '左手';
+  if (a <= config.directionRearDeg) return right ? '右後方' : '左後方';
+  return '後方';
 }

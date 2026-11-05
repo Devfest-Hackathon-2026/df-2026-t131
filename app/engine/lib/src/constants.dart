@@ -42,6 +42,13 @@ final class EngineConfig {
   /// このレベル以上の警報は今の読み上げに割り込む（CLAUDE.md 4章）。
   final int alertInterruptLevel;
 
+  /// 方向の言い方の境目（進行方向からの角度の絶対値、度）。
+  /// これ以下なら正面、前方、横（手）、後方、それより大きければ後ろ。
+  final double directionFrontDeg,
+      directionDiagonalDeg,
+      directionSideDeg,
+      directionRearDeg;
+
   const EngineConfig({
     this.sensorIntervalMs = 1000,
     this.defaultRadiusM = 25,
@@ -71,6 +78,10 @@ final class EngineConfig {
     this.kalmanVelocityNoise = 0.5,
     this.kalmanResetGapMs = 30000,
     this.alertInterruptLevel = 4,
+    this.directionFrontDeg = 20,
+    this.directionDiagonalDeg = 60,
+    this.directionSideDeg = 120,
+    this.directionRearDeg = 160,
   });
 }
 

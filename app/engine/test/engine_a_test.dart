@@ -261,6 +261,86 @@ void main() {
     });
   });
 
+  group('方向の一言', () {
+    test('進行方向からの角度を方向の言葉にする（右が正）', () {
+      const c = EngineConfig();
+      expect(directionWord(0, c), '正面');
+      expect(directionWord(-20, c), '正面');
+      expect(directionWord(45, c), '右前方');
+      expect(directionWord(-45, c), '左前方');
+      expect(directionWord(90, c), '右手');
+      expect(directionWord(-100, c), '左手');
+      expect(directionWord(140, c), '右後方');
+      expect(directionWord(-140, c), '左後方');
+      expect(directionWord(180, c), '後方');
+    });
+
+    test('南へ歩くとき、西にあるランドマークは右、東にあるものは左と言う', () {
+      final right = Sim()
+        ..run(
+          120,
+          extra: {
+            1: [
+              tiles(1, [landmark('lm_0001', -60, -18)]),
+            ],
+          },
+        );
+      expect(right.speaks.single.$2.text, startsWith('右前方に見本lm_0001があります。'));
+      final left = Sim()
+        ..run(
+          120,
+          extra: {
+            1: [
+              tiles(1, [landmark('lm_0001', -60, 18)]),
+            ],
+          },
+        );
+      expect(left.speaks.single.$2.text, startsWith('左前方に見本lm_0001があります。'));
+      // 判断ログにも、実際に読む文（方向つき）を残す
+      expect(
+        right.withReason('speak:closest_approach').single.text,
+        right.speaks.single.$2.text,
+      );
+    });
+
+    test('止まっているときは視線（スマホの向き）を基準にする', () {
+      // 北を向いて立ち止まり、東 10m にランドマーク → 右手
+      final sim = Sim()
+        ..run(
+          30,
+          pose: (_) => (north: 0, east: 0, speed: 0, course: 0),
+          activity: (_) => Activity.still,
+          extra: {
+            1: [
+              tiles(1, [landmark('lm_0001', 0, 10)]),
+            ],
+          },
+        );
+      expect(sim.speaks.single.$2.text, startsWith('右手に'));
+    });
+
+    test('エリアの定型文には方向を付けない', () {
+      final area = landmark(
+        'lm_0004',
+        0,
+        0,
+        kind: 'area',
+        radiusM: 200,
+        short: 'ここは見本の公園です。',
+      );
+      final sim = Sim()
+        ..run(
+          5,
+          extra: {
+            1: [
+              tiles(1, [area]),
+            ],
+          },
+        );
+      expect(sim.speaks.single.$2.text, 'ここは見本の公園です。');
+    });
+  });
+
   group('文脈ゲート', () {
     final lm = landmark('lm_0001', -60, -18);
 
