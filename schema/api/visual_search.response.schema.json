@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/api/visual_search.response.schema.json",
+  "title": "POST /v1/visual-search の応答",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "search_id",
+    "result",
+    "landmark_id",
+    "object_name",
+    "description",
+    "confidence",
+    "sources",
+    "named"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "../common.schema.json#/$defs/schema_version"
+    },
+    "search_id": {
+      "type": "string"
+    },
+    "result": {
+      "enum": [
+        "matched",
+        "unlisted",
+        "unknown"
+      ]
+    },
+    "landmark_id": {
+      "anyOf": [
+        {
+          "$ref": "../common.schema.json#/$defs/landmark_id"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "matched のときだけ"
+    },
+    "object_name": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "unlisted のときだけ。名前が分かれば固有名（例：○○橋）、分からなければ一般名（例：木造の蔵）"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 120,
+      "description": "unlisted のときだけ。目安100字以内（約15秒）、数字・年号なし"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "named": {
+      "type": "boolean",
+      "description": "object_name が固有名か。重複判定はエリアごとに object_name で行う"
+    },
+    "sources": {
+      "type": "array",
+      "description": "裏付けに使った出典（Google マップでのグラウンディングなど）。無ければ空",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "uri"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "uri": {
+            "type": "string"
+          },
+          "place_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "matched"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "landmark_id": {
+            "type": "string"
+          },
+          "object_name": {
+            "type": "null"
+          },
+          "description": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "unlisted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "landmark_id": {
+            "type": "null"
+          },
+          "object_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "unknown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "landmark_id": {
+            "type": "null"
+          },
+          "object_name": {
+            "type": "null"
+          },
+          "description": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

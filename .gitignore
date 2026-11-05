@@ -1,0 +1,70 @@
+# ---- 秘密情報（絶対にコミットしない）----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+key.properties
+service-account*.json
+*-sa.json
+*credentials*.json
+# Firebase の設定（API キーを含む。メンバー1がチャットで渡す）
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+app/mobile/android/app/google-services.json
+
+# ---- データ（元データと生成物は Git 管理外）----
+cloud/data/raw/
+cloud/data/build/
+*.sqlite
+*.sqlite3
+*.db
+
+# ---- カメラ画像・動画（保存しない決まり。誤って入れないように）----
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.webp
+*.mp4
+*.mov
+# アプリのアイコン・Web の静的素材だけは許可する
+!app/mobile/android/app/src/main/res/**/*.png
+!app/mobile/assets/icons/**
+!app/viewer/web/**/*.png
+!app/viewer/assets/icons/**
+!docs/images/**
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---- Dart / Flutter ----
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/android/local.properties
+**/android/.gradle/
+**/android/app/debug/
+**/android/app/release/
+*.iml
+# pubspec.lock はコミットする（版の固定）
+
+# ---- エディタ・OS ----
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,86 @@
+{
+  "schema_version": "0.2",
+  "landmarks": [
+    {
+      "id": "lm_0001",
+      "name": "見本の石碑",
+      "name_kana": "みほんのせきひ",
+      "lat": 36.70025945945946,
+      "lon": 137.21370000000002,
+      "kind": "monument",
+      "radius_m": null,
+      "script_short": "右手の石碑は、見本のために置いた架空の石碑です。",
+      "script_long": "右手の石碑は、見本のために置いた架空の石碑です。合流のテストで、話す位置と長さを確かめるために使います。",
+      "visual_hint": "灰色の細長い石碑",
+      "sources": [
+        {
+          "title": "見本データ（実在しない）",
+          "url": "https://example.com/sample",
+          "license": "CC0"
+        }
+      ],
+      "status": "reviewed"
+    },
+    {
+      "id": "lm_0002",
+      "name": "見本の通り",
+      "name_kana": "みほんのとおり",
+      "lat": 36.69953873873874,
+      "lon": 137.2135,
+      "kind": "street",
+      "radius_m": 30,
+      "script_short": "いま歩いている通りは、見本のための架空の通りです。",
+      "script_long": "いま歩いている通りは、見本のための架空の通りです。名前の由来を話す原稿の長さの見本です。",
+      "visual_hint": "並木のある広い歩道",
+      "sources": [
+        {
+          "title": "見本データ（実在しない）",
+          "url": "https://example.com/sample",
+          "license": "CC0"
+        }
+      ],
+      "status": "reviewed"
+    },
+    {
+      "id": "lm_0003",
+      "name": "見本の社",
+      "name_kana": "みほんのやしろ",
+      "lat": 36.69881801801802,
+      "lon": 137.2132,
+      "kind": "shrine_temple",
+      "radius_m": null,
+      "script_short": "左手の社は、見本のための架空の社です。",
+      "script_long": "左手の社は、見本のための架空の社です。立ち止まったときに話す長い版の見本です。",
+      "visual_hint": "赤い鳥居と石段",
+      "sources": [
+        {
+          "title": "見本データ（実在しない）",
+          "url": "https://example.com/sample",
+          "license": "CC0"
+        }
+      ],
+      "status": "draft"
+    },
+    {
+      "id": "lm_0004",
+      "name": "見本の公園",
+      "name_kana": "みほんのこうえん",
+      "lat": 36.6973,
+      "lon": 137.2145,
+      "kind": "area",
+      "radius_m": 200,
+      "script_short": "ここは見本のための架空の公園です。",
+      "script_long": "ここは見本のための架空の公園です。中にある橋や建物は、カメラの映像から名前を調べてお伝えします。",
+      "visual_hint": "",
+      "google_place_id": null,
+      "sources": [
+        {
+          "title": "見本データ（実在しない）",
+          "url": "https://example.com/sample",
+          "license": "CC0"
+        }
+      ],
+      "status": "reviewed"
+    }
+  ]
+}

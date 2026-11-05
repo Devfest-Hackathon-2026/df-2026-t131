@@ -1,0 +1,6 @@
+# 改行を LF にそろえる（Windows と CI の Linux で差分が出ないように）
+* text=auto eol=lf
+*.bat text eol=crlf
+*.pdf binary
+*.png binary
+*.jpg binary

@@ -1,0 +1,2 @@
+# schema/validate.py と CI の禁止事項チェックに使う（版を固定）
+jsonschema==4.25.1

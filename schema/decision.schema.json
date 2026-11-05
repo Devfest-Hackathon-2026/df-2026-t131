@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/decision.schema.json",
+  "title": "判断ログ1行（JSON Lines）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "t_ms",
+    "kind",
+    "reason",
+    "target_id",
+    "text",
+    "priority"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/schema_version"
+    },
+    "t_ms": {
+      "$ref": "common.schema.json#/$defs/t_ms"
+    },
+    "kind": {
+      "enum": [
+        "speak",
+        "skip",
+        "search",
+        "search_skip",
+        "answer",
+        "fetch"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "pattern": "^(speak|skip|search|search_skip|answer|fetch):[a-z0-9_]+$",
+      "description": "reason_codes.json にあるものだけ"
+    },
+    "target_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "text": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "priority": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 6
+    }
+  }
+}

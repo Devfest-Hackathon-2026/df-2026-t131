@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/common.schema.json",
+  "title": "共通の型",
+  "$defs": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "t_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "UTC の UNIX ミリ秒"
+    },
+    "lat": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "lon": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    },
+    "deg": {
+      "type": "number",
+      "minimum": 0,
+      "exclusiveMaximum": 360,
+      "description": "真北0°・時計回り"
+    },
+    "tile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "z",
+        "x",
+        "y"
+      ],
+      "properties": {
+        "z": {
+          "const": 16
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "landmark_id": {
+      "type": "string",
+      "pattern": "^lm_\\d{4}$"
+    },
+    "stop_id": {
+      "type": "string",
+      "pattern": "^st_\\d{4}$"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^ev_\\d{4}$"
+    },
+    "crossing_id": {
+      "type": "string",
+      "pattern": "^cr_\\d{4,6}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "url",
+        "license"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

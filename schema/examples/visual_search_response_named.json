@@ -1,0 +1,17 @@
+{
+  "schema_version": "0.2",
+  "search_id": "s_000002",
+  "result": "unlisted",
+  "landmark_id": null,
+  "object_name": "見本橋",
+  "named": true,
+  "description": "正面に見えるのは見本橋です。公園の両岸を結ぶ歩行者用の橋で、上から水辺を見渡せます。",
+  "confidence": 0.81,
+  "sources": [
+    {
+      "title": "見本橋（見本の場所データ）",
+      "uri": "https://example.com/place/sample-bridge",
+      "place_id": null
+    }
+  ]
+}

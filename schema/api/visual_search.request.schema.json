@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/api/visual_search.request.schema.json",
+  "title": "POST /v1/visual-search の送信",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "search_id",
+    "tile",
+    "gaze_az_deg",
+    "candidate_ids",
+    "image_jpeg_base64",
+    "area"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "../common.schema.json#/$defs/schema_version"
+    },
+    "search_id": {
+      "type": "string",
+      "description": "engine が CaptureAndSearch で発行した ID"
+    },
+    "tile": {
+      "$ref": "../common.schema.json#/$defs/tile"
+    },
+    "gaze_az_deg": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 350,
+      "multipleOf": 10
+    },
+    "candidate_ids": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "$ref": "../common.schema.json#/$defs/landmark_id"
+      }
+    },
+    "image_jpeg_base64": {
+      "type": "string",
+      "description": "長辺640px以下、顔ぼかし済み"
+    },
+    "area": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "name",
+            "summary"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "../common.schema.json#/$defs/landmark_id"
+            },
+            "name": {
+              "type": "string"
+            },
+            "summary": {
+              "type": "string",
+              "description": "エリアの短い説明（そのエリアの script_short）"
+            },
+            "google_place_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "name_hints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "予備。今は送らない"
+            }
+          }
+        }
+      ],
+      "description": "利用者がエリアの中にいるときだけ。エリアの判定は端末で行う"
+    }
+  }
+}

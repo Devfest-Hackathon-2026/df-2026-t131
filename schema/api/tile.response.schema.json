@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/api/tile.response.schema.json",
+  "title": "GET /v1/tiles/16/{x}/{y} の応答",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tile",
+    "landmarks",
+    "stops",
+    "crossings",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "../common.schema.json#/$defs/schema_version"
+    },
+    "tile": {
+      "$ref": "../common.schema.json#/$defs/tile"
+    },
+    "landmarks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "name_kana",
+          "lat",
+          "lon",
+          "kind",
+          "script_short",
+          "script_long",
+          "visual_hint"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "../common.schema.json#/$defs/landmark_id"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name_kana": {
+            "type": "string",
+            "pattern": "^[ぁ-ゖー・\\s]+$",
+            "description": "ひらがなの読み"
+          },
+          "lat": {
+            "$ref": "../common.schema.json#/$defs/lat"
+          },
+          "lon": {
+            "$ref": "../common.schema.json#/$defs/lon"
+          },
+          "kind": {
+            "enum": [
+              "area",
+              "monument",
+              "building",
+              "street",
+              "place_name",
+              "shrine_temple",
+              "nature",
+              "other"
+            ],
+            "description": "area は公園・境内など範囲を持つ場所。中に入ったら定型文を一度話し、中の名前付きの対象は B が特定する"
+          },
+          "radius_m": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0,
+            "description": "ジオフェンス半径。area のときはエリアの範囲（必須）。null なら定数の既定値"
+          },
+          "script_short": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "目安60字以内"
+          },
+          "script_long": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "目安150字以内"
+          },
+          "visual_hint": {
+            "type": "string",
+            "description": "B の照合用の見た目の説明。11/8 までは空でよい"
+          },
+          "sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "../common.schema.json#/$defs/source"
+            }
+          },
+          "google_place_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "任意。Google マップの場所 ID（グラウンディングや判断画面の地図との紐づけ用）"
+          },
+          "name_hints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "description": "area だけ。エリア内の名前付きの対象の名前だけの一覧。**今は使わない方針**。デモ撮影で B の特定の失敗が続いたときの予備（CLAUDE.md 6章）"
+          }
+        },
+        "description": "landmark から status を除いたもの。reviewed のものだけが返る",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "area"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "radius_m": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "stops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "name_kana",
+          "lat",
+          "lon",
+          "departures"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "../common.schema.json#/$defs/stop_id"
+          },
+          "name": {
+            "type": "string"
+          },
+          "name_kana": {
+            "type": "string"
+          },
+          "lat": {
+            "$ref": "../common.schema.json#/$defs/lat"
+          },
+          "lon": {
+            "$ref": "../common.schema.json#/$defs/lon"
+          },
+          "departures": {
+            "type": "array",
+            "description": "当日の発車予定（現地時刻 HH:MM）",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "line",
+                "headsign",
+                "time_local"
+              ],
+              "properties": {
+                "line": {
+                  "type": "string"
+                },
+                "headsign": {
+                  "type": "string"
+                },
+                "time_local": {
+                  "type": "string",
+                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "crossings": {
+      "type": "array",
+      "description": "OSM の横断歩道・信号",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "lat",
+          "lon",
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "../common.schema.json#/$defs/crossing_id"
+          },
+          "lat": {
+            "$ref": "../common.schema.json#/$defs/lat"
+          },
+          "lon": {
+            "$ref": "../common.schema.json#/$defs/lon"
+          },
+          "kind": {
+            "enum": [
+              "crossing",
+              "traffic_signals"
+            ]
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "lat",
+          "lon",
+          "start_t_ms",
+          "end_t_ms",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "../common.schema.json#/$defs/event_id"
+          },
+          "name": {
+            "type": "string"
+          },
+          "lat": {
+            "$ref": "../common.schema.json#/$defs/lat"
+          },
+          "lon": {
+            "$ref": "../common.schema.json#/$defs/lon"
+          },
+          "start_t_ms": {
+            "$ref": "../common.schema.json#/$defs/t_ms"
+          },
+          "end_t_ms": {
+            "$ref": "../common.schema.json#/$defs/t_ms"
+          },
+          "status": {
+            "enum": [
+              "scheduled",
+              "held",
+              "cancelled"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

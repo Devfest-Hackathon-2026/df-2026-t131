@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.2",
+  "search_id": "s_000001",
+  "tile": {
+    "z": 16,
+    "x": 57746,
+    "y": 25576
+  },
+  "gaze_az_deg": 180,
+  "candidate_ids": [
+    "lm_0001",
+    "lm_0002"
+  ],
+  "image_jpeg_base64": "/9j/4AAQSkZJRgABAQ==",
+  "area": {
+    "id": "lm_0004",
+    "name": "見本の公園",
+    "summary": "ここは見本のための架空の公園です。",
+    "google_place_id": null
+  }
+}

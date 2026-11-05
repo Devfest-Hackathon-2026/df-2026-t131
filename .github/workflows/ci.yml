@@ -1,0 +1,73 @@
+# CI（tasks/README.md 5章）。赤いものは main にマージしない。
+# ジョブ名はブランチ保護の「必須チェック」に登録するので変えない。
+# まだ中身が無いディレクトリ（engine・cloud のテスト）は、そのステップを飛ばして緑にする。
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  schema-and-forbidden:
+    name: schema と禁止事項
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r schema/requirements.txt
+      - name: schema の検証（見本・manual・engine の歩行ログ）
+        run: python schema/validate.py
+      - name: 禁止事項の検出（画像・秘密情報・engine の決定論）
+        run: python .github/scripts/check_forbidden.py
+
+  cloud-tests:
+    name: cloud の pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pytest（tests/ があるディレクトリだけ）
+        run: |
+          pip install -r schema/requirements.txt
+          ran=0
+          for d in cloud/api cloud/alert-job cloud/data; do
+            if [ -d "$d/tests" ]; then
+              echo "::group::$d"
+              if [ -f "$d/requirements.txt" ]; then pip install -r "$d/requirements.txt"; fi
+              pip install pytest
+              (cd "$d" && python -m pytest -q)
+              echo "::endgroup::"
+              ran=1
+            fi
+          done
+          if [ "$ran" = 0 ]; then echo "cloud にテストがまだ無いので飛ばします"; fi
+
+  engine-tests:
+    name: engine の dart test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: has_engine
+        run: |
+          if [ -f app/engine/pubspec.yaml ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      # TODO(メンバー1): tasks/README.md 10章で Dart の版を決めたら、stable をその版に固定する
+      - uses: dart-lang/setup-dart@v1
+        if: steps.has_engine.outputs.exists == 'true'
+        with:
+          sdk: stable
+      - name: dart test
+        if: steps.has_engine.outputs.exists == 'true'
+        working-directory: app/engine
+        run: |
+          dart pub get
+          dart test
+      - if: steps.has_engine.outputs.exists != 'true'
+        run: echo "app/engine がまだ無いので飛ばします"

@@ -1,0 +1,5 @@
+{"schema_version": "0.2", "t_ms": 1793836800000, "kind": "fetch", "reason": "fetch:prefetch_tiles", "target_id": "16/57746/25576", "text": null, "priority": null}
+{"schema_version": "0.2", "t_ms": 1793836825000, "kind": "speak", "reason": "speak:closest_approach", "target_id": "lm_0001", "text": "右手の石碑は、見本のために置いた架空の石碑です。", "priority": 5}
+{"schema_version": "0.2", "t_ms": 1793836830000, "kind": "search_skip", "reason": "search_skip:gate_blocked", "target_id": null, "text": null, "priority": null}
+{"schema_version": "0.2", "t_ms": 1793836840000, "kind": "search", "reason": "search:interval_elapsed", "target_id": "s_000001", "text": null, "priority": null}
+{"schema_version": "0.2", "t_ms": 1793836842500, "kind": "answer", "reason": "answer:unlisted_object", "target_id": "s_000001", "text": "さっき正面に見えた、白い漆喰の壁と黒い瓦屋根の蔵が見えます。", "priority": 6}

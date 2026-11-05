@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/eventlog.schema.json",
+  "title": "歩行ログ1行＝エンジンへの入力イベント1件（JSON Lines）",
+  "description": "mobile が engine に渡した入力をすべてこの形で記録する。画像は含めない。",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "t_ms",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "common.schema.json#/$defs/schema_version"
+        },
+        "t_ms": {
+          "$ref": "common.schema.json#/$defs/t_ms"
+        },
+        "type": {
+          "const": "sensor"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lat",
+            "lon",
+            "acc_m",
+            "speed_mps",
+            "course_deg",
+            "gaze_az_deg",
+            "gaze_pitch_deg",
+            "activity",
+            "audio_out",
+            "in_call",
+            "tts_speaking",
+            "image_quality"
+          ],
+          "properties": {
+            "lat": {
+              "$ref": "common.schema.json#/$defs/lat"
+            },
+            "lon": {
+              "$ref": "common.schema.json#/$defs/lon"
+            },
+            "acc_m": {
+              "type": "number",
+              "minimum": 0
+            },
+            "speed_mps": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "course_deg": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/deg"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "gaze_az_deg": {
+              "$ref": "common.schema.json#/$defs/deg"
+            },
+            "gaze_pitch_deg": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90,
+              "description": "水平0°、上向きが正"
+            },
+            "activity": {
+              "enum": [
+                "walking",
+                "still",
+                "in_vehicle",
+                "unknown"
+              ]
+            },
+            "audio_out": {
+              "enum": [
+                "earphone",
+                "speaker",
+                "none"
+              ]
+            },
+            "in_call": {
+              "type": "boolean"
+            },
+            "tts_speaking": {
+              "type": "boolean"
+            },
+            "image_quality": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "blur",
+                    "brightness"
+                  ],
+                  "properties": {
+                    "blur": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "1がぶれていない"
+                    },
+                    "brightness": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "t_ms",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "common.schema.json#/$defs/schema_version"
+        },
+        "t_ms": {
+          "$ref": "common.schema.json#/$defs/t_ms"
+        },
+        "type": {
+          "const": "tiles_loaded"
+        },
+        "data": {
+          "$ref": "api/tile.response.schema.json"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "t_ms",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "common.schema.json#/$defs/schema_version"
+        },
+        "t_ms": {
+          "$ref": "common.schema.json#/$defs/t_ms"
+        },
+        "type": {
+          "const": "tts_finished"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "utterance_id"
+          ],
+          "properties": {
+            "utterance_id": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "t_ms",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "common.schema.json#/$defs/schema_version"
+        },
+        "t_ms": {
+          "$ref": "common.schema.json#/$defs/t_ms"
+        },
+        "type": {
+          "const": "visual_result"
+        },
+        "data": {
+          "$ref": "api/visual_search.response.schema.json"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "t_ms",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "common.schema.json#/$defs/schema_version"
+        },
+        "t_ms": {
+          "$ref": "common.schema.json#/$defs/t_ms"
+        },
+        "type": {
+          "const": "visual_error"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "search_id",
+            "error"
+          ],
+          "properties": {
+            "search_id": {
+              "type": "string"
+            },
+            "error": {
+              "enum": [
+                "timeout",
+                "network",
+                "server",
+                "face_blur_failed"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "t_ms",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "common.schema.json#/$defs/schema_version"
+        },
+        "t_ms": {
+          "$ref": "common.schema.json#/$defs/t_ms"
+        },
+        "type": {
+          "const": "alert"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "alert_id",
+            "level",
+            "kind",
+            "area_name",
+            "text"
+          ],
+          "properties": {
+            "alert_id": {
+              "type": "string"
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "kind": {
+              "type": "string"
+            },
+            "area_name": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string",
+              "description": "テンプレートで作った読み上げ文"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
