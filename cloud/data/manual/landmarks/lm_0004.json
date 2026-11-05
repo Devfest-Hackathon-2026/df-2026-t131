@@ -1,0 +1,27 @@
+{
+  "schema_version": "0.3",
+  "id": "lm_0004",
+  "name": "富山県美術館",
+  "name_kana": "とやまけんびじゅつかん",
+  "lat": 36.710852,
+  "lon": 137.210183,
+  "kind": "building",
+  "radius_m": null,
+  "script_short": "富山県美術館は、20世紀のアートやデザインを展示する美術館です。屋上にはオノマトペをテーマにした遊具もあります。",
+  "script_long": "前身の富山県立近代美術館から名称を変えて移転し、2017年に開館しました。ピカソなどの20世紀美術をはじめ、ポスターや椅子のデザインコレクションも充実しています。「オノマトペの屋上」には佐藤卓さんがデザインした遊具があり、屋外広場では大きなクマの彫刻が出迎えてくれます。",
+  "visual_hint": "",
+  "google_place_id": null,
+  "sources": [
+    {
+      "title": "富山県美術館「ごあいさつ」",
+      "url": "https://tad-toyama.jp/about/greeting",
+      "license": "施設公式サイトの利用条件に従う（事実の参照のみ）"
+    },
+    {
+      "title": "OpenStreetMap（位置：way/522869869）",
+      "url": "https://www.openstreetmap.org/way/522869869",
+      "license": "ODbL 1.0（© OpenStreetMap contributors）"
+    }
+  ],
+  "status": "reviewed"
+}
