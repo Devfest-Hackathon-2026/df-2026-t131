@@ -8,6 +8,9 @@
 | `eventlog.schema.json` | 歩行ログ1行＝エンジンへの入力イベント1件 | mobile → engine・viewer |
 | `decision.schema.json` | 判断ログ1行 | engine → mobile・viewer |
 | `landmark.schema.json` / `landmarks_file.schema.json` | ランドマーク1件（エリア `kind: area` を含む） / `landmarks.json` 全体 | data → api |
+| `stop.schema.json` / `timetable_file.schema.json` | 電停1件と当日の発車予定 / `manual/timetable.json` 全体 | data → api |
+| `event.schema.json` / `events_file.schema.json` | イベント1件 / `manual/events.json` 全体 | data → api |
+| `fcm/alert.data.schema.json` | FCM で送る警報の `data`（トピック・送り方も中に記載） | alert-job → mobile |
 | `api/tile.response.schema.json` | `GET /v1/tiles/16/{x}/{y}` の応答 | api → mobile → engine |
 | `api/visual_search.request.schema.json` | `POST /v1/visual-search` の送信 | mobile → api |
 | `api/visual_search.response.schema.json` | 同じく応答 | api → mobile → engine |
@@ -17,12 +20,31 @@
 
 ## 見本データについて
 
-* 現在の版は **0.2**（0.1 から：エリア、B の送信に `area`、応答に `named`・`sources`、理由コード2つを追加）
+* 現在の版は **0.3**
+  * 0.2 → 0.3：電停とイベントの形を `stop.schema.json`・`event.schema.json` に切り出し（タイル応答の形は変わらない）、`manual/timetable.json`・`manual/events.json` と FCM の警報の形を追加、`validate.py` に ID の重複とデモ範囲の確認を追加
+  * 0.1 → 0.2：エリア、B の送信に `area`、応答に `named`・`sources`、理由コード2つを追加
 * `examples/` の地名・原稿は**実在しない仮のもの**。位置は富山駅南口付近（z16 タイル `16/57746/25576`）
 * `walk_short.jsonl` は南へ 1.3 m/s で60秒歩くログ。1秒後にタイル到着、25〜33秒に読み上げ、40秒目に B の計測、42秒目に B の結果（候補外）
 * `decisions_short.jsonl` は、エンジンが出す判断の**形の見本**。中身（時刻・どれを話すか）が正解という意味ではない
 * `lm_0004` はエリア（`kind: area`、半径200m）の見本。`visual_search_request.json` はこのエリアの中から送った想定、`visual_search_response_named.json` はエリア内の名前付きの対象を特定した応答の見本（出典つき）
 * `lm_0003` は `status: draft` なので、タイル応答には入っていない（`reviewed` だけが返る決まりの見本）
+* `timetable_sample.json`・`events_sample.json` は `manual/timetable.json`・`manual/events.json` の見本（中身はタイル応答の見本と同じ）
+* `fcm_alert_data.json` は FCM の警報の見本（架空）
+
+## validate.py が確かめること
+
+* 見本・`cloud/data/manual/`（`landmarks.json`・`timetable.json`・`events.json`）・engine の歩行ログが schema に合うか
+* `manual/` と見本の ID の重複
+* ランドマーク・電停・イベント・横断歩道の位置がデモ範囲（いまは富山市を囲む四角）の中にあるか。緯度と経度が逆なら教えてくれる
+* 判断ログの理由コードが `reason_codes.json` にあるか
+* FCM の警報の見本が、mobile が歩行ログの `alert` に直した形でも通るか
+
+## FCM の警報の送り方
+
+* トピック：`alert_<市町村コード5桁>`（富山市は `alert_16201`）。mobile は起動時にデモ地域のトピックを購読する
+* data だけのメッセージ（notification は付けない。読み上げはアプリが行うため）、Android の優先度は high
+* data の値はすべて文字列（FCM の決まり）。mobile は `level` を整数に直し、受信時刻を `t_ms` にして `AlertReceived` を作る
+* 同じ `alert_id` を2回受けたら、mobile（または engine）は2回目を無視する
 
 ## 決まり（抜粋）
 

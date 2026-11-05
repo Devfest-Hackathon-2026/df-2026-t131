@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_DIR = ROOT / "schema"
 EXAMPLES_DIR = SCHEMA_DIR / "examples"
 
-SCHEMA_VERSION = "0.2"
+SCHEMA_VERSION = "0.3"
 TILE_ZOOM = 16
 
 

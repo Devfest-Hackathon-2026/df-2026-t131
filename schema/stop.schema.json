@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/stop.schema.json",
+  "title": "電停1件と当日の発車予定（タイル応答の stops と manual/timetable.json で共通）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "name_kana",
+    "lat",
+    "lon",
+    "departures"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "common.schema.json#/$defs/stop_id"
+    },
+    "name": {
+      "type": "string"
+    },
+    "name_kana": {
+      "type": "string"
+    },
+    "lat": {
+      "$ref": "common.schema.json#/$defs/lat"
+    },
+    "lon": {
+      "$ref": "common.schema.json#/$defs/lon"
+    },
+    "departures": {
+      "type": "array",
+      "description": "当日の発車予定（現地時刻 HH:MM）",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "line",
+          "headsign",
+          "time_local"
+        ],
+        "properties": {
+          "line": {
+            "type": "string"
+          },
+          "headsign": {
+            "type": "string"
+          },
+          "time_local": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+          }
+        }
+      }
+    }
+  }
+}

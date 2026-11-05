@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/event.schema.json",
+  "title": "イベント1件（タイル応答の events と manual/events.json で共通）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "lat",
+    "lon",
+    "start_t_ms",
+    "end_t_ms",
+    "status"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "common.schema.json#/$defs/event_id"
+    },
+    "name": {
+      "type": "string"
+    },
+    "lat": {
+      "$ref": "common.schema.json#/$defs/lat"
+    },
+    "lon": {
+      "$ref": "common.schema.json#/$defs/lon"
+    },
+    "start_t_ms": {
+      "$ref": "common.schema.json#/$defs/t_ms"
+    },
+    "end_t_ms": {
+      "$ref": "common.schema.json#/$defs/t_ms"
+    },
+    "status": {
+      "enum": [
+        "scheduled",
+        "held",
+        "cancelled"
+      ]
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/fcm/alert.data.schema.json",
+  "title": "FCM で送る警報の data（alert-job → mobile）",
+  "description": "FCM の data は値がすべて文字列なので、数も文字列で送る。mobile は受け取ったら level を整数に直し、受信時刻を t_ms にして AlertReceived（eventlog の alert）でエンジンへ渡す。項目名は eventlog の alert の data と同じ。送信先のトピックは alert_<市町村コード5桁>（例：富山市は alert_16201）。通知（notification）は付けない data だけのメッセージで、Android の優先度は high",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "alert_id",
+    "level",
+    "kind",
+    "area_name",
+    "text"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "../common.schema.json#/$defs/schema_version"
+    },
+    "type": {
+      "const": "alert",
+      "description": "メッセージの種類。今は alert だけ。mobile は知らない type を無視する"
+    },
+    "alert_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "同じ警報の重複受信を見分ける ID。同じ発表の再送なら同じ値"
+    },
+    "level": {
+      "type": "string",
+      "pattern": "^[1-5]$",
+      "description": "警戒レベル1〜5（文字列）。4 以上は今の読み上げに割り込む"
+    },
+    "kind": {
+      "type": "string",
+      "minLength": 1,
+      "description": "警報の種類（例：大雨危険警報、洪水警報）。気象庁の発表の名前のまま"
+    },
+    "area_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "対象の市町村名（例：富山市）"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "description": "読み上げる文。alert-job がテンプレートで作る（AI に書かせない）"
+    }
+  }
+}

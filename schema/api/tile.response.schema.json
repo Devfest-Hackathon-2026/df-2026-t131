@@ -136,58 +136,7 @@
     "stops": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "id",
-          "name",
-          "name_kana",
-          "lat",
-          "lon",
-          "departures"
-        ],
-        "properties": {
-          "id": {
-            "$ref": "../common.schema.json#/$defs/stop_id"
-          },
-          "name": {
-            "type": "string"
-          },
-          "name_kana": {
-            "type": "string"
-          },
-          "lat": {
-            "$ref": "../common.schema.json#/$defs/lat"
-          },
-          "lon": {
-            "$ref": "../common.schema.json#/$defs/lon"
-          },
-          "departures": {
-            "type": "array",
-            "description": "当日の発車予定（現地時刻 HH:MM）",
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "line",
-                "headsign",
-                "time_local"
-              ],
-              "properties": {
-                "line": {
-                  "type": "string"
-                },
-                "headsign": {
-                  "type": "string"
-                },
-                "time_local": {
-                  "type": "string",
-                  "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                }
-              }
-            }
-          }
-        }
+        "$ref": "../stop.schema.json"
       }
     },
     "crossings": {
@@ -224,44 +173,7 @@
     "events": {
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "id",
-          "name",
-          "lat",
-          "lon",
-          "start_t_ms",
-          "end_t_ms",
-          "status"
-        ],
-        "properties": {
-          "id": {
-            "$ref": "../common.schema.json#/$defs/event_id"
-          },
-          "name": {
-            "type": "string"
-          },
-          "lat": {
-            "$ref": "../common.schema.json#/$defs/lat"
-          },
-          "lon": {
-            "$ref": "../common.schema.json#/$defs/lon"
-          },
-          "start_t_ms": {
-            "$ref": "../common.schema.json#/$defs/t_ms"
-          },
-          "end_t_ms": {
-            "$ref": "../common.schema.json#/$defs/t_ms"
-          },
-          "status": {
-            "enum": [
-              "scheduled",
-              "held",
-              "cancelled"
-            ]
-          }
-        }
+        "$ref": "../event.schema.json"
       }
     }
   }
