@@ -52,6 +52,16 @@ curl -X POST localhost:8081/mock-alert
 | `JMA_OFFICE_CODE` / `JMA_MUNICIPALITY_CODE` | `160000` / `1620100` | 富山県 / 富山市 |
 | `ALERT_AREA_NAME` / `FCM_TOPIC` | `富山市` / `alert_16201` | |
 
+## いまの状態（11/5）
+
+* Cloud Run：https://alert-job-566419227445.asia-northeast1.run.app（認証あり。`ALERT_SENDER=fcm`・`ALERT_STATE=firestore`）
+* Cloud Scheduler：`alert-job-every-minute`（1分おき、サービスアカウント `scheduler-invoker` の ID トークンで呼ぶ）
+* 模擬の警報を手で送る（オーナーの権限が要る）：
+  ```
+  curl -X POST -H "Content-Length: 0" -H "Authorization: Bearer $(gcloud auth print-identity-token)" https://alert-job-566419227445.asia-northeast1.run.app/mock-alert
+  ```
+  （PowerShell では `-d ""` が消えて引数がずれるので、`-H "Content-Length: 0"` を使う）
+
 ## デプロイ（人がやる。`gcloud` は実行前にチームで確認）
 
 ```sh
