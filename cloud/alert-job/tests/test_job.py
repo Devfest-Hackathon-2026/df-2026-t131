@@ -150,6 +150,28 @@ def test_mock_alert_goes_through_same_logic_and_says_mock():
     assert job.store.load().levels == {}
 
 
+def test_mock_alert_id_differs_each_time_so_device_does_not_drop_it():
+    # 模擬電文の発表時刻は固定。送った時刻を足さないと、端末が「同じ警報の2回目」として捨ててしまう
+    job, src, sender = make_job()
+    xml = (MOCK_DIR / "level4_heavy_rain.xml").read_bytes()
+    a = job.run_mock(xml, now_ms=1_000).sent[0]["alert_id"]
+    b = job.run_mock(xml, now_ms=2_000).sent[0]["alert_id"]
+    assert a != b
+    assert a.startswith("mock_") and a.endswith("_1000")
+    # 送った時刻を省略しても、毎回 ID が付く
+    assert job.run_mock(xml).sent[0]["alert_id"].startswith("mock_")
+
+
+def test_real_alert_id_is_stable_for_same_report():
+    # 本物の警報は同じ発表なら同じ ID（端末が FCM の再送を捨てられるように）。時刻は足さない
+    from app.job import build_alert_id
+    from app.jma import Telegram
+    from app.settings import Settings
+
+    t = Telegram("気象警報・注意報（Ｒ０６）（大雨）", "通常", "2026-11-07T09:00:00+09:00", [(4, "大雨危険警報")])
+    assert build_alert_id(t, "大雨危険警報", Settings(), None) == "2026-11-07T09:00:00+09:00_1620100_大雨危険警報"
+
+
 def test_text_is_template_only():
     assert build_text("富山市", 3, "大雨警報", mock=False) == "富山市に、警戒レベル3の大雨警報が発表されました。今後の情報に注意してください。"
 
