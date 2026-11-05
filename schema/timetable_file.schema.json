@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/timetable_file.schema.json",
+  "title": "cloud/data/manual/timetable.json 全体（電停と時刻表のモック）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "stops"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/schema_version"
+    },
+    "stops": {
+      "type": "array",
+      "items": {
+        "$ref": "stop.schema.json"
+      }
+    }
+  }
+}

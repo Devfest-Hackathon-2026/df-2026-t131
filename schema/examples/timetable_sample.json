@@ -1,0 +1,24 @@
+{
+  "schema_version": "0.3",
+  "stops": [
+    {
+      "id": "st_0001",
+      "name": "見本電停",
+      "name_kana": "みほんでんてい",
+      "lat": 36.69917837837838,
+      "lon": 137.2136,
+      "departures": [
+        {
+          "line": "見本線",
+          "headsign": "見本行き",
+          "time_local": "09:12"
+        },
+        {
+          "line": "見本線",
+          "headsign": "見本行き",
+          "time_local": "09:24"
+        }
+      ]
+    }
+  ]
+}

@@ -10,16 +10,38 @@
 
 エラーは `{"error": "<コード>"}`。コードの一覧は `schema/README.md`。
 
-## いまの状態（fake モード）
+## タイル（`TILE_SOURCE`）
 
-`GEMINI_MODE=fake`（既定）では `schema/examples/` の見本を返す。課金は起きない。
+* `fake`（既定）：`16/57746/25576` だけ見本の中身、ほかのタイルは空の配列
+* `sqlite`：`cloud/data/scripts/build_sqlite.py` が作った SQLite から返す
+  * 点のもの（ランドマーク・電停・横断歩道・イベント）は位置が入るタイルだけ。エリアは範囲が重なるタイルすべて（engine は ID で重複を除く）
+  * コンテナを作るときに `cloud/data/manual/` と `cloud/data/osm/` から SQLite を作る。入力が schema に合わなければビルドが止まる
+  * 手元：`python cloud/data/scripts/build_sqlite.py --examples` で見本から作れる
 
-* タイル：`16/57746/25576` だけ見本の中身、ほかのタイルは空の配列
-* 視界の検索：送信の中身で決まった応答を返す
+## 視界の検索（`GEMINI_MODE`）
+
+`fake`（既定）では `schema/examples/` の見本を返す。課金は起きない。
+
+* 送信の中身で決まった応答を返す
   * `area` あり → エリア内の名前付きの対象（`named: true`）
   * 候補あり → 候補の先頭に一致（`matched`）
   * 候補なし → 候補外の対象（`unlisted`）
   * `search_id` が `_unknown` で終わる → `unknown`（「黙る」動作の確認用）
+
+### 本物（`GEMINI_MODE=real`）
+
+Vertex AI の Gemini に、画像と「タイルの中心・見ている方向・候補（名前と見た目の説明）・エリア」を渡し、1回の呼び出しで
+`matched`（候補のどれか）／`unlisted`（候補外の名前と説明）／`unknown` と自信の度合いを返させる。
+
+後処理（AI の答えをそのまま信じない）：
+
+* JSON が壊れている・候補に無い ID・名前が無い → `unknown`（推測で補わない）
+* 説明から、数字・年号を含む文を落とす。名前に数字があれば `unknown`
+* 説明は目安100字で切る
+* 自信が `VISUAL_MIN_CONFIDENCE`（0.3）未満 → `unknown`。話すかどうかの本当のしきい値は engine の 0.6
+* `GEMINI_GROUNDING=maps` かつエリアの中のときだけ Google マップでのグラウンディングを付け、出典を `sources` に入れる
+* 送る位置はタイルの中心だけ（正確な位置は持っていない）。画像は検索が終わったら手放す
+* 6秒で返らなければ 504 `gemini_timeout`、ほかの失敗は 502 `gemini_error`
 
 ## 手元で動かす
 
@@ -36,10 +58,15 @@ curl -H "X-App-Token: local-test" localhost:8080/v1/tiles/16/57746/25576
 
 | 名前 | 既定 | 意味 |
 | :---- | :---- | :---- |
+| `TILE_SOURCE` | `fake` | `sqlite` で SQLite から返す（reviewed のランドマークがそろったら切り替える） |
+| `TILES_DB_PATH` | `cloud/data/build/tiles.sqlite` | SQLite の場所 |
 | `APP_TOKEN` | 空 | `X-App-Token` の値。空だと `/v1/` はすべて 401。Cloud Run では Secret Manager から渡す |
 | `GEMINI_MODE` | `fake` | `real` は Cloud Run の環境変数で明示したときだけ |
 | `GEMINI_GROUNDING` | `off` | `maps` で Google マップでのグラウンディングを付ける |
 | `VERTEX_LOCATION` / `GEMINI_MODEL` | `asia-northeast1` / `gemini-2.5-flash` | 仮。本物の検索に取りかかる前に確定する |
+| `GOOGLE_CLOUD_PROJECT` | 空 | `real` のときに必須 |
+| `VISUAL_MIN_CONFIDENCE` | `0.3` | これ未満の自信は `unknown` |
+| `DESCRIPTION_MAX_CHARS` | `100` | 説明の長さ |
 | `GEMINI_TIMEOUT_S` | `6` | mobile の8秒より短く |
 | `VISUAL_SEARCH_DAILY_LIMIT` | `300` | 1日（日本時間）あたりの B の上限。インスタンスごとに数える |
 | `MAX_IMAGE_BASE64_CHARS` | `1000000` | 画像の上限（base64 の文字数） |

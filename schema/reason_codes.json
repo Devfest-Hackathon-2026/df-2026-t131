@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.2",
+  "schema_version": "0.3",
   "codes": {
     "speak:closest_approach": "A：ランドマークの最接近の直前",
     "speak:area_entered": "A：エリア（公園など）に入ったので定型文",

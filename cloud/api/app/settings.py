@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 SCHEMA_DIR = ROOT / "schema"
 EXAMPLES_DIR = SCHEMA_DIR / "examples"
 
-SCHEMA_VERSION = "0.2"
+SCHEMA_VERSION = "0.3"
 TILE_ZOOM = 16
 
 
@@ -22,6 +22,9 @@ def _env(name: str, default: str) -> str:
 
 @dataclass(frozen=True)
 class Settings:
+    # fake：見本のタイルを返す／sqlite：build_sqlite.py が作った SQLite から返す
+    tile_source: str = field(default_factory=lambda: _env("TILE_SOURCE", "fake"))
+    tiles_db_path: str = field(default_factory=lambda: _env("TILES_DB_PATH", str(ROOT / "cloud" / "data" / "build" / "tiles.sqlite")))
     # fake：schema/examples の見本を返す（課金なし）／real：Vertex AI の Gemini を呼ぶ
     gemini_mode: str = field(default_factory=lambda: _env("GEMINI_MODE", "fake"))
     # maps：Google マップでのグラウンディングを付ける／off：付けない（CLAUDE.md 6章）
@@ -30,6 +33,11 @@ class Settings:
     #   （Google マップでのグラウンディングが使える地域かも確かめる）
     vertex_location: str = field(default_factory=lambda: _env("VERTEX_LOCATION", "asia-northeast1"))
     gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-2.5-flash"))
+    gcp_project: str = field(default_factory=lambda: _env("GOOGLE_CLOUD_PROJECT", ""))
+    # これ未満の自信は unknown にする（明らかに自信のない答えを外すだけ。話すかの本当のしきい値は engine の 0.6）
+    visual_min_confidence: float = field(default_factory=lambda: float(_env("VISUAL_MIN_CONFIDENCE", "0.3")))
+    # B の説明の長さ（目安100字＝約15秒。schema の上限は120字）
+    description_max_chars: int = field(default_factory=lambda: int(_env("DESCRIPTION_MAX_CHARS", "100")))
     gemini_timeout_s: float = field(default_factory=lambda: float(_env("GEMINI_TIMEOUT_S", "6")))  # mobile の 8 秒より短く
     # 1日あたりの B の呼び出し上限（端末側の上限が壊れても予算を守る）。日付は日本時間で区切る
     visual_search_daily_limit: int = field(default_factory=lambda: int(_env("VISUAL_SEARCH_DAILY_LIMIT", "300")))
@@ -41,5 +49,7 @@ class Settings:
     def check(self) -> None:
         if self.gemini_mode not in ("fake", "real"):
             raise ValueError(f"GEMINI_MODE は fake か real: {self.gemini_mode}")
+        if self.tile_source not in ("fake", "sqlite"):
+            raise ValueError(f"TILE_SOURCE は fake か sqlite: {self.tile_source}")
         if self.gemini_grounding not in ("maps", "off"):
             raise ValueError(f"GEMINI_GROUNDING は maps か off: {self.gemini_grounding}")

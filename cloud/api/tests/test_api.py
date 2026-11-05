@@ -171,6 +171,3 @@ def test_default_mode_is_fake(monkeypatch):
     assert Settings().gemini_mode == "fake"
 
 
-def test_real_mode_not_implemented_yet():
-    with pytest.raises(RuntimeError):
-        create_app(settings=Settings(gemini_mode="real", app_token=TOKEN))
