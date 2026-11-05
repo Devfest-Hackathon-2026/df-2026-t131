@@ -143,31 +143,7 @@
       "type": "array",
       "description": "OSM の横断歩道・信号",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "id",
-          "lat",
-          "lon",
-          "kind"
-        ],
-        "properties": {
-          "id": {
-            "$ref": "../common.schema.json#/$defs/crossing_id"
-          },
-          "lat": {
-            "$ref": "../common.schema.json#/$defs/lat"
-          },
-          "lon": {
-            "$ref": "../common.schema.json#/$defs/lon"
-          },
-          "kind": {
-            "enum": [
-              "crossing",
-              "traffic_signals"
-            ]
-          }
-        }
+        "$ref": "../crossing.schema.json"
       }
     },
     "events": {

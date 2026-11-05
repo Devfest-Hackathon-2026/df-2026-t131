@@ -22,7 +22,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import contracts
 from .settings import Settings
-from .sources import FakeTileSource, FakeVisualSearch, TileSource, VisualSearch
+from .sources import FakeTileSource, FakeVisualSearch, SqliteTileSource, TileSource, VisualSearch
 
 log = logging.getLogger("api")
 JST = timezone(timedelta(hours=9))
@@ -69,7 +69,9 @@ def create_app(
     if not settings.app_token:
         log.warning("APP_TOKEN が未設定のため、/v1/ はすべて 401 を返す")
 
-    tiles = tile_source or FakeTileSource()
+    if tile_source is None:
+        tile_source = SqliteTileSource(settings.tiles_db_path) if settings.tile_source == "sqlite" else FakeTileSource()
+    tiles = tile_source
     visual = visual_search or FakeVisualSearch()
     limiter = DailyLimiter(settings.visual_search_daily_limit)
 

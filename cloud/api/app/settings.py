@@ -22,6 +22,9 @@ def _env(name: str, default: str) -> str:
 
 @dataclass(frozen=True)
 class Settings:
+    # fake：見本のタイルを返す／sqlite：build_sqlite.py が作った SQLite から返す
+    tile_source: str = field(default_factory=lambda: _env("TILE_SOURCE", "fake"))
+    tiles_db_path: str = field(default_factory=lambda: _env("TILES_DB_PATH", str(ROOT / "cloud" / "data" / "build" / "tiles.sqlite")))
     # fake：schema/examples の見本を返す（課金なし）／real：Vertex AI の Gemini を呼ぶ
     gemini_mode: str = field(default_factory=lambda: _env("GEMINI_MODE", "fake"))
     # maps：Google マップでのグラウンディングを付ける／off：付けない（CLAUDE.md 6章）
@@ -41,5 +44,7 @@ class Settings:
     def check(self) -> None:
         if self.gemini_mode not in ("fake", "real"):
             raise ValueError(f"GEMINI_MODE は fake か real: {self.gemini_mode}")
+        if self.tile_source not in ("fake", "sqlite"):
+            raise ValueError(f"TILE_SOURCE は fake か sqlite: {self.tile_source}")
         if self.gemini_grounding not in ("maps", "off"):
             raise ValueError(f"GEMINI_GROUNDING は maps か off: {self.gemini_grounding}")

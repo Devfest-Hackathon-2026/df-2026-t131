@@ -10,12 +10,19 @@
 
 エラーは `{"error": "<コード>"}`。コードの一覧は `schema/README.md`。
 
-## いまの状態（fake モード）
+## タイル（`TILE_SOURCE`）
 
-`GEMINI_MODE=fake`（既定）では `schema/examples/` の見本を返す。課金は起きない。
+* `fake`（既定）：`16/57746/25576` だけ見本の中身、ほかのタイルは空の配列
+* `sqlite`：`cloud/data/scripts/build_sqlite.py` が作った SQLite から返す
+  * 点のもの（ランドマーク・電停・横断歩道・イベント）は位置が入るタイルだけ。エリアは範囲が重なるタイルすべて（engine は ID で重複を除く）
+  * コンテナを作るときに `cloud/data/manual/` と `cloud/data/osm/` から SQLite を作る。入力が schema に合わなければビルドが止まる
+  * 手元：`python cloud/data/scripts/build_sqlite.py --examples` で見本から作れる
 
-* タイル：`16/57746/25576` だけ見本の中身、ほかのタイルは空の配列
-* 視界の検索：送信の中身で決まった応答を返す
+## 視界の検索（`GEMINI_MODE`）
+
+`fake`（既定）では `schema/examples/` の見本を返す。課金は起きない。
+
+* 送信の中身で決まった応答を返す
   * `area` あり → エリア内の名前付きの対象（`named: true`）
   * 候補あり → 候補の先頭に一致（`matched`）
   * 候補なし → 候補外の対象（`unlisted`）
@@ -36,6 +43,8 @@ curl -H "X-App-Token: local-test" localhost:8080/v1/tiles/16/57746/25576
 
 | 名前 | 既定 | 意味 |
 | :---- | :---- | :---- |
+| `TILE_SOURCE` | `fake` | `sqlite` で SQLite から返す（reviewed のランドマークがそろったら切り替える） |
+| `TILES_DB_PATH` | `cloud/data/build/tiles.sqlite` | SQLite の場所 |
 | `APP_TOKEN` | 空 | `X-App-Token` の値。空だと `/v1/` はすべて 401。Cloud Run では Secret Manager から渡す |
 | `GEMINI_MODE` | `fake` | `real` は Cloud Run の環境変数で明示したときだけ |
 | `GEMINI_GROUNDING` | `off` | `maps` で Google マップでのグラウンディングを付ける |

@@ -1,14 +1,16 @@
 """データの入口（Repository / Source）。fake と本物を差し替えられるようにする（CLAUDE.md 14章）。
 
-いまは fake だけ：schema/examples の見本を返す。
-  - タイル：SqliteTileSource（cloud/data/build の SQLite から返す）に差し替える予定
-  - 視界の検索：GeminiVisualSearch（Vertex AI）に差し替える予定
+  - タイル：FakeTileSource（見本）／SqliteTileSource（build_sqlite.py が作った SQLite）。TILE_SOURCE で選ぶ
+  - 視界の検索：FakeVisualSearch（見本）。GeminiVisualSearch（Vertex AI）に差し替える予定
 """
 import copy
 import json
+import sqlite3
+from pathlib import Path
 from typing import Protocol
 
 from .settings import EXAMPLES_DIR, SCHEMA_VERSION, TILE_ZOOM
+from .tiles import tile_bounds, tile_of
 
 
 def _load_example(name: str) -> dict:
@@ -42,6 +44,48 @@ class FakeTileSource:
             "crossings": [],
             "events": [],
         }
+
+
+class SqliteTileSource:
+    """cloud/data/scripts/build_sqlite.py が作った SQLite からタイルを返す。
+
+    - 点のもの（ランドマーク・電停・横断歩道・イベント）：位置が入るタイルだけに返す
+    - エリア（kind: area）：範囲が重なるタイルすべてに返す（engine は ID で重複を除く）
+    R*Tree は座標を少し外側に丸めるので、点は位置から計算したタイル番号でもう一度確かめる。
+    """
+
+    _KEYS = {"landmark": "landmarks", "stop": "stops", "crossing": "crossings", "event": "events"}
+
+    def __init__(self, path) -> None:
+        self._uri = f"file:{Path(path).resolve().as_posix()}?mode=ro&immutable=1"
+        with self._connect() as con:  # 起動時に開けるか・版が合うかを確かめる
+            meta = dict(con.execute("SELECT key, value FROM meta"))
+        if meta.get("schema_version") != SCHEMA_VERSION:
+            raise RuntimeError(f"SQLite の schema_version {meta.get('schema_version')} が API の {SCHEMA_VERSION} と違う")
+
+    def _connect(self) -> sqlite3.Connection:
+        return sqlite3.connect(self._uri, uri=True)
+
+    def get_tile(self, x: int, y: int) -> dict:
+        south, north, west, east = tile_bounds(x, y)
+        out = {"schema_version": SCHEMA_VERSION, "tile": {"z": TILE_ZOOM, "x": x, "y": y}}
+        out |= {k: [] for k in self._KEYS.values()}
+        con = self._connect()
+        try:
+            rows = con.execute(
+                """SELECT f.kind, f.area, f.json FROM features f JOIN features_rtree r ON f.rowid = r.rowid
+                   WHERE r.max_lat >= ? AND r.min_lat <= ? AND r.max_lon >= ? AND r.min_lon <= ?
+                   ORDER BY f.kind, f.id""",
+                (south, north, west, east),
+            ).fetchall()
+        finally:
+            con.close()
+        for kind, area, js in rows:
+            item = json.loads(js)
+            if not area and tile_of(item["lat"], item["lon"]) != (x, y):
+                continue
+            out[self._KEYS[kind]].append(item)
+        return out
 
 
 class FakeVisualSearch:

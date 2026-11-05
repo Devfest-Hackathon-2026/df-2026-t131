@@ -12,7 +12,12 @@ RUN pip install --no-cache-dir -r cloud/api/requirements.txt
 
 COPY schema/ schema/
 COPY cloud/api/app/ cloud/api/app/
-# TODO(メンバー1): 3章で SQLite（cloud/data/build/）を同梱する
+
+# タイルの SQLite はコンテナを作るときに作る（入力が schema に合わなければビルドが止まる）
+COPY cloud/data/scripts/ cloud/data/scripts/
+COPY cloud/data/manual/ cloud/data/manual/
+COPY cloud/data/osm/ cloud/data/osm/
+RUN python cloud/data/scripts/build_sqlite.py
 
 WORKDIR /srv/cloud/api
 RUN useradd --create-home appuser

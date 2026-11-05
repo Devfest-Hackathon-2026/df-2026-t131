@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/crossings_file.schema.json",
+  "title": "cloud/data/osm/crossings.json 全体（extract_osm.py の出力）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source",
+    "crossings"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "common.schema.json#/$defs/schema_version"
+    },
+    "source": {
+      "$ref": "common.schema.json#/$defs/source",
+      "description": "OpenStreetMap の出典（ODbL）"
+    },
+    "crossings": {
+      "type": "array",
+      "items": {
+        "$ref": "crossing.schema.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "0.3",
+  "source": {
+    "title": "© OpenStreetMap contributors（見本は架空）",
+    "url": "https://www.openstreetmap.org/copyright",
+    "license": "ODbL-1.0"
+  },
+  "crossings": [
+    {
+      "id": "cr_0001",
+      "lat": 36.6998990990991,
+      "lon": 137.2135,
+      "kind": "traffic_signals"
+    }
+  ]
+}

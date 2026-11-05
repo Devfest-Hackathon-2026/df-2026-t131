@@ -10,6 +10,7 @@
 | `landmark.schema.json` / `landmarks_file.schema.json` | ランドマーク1件（エリア `kind: area` を含む） / `landmarks.json` 全体 | data → api |
 | `stop.schema.json` / `timetable_file.schema.json` | 電停1件と当日の発車予定 / `manual/timetable.json` 全体 | data → api |
 | `event.schema.json` / `events_file.schema.json` | イベント1件 / `manual/events.json` 全体 | data → api |
+| `crossing.schema.json` / `crossings_file.schema.json` | 横断歩道・信号1件 / `cloud/data/osm/crossings.json` 全体（`extract_osm.py` の出力） | data scripts → api |
 | `fcm/alert.data.schema.json` | FCM で送る警報の `data`（トピック・送り方も中に記載） | alert-job → mobile |
 | `api/tile.response.schema.json` | `GET /v1/tiles/16/{x}/{y}` の応答 | api → mobile → engine |
 | `api/visual_search.request.schema.json` | `POST /v1/visual-search` の送信 | mobile → api |
@@ -21,19 +22,20 @@
 ## 見本データについて
 
 * 現在の版は **0.3**
-  * 0.2 → 0.3：電停とイベントの形を `stop.schema.json`・`event.schema.json` に切り出し（タイル応答の形は変わらない）、`manual/timetable.json`・`manual/events.json` と FCM の警報の形を追加、`validate.py` に ID の重複とデモ範囲の確認を追加
+  * 0.2 → 0.3：電停・イベント・横断歩道の形を `stop`・`event`・`crossing` の schema に切り出し（タイル応答の形は変わらない）、`manual/timetable.json`・`manual/events.json`・`osm/crossings.json` と FCM の警報の形を追加、`validate.py` に ID の重複とデモ範囲の確認を追加
   * 0.1 → 0.2：エリア、B の送信に `area`、応答に `named`・`sources`、理由コード2つを追加
 * `examples/` の地名・原稿は**実在しない仮のもの**。位置は富山駅南口付近（z16 タイル `16/57746/25576`）
 * `walk_short.jsonl` は南へ 1.3 m/s で60秒歩くログ。1秒後にタイル到着、25〜33秒に読み上げ、40秒目に B の計測、42秒目に B の結果（候補外）
 * `decisions_short.jsonl` は、エンジンが出す判断の**形の見本**。中身（時刻・どれを話すか）が正解という意味ではない
 * `lm_0004` はエリア（`kind: area`、半径200m）の見本。`visual_search_request.json` はこのエリアの中から送った想定、`visual_search_response_named.json` はエリア内の名前付きの対象を特定した応答の見本（出典つき）
 * `lm_0003` は `status: draft` なので、タイル応答には入っていない（`reviewed` だけが返る決まりの見本）
-* `timetable_sample.json`・`events_sample.json` は `manual/timetable.json`・`manual/events.json` の見本（中身はタイル応答の見本と同じ）
+* **`tile_response.json` は形の見本で、中身は地理的に1つのタイルに収まっていない**（電停・イベントは `16/57746/25577`、公園は `16/57747/25577` にある）。本物の API は、点のもの（ランドマーク・電停・横断歩道・イベント）を位置が入るタイルだけに、エリアを範囲が重なるタイルすべてに入れて返す。engine はタイルをまたいで同じ ID が来たら1つにまとめる
+* `timetable_sample.json`・`events_sample.json`・`crossings_sample.json` は `manual/timetable.json`・`manual/events.json`・`osm/crossings.json` の見本（中身はタイル応答の見本と同じ）
 * `fcm_alert_data.json` は FCM の警報の見本（架空）
 
 ## validate.py が確かめること
 
-* 見本・`cloud/data/manual/`（`landmarks.json`・`timetable.json`・`events.json`）が schema に合うか
+* 見本・`cloud/data/manual/`（`landmarks.json`・`timetable.json`・`events.json`）・`cloud/data/osm/crossings.json` が schema に合うか
 * engine のテストの fixtures：`app/engine/test/fixtures/walks/*.jsonl`（実機の歩行ログ）と `app/engine/test/fixtures/decisions/*.jsonl`（engine が再生して書き出した判断ログ）
 * `manual/` と見本の ID の重複
 * ランドマーク・電停・イベント・横断歩道の位置がデモ範囲（いまは富山市を囲む四角）の中にあるか。緯度と経度が逆なら教えてくれる

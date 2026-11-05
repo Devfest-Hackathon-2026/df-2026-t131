@@ -76,11 +76,12 @@ def check_items(items: list, label: str):
             failed += 1
 
 
-# (ファイル, schema, 中の配列のキー)。manual/ の本物も examples/ の見本も同じ規則で確かめる
+# (本物の置き場所, 見本, schema, 中の配列のキー)。本物も見本も同じ規則で確かめる
 DATA_FILES = [
-    ("landmarks.json", "landmarks_sample.json", "landmarks_file.schema.json", "landmarks"),
-    ("timetable.json", "timetable_sample.json", "timetable_file.schema.json", "stops"),
-    ("events.json", "events_sample.json", "events_file.schema.json", "events"),
+    ("cloud/data/manual/landmarks.json", "landmarks_sample.json", "landmarks_file.schema.json", "landmarks"),
+    ("cloud/data/manual/timetable.json", "timetable_sample.json", "timetable_file.schema.json", "stops"),
+    ("cloud/data/manual/events.json", "events_sample.json", "events_file.schema.json", "events"),
+    ("cloud/data/osm/crossings.json", "crossings_sample.json", "crossings_file.schema.json", "crossings"),
 ]
 
 E = S / "examples"
@@ -112,13 +113,12 @@ else:
     print("NG fcm_alert_data.json: FCM の data の値はすべて文字列にする")
     failed += 1
 
-M = ROOT / "cloud" / "data" / "manual"
-for name, _, schema_rel, key in DATA_FILES:
-    p = M / name
+for rel, _, schema_rel, key in DATA_FILES:
+    p = ROOT / rel
     if p.exists():
         data = load(p)
-        check(schema_rel, data, f"cloud/data/manual/{name}")
-        check_items(data.get(key, []), f"cloud/data/manual/{name}")
+        check(schema_rel, data, rel)
+        check_items(data.get(key, []), rel)
 
 FIX = ROOT / "app" / "engine" / "test" / "fixtures"
 # 実機で録った歩行ログ（メンバー3 → メンバー2 経由で置く）
