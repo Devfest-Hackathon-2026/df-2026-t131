@@ -16,8 +16,8 @@ jobs:
     name: schema と禁止事項
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -r schema/requirements.txt
@@ -30,8 +30,8 @@ jobs:
     name: cloud の pytest
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: pytest（tests/ があるディレクトリだけ）
@@ -54,15 +54,15 @@ jobs:
     name: engine の dart test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: has_engine
         run: |
           if [ -f app/engine/pubspec.yaml ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
-      # TODO(メンバー1): tasks/README.md 10章で Dart の版を決めたら、stable をその版に固定する
+      # Dart の版は tasks/README.md 10章（Flutter 3.47.9 に同梱の Dart）にそろえる
       - uses: dart-lang/setup-dart@v1
         if: steps.has_engine.outputs.exists == 'true'
         with:
-          sdk: stable
+          sdk: 3.13.7
       - name: dart test
         if: steps.has_engine.outputs.exists == 'true'
         working-directory: app/engine
