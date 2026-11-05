@@ -28,8 +28,8 @@ python schema/validate.py                    # 形式の検証
 python .github/scripts/check_forbidden.py    # 禁止事項の検出
 ```
 
-* ブランチは `m1/…`〜`m4/…`。`main` に直接 push しない。PR を出し、CI が緑で持ち主の承認があればマージ
-* 毎朝 `git pull --rebase origin main`
+* PR は使わず `main` に直接 push する。作業前と push 前に `git pull --rebase origin main`
+* push の前に上の2つと自分のテストを通す。CI が赤くなったら push した人がすぐ直す（`tasks/README.md` 5章）
 * コミットしないもの：`.env`、鍵、`google-services.json`、`cloud/data/raw/`、`cloud/data/build/`、カメラ画像
 * AI エージェントには、会話の最初に [`tasks/START_PROMPTS.md`](tasks/START_PROMPTS.md) の自分の欄を貼る
 

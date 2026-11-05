@@ -18,6 +18,7 @@ from datetime import datetime, timedelta, timezone
 START = datetime(2026, 11, 5, 10, 0, tzinfo=timezone(timedelta(hours=9)))
 BIG_COMMIT_LINES = 1500
 WATCH_PREFIXES = ("app/", "cloud/")
+GENERATED_SUFFIXES = (".lock", "pubspec.lock", ".g.dart", ".freezed.dart")  # 自動で作られるファイルは数えない
 
 
 def git(*args: str) -> str:
@@ -29,16 +30,19 @@ def main() -> int:
         print("履歴が浅い（shallow）ため確かめられません。CI では actions/checkout に fetch-depth: 0 を付ける")
         return 1
     bad = []
+    merges = set(git("rev-list", "--merges", "HEAD").split())
     for line in git("log", "--format=%H%x09%aI%x09%cI%x09%an%x09%s", "HEAD").splitlines():
         h, a, c, who, subject = line.split("\t", 4)
         ad, cd = datetime.fromisoformat(a), datetime.fromisoformat(c)
         if ad < START or cd < START:
             bad.append(f"{h[:8]} 作者の日時 {a} / コミットの日時 {c}（{who}）{subject}")
             continue
+        if h in merges:
+            continue  # マージのコミットは、すでにあるコミットをまとめただけなので大きさは見ない
         added = 0
         for row in git("show", "--numstat", "--format=", h).splitlines():
             parts = row.split("\t")
-            if len(parts) == 3 and parts[0].isdigit() and parts[2].startswith(WATCH_PREFIXES):
+            if len(parts) == 3 and parts[0].isdigit() and parts[2].startswith(WATCH_PREFIXES)                     and not parts[2].endswith(GENERATED_SUFFIXES):
                 added += int(parts[0])
         if added >= BIG_COMMIT_LINES:
             # GitHub Actions の警告として PR の画面に出る
