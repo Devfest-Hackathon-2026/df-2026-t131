@@ -28,6 +28,8 @@ class DirectSpeakSink implements InfoSink {
       priority: item.kind.priority,
       interrupt: item.interrupts,
       pauseMusic: item.kind.pauseMusic,
+      level: item.level ?? 0,
+      expiresMs: item.expiresMs,
     ),
   );
 }

@@ -4,6 +4,7 @@ import '../app/app_services.dart';
 import '../app/app_settings.dart';
 import '../dev/fake_gps_panel.dart';
 import 'camera_view.dart';
+import 'alert_banner.dart';
 import 'caption.dart';
 import 'collapsible_sheet.dart';
 import 'layout.dart';
@@ -88,6 +89,19 @@ class _StartScreenState extends State<StartScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
+          // 受け取った気象警報（右上の札の下）
+          Positioned(
+            right: l.margin,
+            top: l.margin + 56,
+            width: l.size.width - l.sheetWidth - l.margin * 3,
+            child: Align(
+              alignment: Alignment.topRight,
+              child: AlertBanner(
+                alert: services.activeAlert,
+                onClose: services.dismissAlert,
               ),
             ),
           ),

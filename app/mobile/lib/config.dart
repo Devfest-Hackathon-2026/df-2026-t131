@@ -24,6 +24,14 @@ class AppConfig {
   /// 偏角を更新する間隔。
   static const Duration declinationRefresh = Duration(minutes: 10);
 
+  /// 今出ている警報の一覧を置く公開の Cloud Storage（`alerts/current/<区域7桁>.json`）。
+  /// 誰でも読める公開の置き場所で、秘密ではない。別の置き場所を試すときは --dart-define で替える。
+  static const String alertsBaseUrl = String.fromEnvironment(
+    'ALERTS_BASE_URL',
+    defaultValue:
+        'https://storage.googleapis.com/ambient-guide-toyama-2026-alerts',
+  );
+
   /// `--dart-define=DEV_TOOLS=true` で開発者モードを最初から出す。
   /// 出していないときも、設定画面の「このアプリについて」を7回押すと出せる。
   static const bool devTools = bool.fromEnvironment('DEV_TOOLS');

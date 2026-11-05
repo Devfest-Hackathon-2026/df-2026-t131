@@ -199,6 +199,98 @@ void main() {
     expect(x.subtitle.value, isNull);
   });
 
+  group('優先度と割り込み（CLAUDE.md 4章）', () {
+    SpeakRequest req(
+      String id, {
+      int priority = 5,
+      int level = 0,
+      bool interrupt = false,
+      int? expiresMs,
+    }) => SpeakRequest(
+      utteranceId: id,
+      text: id,
+      priority: priority,
+      level: level,
+      interrupt: interrupt,
+      expiresMs: expiresMs,
+    );
+
+    test('待っている依頼は優先度の順、同じ優先度なら来た順', () async {
+      x.execute(req('landmark1'));
+      await settle();
+      x.execute(req('visual', priority: 6));
+      x.execute(req('landmark2'));
+      x.execute(req('event', priority: 4));
+      x.execute(req('alert3', priority: 1, level: 3)); // レベル3は割り込まない
+      await settle();
+      expect(tts.spoken, ['landmark1']); // 今の話は最後まで
+      for (var i = 0; i < 5; i++) {
+        tts.finish();
+        await settle();
+      }
+      expect(tts.spoken, [
+        'landmark1',
+        'alert3',
+        'event',
+        'landmark2',
+        'visual',
+      ]);
+    });
+
+    test('レベル4はレベル3の警報にも割り込むが、同じレベル4どうしは割り込まない', () async {
+      x.execute(req('alert3', priority: 1, level: 3));
+      await settle();
+      x.execute(req('alert4a', priority: 1, level: 4, interrupt: true));
+      await settle();
+      expect(tts.spoken, ['alert3', 'alert4a']);
+      x.execute(req('alert4b', priority: 1, level: 4, interrupt: true));
+      await settle();
+      expect(tts.spoken.last, 'alert4a'); // 話し終えるまで待つ
+      tts.finish();
+      await settle();
+      expect(tts.spoken.last, 'alert4b');
+      tts.finish();
+      await settle();
+      expect(tts.spoken, ['alert3', 'alert4a', 'alert4b']); // 止めた方は話し直さない
+      expect(finished, ['alert3', 'alert4a', 'alert4b']);
+    });
+
+    test('割り込みでも今の発話より大事でなければ次に回す', () async {
+      x.execute(req('alert', priority: 1, level: 3));
+      await settle();
+      x.execute(req('landmark', interrupt: true));
+      await settle();
+      expect(tts.stops, isEmpty);
+      tts.finish();
+      await settle();
+      expect(tts.spoken, ['alert', 'landmark']);
+    });
+
+    test('話す番が来たとき期限を過ぎていたら話さずに捨てる', () async {
+      var nowMs = 1000;
+      final timed = SpeakExecutor(
+        tts: tts,
+        focus: focus,
+        chime: chime,
+        now: () => nowMs,
+      );
+      final done = <String>[];
+      timed.finished.listen(done.add);
+      timed.execute(req('landmark'));
+      await settle();
+      timed.execute(req('transit', priority: 3, expiresMs: 5000));
+      timed.execute(req('event', priority: 4, expiresMs: 20000));
+      nowMs = 10000; // 案内が長く、電車の期限を過ぎた
+      tts.finish();
+      await settle();
+      expect(tts.spoken, ['landmark', 'event']);
+      expect(done, ['landmark', 'transit']); // 捨てた方も終わりを返す
+      tts.finish();
+      await settle();
+      expect(done.last, 'event');
+    });
+  });
+
   test('TTS が失敗しても列は止まらない', () async {
     final bad = SpeakExecutor(tts: _ThrowingTts(), focus: focus, chime: chime);
     final done = <String>[];

@@ -8,6 +8,7 @@ import 'package:mobile/app/app_services.dart';
 import 'package:mobile/app/app_settings.dart';
 import 'package:mobile/core/sensor_ticker.dart';
 import 'package:mobile/executors/voice_catalog.dart';
+import 'package:mobile/info/alert_message.dart';
 import 'package:mobile/sources/activity_source.dart';
 import 'package:mobile/sources/audio_state_source.dart';
 import 'package:mobile/sources/camera_source.dart';
@@ -152,6 +153,33 @@ void main() {
       final now = tester.getRect(find.textContaining('右手の石碑は'));
       expect(banner.overlaps(now), isFalse);
       s.ticker.stop(); // 1秒タイマーはその場で止まる（終わりは待たない）
+    });
+
+    testWidgets('警報の帯が ${e.key} で画面に収まり、ほかと重ならない', (tester) async {
+      for (final glass in [false, true]) {
+        final s = await _pump(
+          tester,
+          e.value,
+          (s) =>
+              glass ? GlassViewScreen(services: s) : StartScreen(services: s),
+        );
+        s.activeAlert.value = parseAlertData(
+          mockAlertData(level: 4, nowMs: 1),
+          receivedMs: 1,
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(tester.takeException(), isNull);
+        final a = tester.getRect(find.textContaining('レベル4  '));
+        expect(a.right, lessThanOrEqualTo(e.value.width));
+        expect(a.bottom, lessThanOrEqualTo(e.value.height));
+        final other = glass
+            ? find.textContaining('右手の石碑は')
+            : find.text('計測開始').hitTestable();
+        expect(a.overlaps(tester.getRect(other)), isFalse);
+        await tester.tap(find.byTooltip('警報の表示を閉じる'));
+        expect(s.activeAlert.value, isNull);
+        s.ticker.stop();
+      }
     });
   }
 

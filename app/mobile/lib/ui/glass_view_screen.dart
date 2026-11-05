@@ -9,6 +9,7 @@ import '../sources/location_source.dart';
 import '../sources/activity_source.dart';
 import '../dev/fake_gps_panel.dart';
 import 'camera_view.dart';
+import 'alert_banner.dart';
 import 'caption.dart';
 import 'settings_screen.dart';
 import 'collapsible_sheet.dart';
@@ -198,6 +199,19 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
+          // 受け取った気象警報（右上の札の下。たたんでいても出す）
+          Positioned(
+            right: l.margin,
+            top: l.margin + (l.compact ? 96 : 104),
+            width: l.size.width - l.nowCardWidth - l.margin * 3,
+            child: Align(
+              alignment: Alignment.topRight,
+              child: AlertBanner(
+                alert: services.activeAlert,
+                onClose: services.dismissAlert,
               ),
             ),
           ),

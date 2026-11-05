@@ -191,7 +191,9 @@ class _DevSettingsSectionState extends State<DevSettingsSection> {
             title: const Text('模擬の警報を鳴らす'),
             subtitle: const Text(
               '本物の FCM と同じ形の警報を、アプリの中で流します。'
-              'レベル4は今の読み上げに割り込み、音楽を一時停止します。記録中なら歩行ログに alert 行が残ります。',
+              'レベル4は今の読み上げに割り込み、音楽を一時停止します。レベル3は今の話が終わってから、'
+              '待っている案内より先に話します。記録中なら歩行ログに alert 行が残ります。'
+              '「案内を流す」で長めの案内（優先度5）を流してから押すと、順番を確かめられます。',
             ),
           ),
           Padding(
@@ -207,8 +209,26 @@ class _DevSettingsSectionState extends State<DevSettingsSection> {
                   onPressed: () => widget.services.alerts.sendMock(level: 3),
                   child: const Text('レベル3'),
                 ),
+                OutlinedButton(
+                  onPressed: widget.services.speakDevLandmark,
+                  child: const Text('案内を流す（優先度5）'),
+                ),
               ],
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.cloud_download_outlined),
+            title: const Text('警報の一覧を取りに行く'),
+            subtitle: Text(
+              'FCM が届かなかったときの保険（公開の Cloud Storage の alerts/current/'
+              '1620100.json と、模擬の警報の mock_1620100.json）。'
+              'まだ聞いていない警報があれば読み上げます。'
+              '前回：${widget.services.alertList.lastResult}',
+            ),
+            onTap: () async {
+              await widget.services.refreshAlerts(force: true);
+              if (mounted) setState(() {});
+            },
           ),
           ListTile(
             leading: const Icon(Icons.close),

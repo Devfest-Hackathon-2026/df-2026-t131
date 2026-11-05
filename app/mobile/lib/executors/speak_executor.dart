@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
@@ -19,6 +18,8 @@ class SpeakRequest {
     this.interrupt = false,
     this.pauseMusic = false,
     this.group,
+    this.level = 0,
+    this.expiresMs,
   });
 
   final String utteranceId;
@@ -36,6 +37,17 @@ class SpeakRequest {
   /// 同じ group の古い依頼は、新しい依頼が来たら捨てる（試し聞きの連打で何度も話さないため）。
   /// engine の発話には付けない（mobile が勝手に捨てない）。
   final String? group;
+
+  /// 同じ優先度の中での大事さ（警報の警戒レベル 1〜5）。大きいほど先に話す。
+  final int level;
+
+  /// これを過ぎたら話さずに捨てる（UTC の UNIX ミリ秒。交通・イベント・B の答え）。null なら期限なし。
+  final int? expiresMs;
+
+  /// [other] より先に話すべきか（優先度が小さい、同じなら警戒レベルが大きい）。
+  bool outranks(SpeakRequest other) =>
+      priority < other.priority ||
+      (priority == other.priority && level > other.level);
 }
 
 // ---- 差し替えられる部品（テストでは偽物を使う） ----
@@ -65,20 +77,31 @@ abstract class Chime {
 
 /// 読み上げを実行する（engine の `Speak` を受ける）。判断はしない。
 ///
-/// - 1件ずつ順番に話す（FIFO）。engine は話している間に次を出さない想定だが、来たら待たせる
-/// - `interrupt` なら今の読み上げを止めて先に話す。止めた方にも `TtsFinished` を返す（TODO(質問) 1）
+/// - 1件ずつ話す。待っている依頼は優先度（CLAUDE.md 4章）の順に並べ、同じ優先度なら来た順
+/// - `interrupt` で、今の発話より大事なら（[SpeakRequest.outranks]）今の読み上げを止めて先に話す。
+///   止めた方にも `TtsFinished` を返す（TODO(質問) 1）。大事でなければ今の発話の次に話す
+/// - 話す番が来たときに期限（`expiresMs`）を過ぎていたら話さずに捨てる
 /// - `group` が同じ古い依頼は捨てる（話す前なら列から消し、話している最中なら止める）
 /// - 話す前に音の出口を確保（普段はダッキング、`pauseMusic` なら一時停止）し、合図音を鳴らす。
 ///   割り込みで続けて話すときは合図音を重ねない
 /// - 字幕は「話し始め」の通知で出し、話した所まで `spokenChars` で知らせる
 class SpeakExecutor {
-  SpeakExecutor({required this.tts, required this.focus, required this.chime});
+  SpeakExecutor({
+    required this.tts,
+    required this.focus,
+    required this.chime,
+    int Function()? now,
+  }) : _now = now ?? _systemMs;
+
+  static int _systemMs() => DateTime.now().toUtc().millisecondsSinceEpoch;
+  final int Function() _now;
 
   final TtsEngine tts;
   final AudioFocus focus;
   final Chime chime;
 
-  final _queue = Queue<SpeakRequest>();
+  /// 待っている依頼（先頭から話す）。
+  final _queue = <SpeakRequest>[];
   final _finished = StreamController<String>.broadcast();
   SpeakRequest? _current;
   bool _interruptedCurrent = false;
@@ -115,12 +138,8 @@ class SpeakExecutor {
         cur != null &&
         !_interruptedCurrent &&
         ((group != null && cur.group == group) ||
-            (r.interrupt && r.priority <= cur.priority));
-    if (r.interrupt || replaceCurrent) {
-      _queue.addFirst(r);
-    } else {
-      _queue.add(r);
-    }
+            (r.interrupt && r.outranks(cur)));
+    _enqueue(r);
     if (replaceCurrent) {
       // 止めた発話の終わりは、ここで1回だけ返す
       _emitFinished(cur.utteranceId);
@@ -131,11 +150,29 @@ class SpeakExecutor {
     if (!_running) unawaited(_run());
   }
 
+  /// 優先度の順に入れる。同じ大事さなら後ろに（来た順）。
+  void _enqueue(SpeakRequest r) {
+    final i = _queue.indexWhere(r.outranks);
+    if (i < 0) {
+      _queue.add(r);
+    } else {
+      _queue.insert(i, r);
+    }
+  }
+
+  /// 待っている依頼の数（画面・テスト用）。
+  int get pending => _queue.length;
+
   Future<void> _run() async {
     _running = true;
     try {
       while (_queue.isNotEmpty) {
-        final r = _queue.removeFirst();
+        final r = _queue.removeAt(0);
+        final exp = r.expiresMs;
+        if (exp != null && _now() > exp) {
+          _emitFinished(r.utteranceId); // 期限切れ。話さずに捨てる
+          continue;
+        }
         _current = r;
         await _guard(() => focus.acquire(pauseMusic: r.pauseMusic));
         if (_skipNextChime) {

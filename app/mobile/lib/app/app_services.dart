@@ -1,16 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../core/sensor_ticker.dart';
 import '../dev/fake_gps.dart';
 import '../executors/speak_executor.dart';
 import '../executors/voice_catalog.dart';
+import '../info/alert_list_fetcher.dart';
 import '../info/alert_message.dart';
 import '../info/fcm_alerts.dart';
 import '../info/info_hub.dart';
 import '../info/info_kind.dart';
+import '../info/info_source.dart';
 import '../info/sources.dart';
 import '../net/api_client.dart';
 import '../config.dart';
@@ -64,7 +67,9 @@ class AppServices {
     );
     // 読み上げの終わりを歩行ログへ（試し聞きは engine の発話ではないので残さない）
     _finishedSub = this.speaker.finished.listen((id) {
-      if (!id.startsWith(previewPrefix)) session.recordTtsFinished(id);
+      if (!id.startsWith(previewPrefix) && !id.startsWith(devPrefix)) {
+        session.recordTtsFinished(id);
+      }
     });
     // 声の設定を読み上げに反映する
     settings.addListener(() => this.speaker.useVoice(settings.value.voice));
@@ -74,6 +79,7 @@ class AppServices {
       now: () => DateTime.now().toUtc().millisecondsSinceEpoch,
       onAccepted: (item) {
         if (item.kind == InfoKind.alert) {
+          _showAlert(item);
           session.recordEvent(
             'alert',
             alertRowData(item),
@@ -84,6 +90,48 @@ class AppServices {
     )..register(alerts);
     for (final s in plannedSources()) {
       info.register(s);
+    }
+    alertList = AlertListFetcher(
+      baseUrl: AppConfig.alertsBaseUrl,
+      onData: alerts.receive,
+    );
+    // 歩き始めに警報の一覧を取りに行き、歩いている間は15分ごとに取り直す（FCM の取りこぼしの保険）
+    session.addListener(_onSessionChanged);
+  }
+
+  /// 今出ている警報の一覧を取りに行く部品（FCM が届かなかったときの保険）。
+  late final AlertListFetcher alertList;
+  Timer? _alertListTimer;
+  SessionPhase? _lastPhase;
+  int _lastAlertFetchMs = 0;
+  AppLifecycleListener? _lifecycle;
+
+  void _onSessionChanged() {
+    final phase = session.phase;
+    if (phase == _lastPhase) return;
+    _lastPhase = phase;
+    _alertListTimer?.cancel();
+    _alertListTimer = null;
+    if (phase == SessionPhase.running && useFcm) {
+      unawaited(refreshAlerts());
+      _alertListTimer = Timer.periodic(
+        AlertListFetcher.refreshEvery,
+        (_) => refreshAlerts(),
+      );
+    }
+  }
+
+  /// 警報の一覧を取りに行く。置き場所は1分ごとにしか変わらないので、[force] でなければ1分は空ける。
+  /// 開発者モードのときは、デモ用の模擬の警報の一覧も取る。
+  Future<void> refreshAlerts({bool force = false}) async {
+    final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+    if (!force && now - _lastAlertFetchMs < 60 * 1000) return;
+    _lastAlertFetchMs = now;
+    await alertList.fetch();
+    if (settings.value.developerMode || AppConfig.devTools) {
+      final real = alertList.lastResult;
+      await alertList.fetch(mock: true);
+      alertList.lastResult = '$real ／ ${alertList.lastResult}';
     }
   }
 
@@ -149,6 +197,29 @@ class AppServices {
     now: () => DateTime.now().toUtc().millisecondsSinceEpoch,
   );
 
+  /// 画面に出している警報（無ければ null）。読み上げと同じ文を、聞き逃しても読めるよう残す。
+  final ValueNotifier<InfoItem?> activeAlert = ValueNotifier(null);
+  Timer? _alertTimer;
+
+  /// 警報を画面に出しておく時間。過ぎたら自動で消す（新しい警報が来たら入れ替える）。
+  static const alertShownFor = Duration(minutes: 30);
+
+  void _showAlert(InfoItem item) {
+    final cur = activeAlert.value;
+    // 出している警報よりレベルが低いものでは上書きしない（読み上げはする）
+    if (cur != null && (cur.level ?? 0) > (item.level ?? 0)) return;
+    activeAlert.value = item;
+    _alertTimer?.cancel();
+    _alertTimer = Timer(alertShownFor, dismissAlert);
+  }
+
+  /// 警報の表示を閉じる。
+  void dismissAlert() {
+    _alertTimer?.cancel();
+    _alertTimer = null;
+    activeAlert.value = null;
+  }
+
   /// Cloud Run の API。URL とトークンは --dart-define で渡す（コードに書かない）。
   final ApiClient api;
 
@@ -189,6 +260,14 @@ class AppServices {
       final fcm = _fcm = FcmAlerts(alerts);
       unawaited(fcm.connect());
       unawaited(checkServer());
+      unawaited(refreshAlerts());
+      // 前面に戻ったら、閉じている間に預けた警報と一覧を確かめる
+      _lifecycle = AppLifecycleListener(
+        onResume: () {
+          unawaited(fcm.drainPending());
+          unawaited(refreshAlerts());
+        },
+      );
     }
   }
 
@@ -211,6 +290,22 @@ class AppServices {
     );
   }
 
+  /// 開発者モードで流す確認用の発話 ID の頭（歩行ログに残さない印）。
+  static const devPrefix = 'dev_';
+  int _devCount = 0;
+
+  /// 開発者モード：優先度5のランドマーク案内のつもりの長めの文を流す（割り込みと順番の確認用）。
+  void speakDevLandmark() => speaker.execute(
+    SpeakRequest(
+      utteranceId: '${devPrefix}landmark_${++_devCount}',
+      text:
+          '（確認用の案内です）右手に見えるのは富山駅です。'
+          '北陸新幹線と路面電車が乗り入れ、駅の下を路面電車が南北に通り抜けます。'
+          '南口を出ると、正面に路面電車の電停があります。',
+      priority: InfoKind.landmark.priority,
+    ),
+  );
+
   /// 試し聞きの group（新しい試し聞きが来たら古い方を捨てる）。
   static const previewGroup = 'preview';
 
@@ -221,11 +316,17 @@ class AppServices {
 
   Future<void> dispose() async {
     await _finishedSub?.cancel();
+    _lifecycle?.dispose();
+    _alertListTimer?.cancel();
+    session.removeListener(_onSessionChanged);
+    alertList.close();
     await info.stop();
     _fcm?.dispose();
     api.close();
     serverStatus.dispose();
     await alerts.close();
+    _alertTimer?.cancel();
+    activeAlert.dispose();
     fakeGps?.dispose();
     await speaker.dispose();
     session.dispose();

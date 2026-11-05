@@ -47,8 +47,9 @@ class AlertSource implements InfoSource {
   Stream<InfoItem> get items => _c.stream;
 
   /// FCM の data を受ける。形が違えば無視して false。
-  bool receive(Map<String, Object?> data) {
-    final item = parseAlertData(data, receivedMs: now());
+  /// [receivedMs] は、アプリが閉じていた間に届いて後から渡すときの、受け取った時刻。
+  bool receive(Map<String, Object?> data, {int? receivedMs}) {
+    final item = parseAlertData(data, receivedMs: receivedMs ?? now());
     if (item == null || _c.isClosed) return false;
     if (!_counted.contains(item.id)) {
       if (!limiter.tryAcquire()) return false; // 多すぎる。捨てる

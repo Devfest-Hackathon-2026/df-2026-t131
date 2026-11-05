@@ -53,8 +53,8 @@ class ApiClient {
     int Function()? now,
     RateLimiter? limiter,
     this.timeout = const Duration(seconds: 8),
-  // トークンは外から読めない private にしておく
-  // ignore: prefer_initializing_formals
+    // トークンは外から読めない private にしておく
+    // ignore: prefer_initializing_formals
   }) : _token = token,
        _client = client ?? http.Client(),
        _now = now ?? _systemMs,
