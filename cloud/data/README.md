@@ -33,6 +33,7 @@ GOOGLE_CLOUD_PROJECT=<プロジェクトID> python cloud/data/scripts/draft_scri
 #   1件だけ：--only lm_0003　／　作り直し：--force
 ```
 
+* ウイルス対策ソフトが HTTPS を検査している PC（Norton など）で「証明書」のエラーが出たら、そのソフトの証明書を含む束のファイルを `SSL_CERT_FILE` と `REQUESTS_CA_BUNDLE` に指定して動かす（分からなければメンバー1に聞く）
 * 出てくる場所：`cloud/data/drafts/lm_0003.json` のように1件1ファイル
 * `manual/landmarks/` は**書き換えません**。下書きが既にあるものは作りません（お金の無駄を防ぐ）
 * `--fake` で作った下書きは仮の文なので、本番の前に消すか `--force` で作り直してください
