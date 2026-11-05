@@ -25,6 +25,8 @@ class Settings:
     # fake：見本のタイルを返す／sqlite：build_sqlite.py が作った SQLite から返す
     tile_source: str = field(default_factory=lambda: _env("TILE_SOURCE", "fake"))
     tiles_db_path: str = field(default_factory=lambda: _env("TILES_DB_PATH", str(ROOT / "cloud" / "data" / "build" / "tiles.sqlite")))
+    # file：events.json の開催状態のまま／firestore：Firestore の event_status で上書き（デモで「中止」に切り替える）
+    event_status: str = field(default_factory=lambda: _env("EVENT_STATUS", "file"))
     # fake：schema/examples の見本を返す（課金なし）／real：Vertex AI の Gemini を呼ぶ
     gemini_mode: str = field(default_factory=lambda: _env("GEMINI_MODE", "fake"))
     # maps：Google マップでのグラウンディングを付ける／off：付けない（CLAUDE.md 6章）
@@ -51,5 +53,7 @@ class Settings:
             raise ValueError(f"GEMINI_MODE は fake か real: {self.gemini_mode}")
         if self.tile_source not in ("fake", "sqlite"):
             raise ValueError(f"TILE_SOURCE は fake か sqlite: {self.tile_source}")
+        if self.event_status not in ("file", "firestore"):
+            raise ValueError(f"EVENT_STATUS は file か firestore: {self.event_status}")
         if self.gemini_grounding not in ("maps", "off"):
             raise ValueError(f"GEMINI_GROUNDING は maps か off: {self.gemini_grounding}")

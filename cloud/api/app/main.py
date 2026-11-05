@@ -22,6 +22,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import contracts
 from .errors import ApiError
+from .event_status import EventStatusSource, FileEventStatus, apply_statuses
 from .settings import Settings
 from .sources import FakeTileSource, FakeVisualSearch, SqliteTileSource, TileSource, VisualSearch
 
@@ -56,6 +57,7 @@ def create_app(
     settings: Settings | None = None,
     tile_source: TileSource | None = None,
     visual_search: VisualSearch | None = None,
+    event_status: EventStatusSource | None = None,
 ) -> FastAPI:
     settings = settings or Settings()
     settings.check()
@@ -73,6 +75,13 @@ def create_app(
         else:
             visual_search = FakeVisualSearch()
     visual = visual_search
+    if event_status is None:
+        if settings.event_status == "firestore":
+            from .event_status import firestore_event_status
+
+            event_status = firestore_event_status()
+        else:
+            event_status = FileEventStatus()
     limiter = DailyLimiter(settings.visual_search_daily_limit)
 
     app = FastAPI(title="アンビエント・ナラティブガイド API", docs_url=None, redoc_url=None, openapi_url=None)
@@ -111,7 +120,7 @@ def create_app(
     def get_tile(x: int, y: int):
         if x < 0 or y < 0 or x >= 2**16 or y >= 2**16:
             raise ApiError(400, "bad_request")
-        return tiles.get_tile(x, y)
+        return apply_statuses(tiles.get_tile(x, y), event_status)
 
     @app.post("/v1/visual-search", dependencies=[Depends(require_token)])
     async def post_visual_search(request: Request):
