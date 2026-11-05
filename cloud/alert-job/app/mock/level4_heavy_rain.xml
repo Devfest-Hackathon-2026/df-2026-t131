@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- デモ用の模擬電文。本物の気象庁の発表ではない。形は気象警報・注意報（Ｒ０６）の実際の電文に合わせている -->
+<Report xmlns="http://xml.kishou.go.jp/jmaxml1/" xmlns:jmx="http://xml.kishou.go.jp/jmaxml1/">
+  <Control>
+    <Title>気象警報・注意報（Ｒ０６）（大雨）</Title>
+    <DateTime>2026-11-07T00:00:00Z</DateTime>
+    <Status>訓練</Status>
+    <EditorialOffice>デモ用の模擬電文</EditorialOffice>
+    <PublishingOffice>デモ用の模擬電文</PublishingOffice>
+  </Control>
+  <Head xmlns="http://xml.kishou.go.jp/jmaxml1/informationBasis1/">
+    <Title>【デモ用の模擬電文】富山県大雨警報・注意報</Title>
+    <ReportDateTime>2026-11-07T09:00:00+09:00</ReportDateTime>
+    <InfoType>発表</InfoType>
+    <InfoKind>気象警報・注意報</InfoKind>
+  </Head>
+  <Body xmlns="http://xml.kishou.go.jp/jmaxml1/body/meteorology1/">
+    <Warning type="気象警報・注意報（市町村等）">
+      <Item>
+        <Kind>
+          <Name>レベル４大雨危険警報</Name>
+          <Status>発表</Status>
+        </Kind>
+        <Area>
+          <Name>富山市</Name>
+          <Code>1620100</Code>
+        </Area>
+        <ChangeStatus>警報・注意報種別に変化有</ChangeStatus>
+      </Item>
+    </Warning>
+  </Body>
+</Report>
