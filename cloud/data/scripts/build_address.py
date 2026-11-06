@@ -13,13 +13,15 @@
     cloud/data/address/towns.json（Git 管理。schema/towns_file.schema.json の形）
 
 決まり:
-  - 富山市（市区町村コード 16201）だけ、範囲（--bbox。既定は横断歩道と同じ）の中の代表点だけ
+  - 富山市（市区町村コード 16201）だけ。範囲（--bbox。既定は横断歩道と同じ）の中と、範囲から 800m 以内の代表点
+    （範囲の端の近くでは、範囲の外にある代表点のほうが近いことがあるため）
   - 同じ入力なら同じ出力（id の順に並べる。作った日時は入れない）
 """
 import argparse
 import csv
 import io
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -54,9 +56,11 @@ def level_of(rows: list[dict]) -> str | None:
     return None
 
 
-def in_bbox(lat: float, lon: float, bbox) -> bool:
+def in_bbox(lat: float, lon: float, bbox, margin_m: float = 0.0) -> bool:
     s, w, n, e = bbox
-    return s <= lat <= n and w <= lon <= e
+    dlat = margin_m / 111_320.0
+    dlon = margin_m / (111_320.0 * math.cos(math.radians((s + n) / 2)))
+    return s - dlat <= lat <= n + dlat and w - dlon <= lon <= e + dlon
 
 
 def towns_from(rows: list[dict], bbox) -> list[dict]:
@@ -68,7 +72,8 @@ def towns_from(rows: list[dict], bbox) -> list[dict]:
             lat, lon = float(r["緯度"]), float(r["経度"])
         except (KeyError, ValueError):
             continue
-        if not in_bbox(lat, lon, bbox):
+        # 範囲の外でも、800m 以内の代表点は入れる（範囲の端の近くの町を取りこぼさないため。11/6 夜に木場町で見つけた）
+        if not in_bbox(lat, lon, bbox, MAX_TOWN_DISTANCE_M):
             continue
         code = r.get("大字町丁目コード", "").strip()
         name = r.get("大字町丁目名", "").strip()

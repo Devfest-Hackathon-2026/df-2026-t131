@@ -17,6 +17,7 @@ COPY cloud/api/app/ cloud/api/app/
 COPY cloud/data/scripts/ cloud/data/scripts/
 COPY cloud/data/manual/ cloud/data/manual/
 COPY cloud/data/osm/ cloud/data/osm/
+COPY cloud/data/address/ cloud/data/address/
 RUN python cloud/data/scripts/build_sqlite.py
 
 WORKDIR /srv/cloud/api
