@@ -190,6 +190,25 @@ void main() {
     expect(() => VisualSearchRequest.fromJson(json), throwsFormatException);
   });
 
+  test('タイルの町丁目（towns）を読み、無い古いタイルも読める', () {
+    final json = readExample('tile_response.json');
+    final tile = TileResponse.fromJson(json);
+    expect(tile.towns.map((t) => t.name), ['見本町一丁目', '見本町二丁目']);
+    expect(tile.towns.first.id, '162019990001');
+
+    final old = readExample('tile_response.json')..remove('towns');
+    final oldTile = TileResponse.fromJson(old);
+    expect(oldTile.towns, isEmpty);
+    // 無かったものは書き出しでも足さない（歩行ログの往復で中身が変わらない）
+    expect(oldTile.toJson().containsKey('towns'), isFalse);
+  });
+
+  test('町丁目コードが12桁でない町丁目を拒否する', () {
+    final json = readExample('tile_response.json');
+    ((json['towns'] as List).first as Map<String, dynamic>)['id'] = '1620199';
+    expect(() => TileResponse.fromJson(json), throwsFormatException);
+  });
+
   test('モデルは元のJSONや返したJSONの変更から独立している', () {
     final json = readExample('tile_response.json');
     final tile = TileResponse.fromJson(json);
