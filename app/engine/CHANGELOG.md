@@ -29,3 +29,4 @@
 - B の応答の `part`（どの部分か）に対応（メンバー1の m1/visual-part）：`VisualSearchResponse.part`、`visualPartLabels`。登録したランドマークの特徴（`answer:landmark_feature`）を話す。重複は（場所, part）で見る。
 - B の1回の歩行での回数の上限を既定で外した（`EngineConfig.maxSearchesPerWalk` は `int?`、既定 null＝上限なし）。値を入れれば今までどおり `search_skip:limit_reached` で止まる。`EngineView.searchesLeft` も上限なしのとき null。
 - B の計測の間隔の既定を60秒から20秒に短くした（60秒では約80mに1枚で見逃しが多いため。試し歩きで調整する）。
+- B はランドマーク全体を話さない（`answer:whole_left_to_narrative`）、全体の紹介（A）より先に部分やエリアの中のものを話さない（`answer:feature_before_intro`）。11/6 夜のメンバー1の決定（CLAUDE.md 6章）。理由コードを schema に追加。`answer:matched_landmark` は出さなくなり、`minConfidence`（0.6）は使わなくなった。B で話しても A で話した扱いにはしない。

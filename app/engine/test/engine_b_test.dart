@@ -91,6 +91,38 @@ extension on Sim {
 /// 既定（20秒）で動くことは「既定の間隔は20秒」のテストで確かめる。
 const bConfig = EngineConfig(visualIntervalMs: 60000);
 
+/// 道から8m・範囲30mの lm_0009 に向かって歩き、85秒で立ち止まる。A は81秒ごろに紹介する。
+/// 60秒（紹介の前）・120秒・180秒（視線を右へ35°振る）に撮り、3回とも lm_0009 が候補に入る。
+/// 読み上げた判断の理由コード（話した順）。
+List<String> spokenReasons(Sim sim) => [
+  for (final d in sim.decisions)
+    if (d.text != null) d.reason,
+];
+
+Sim introduced(Responder respond) {
+  final lm = landmark('lm_0009', -130, 8, radiusM: 30);
+  final sim = Sim(bConfig, respond);
+  sim.run(
+    190,
+    pose: (sec) => sec < 85
+        ? southWalk(sec)
+        : (north: -1.3 * 85, east: 0.0, speed: 0.0, course: 180.0),
+    gaze: (sec) => sec >= 150 ? 145.0 : 180.0,
+    quality: goodQuality,
+    extra: {
+      0: [
+        tiles(0, [lm]),
+      ],
+    },
+  );
+  expect(sim.searchSecs, [60, 120, 180]);
+  expect(
+    sim.searches.every((x) => x.$2.candidateIds.contains('lm_0009')),
+    isTrue,
+  );
+  return sim;
+}
+
 void main() {
   group('いつ撮るか', () {
     test('論点1・2：最初の1枚はタイルが届いてから60秒後、その後は最後に撮った時刻から60秒ごと', () {
@@ -434,7 +466,7 @@ void main() {
   });
 
   group('答え', () {
-    test('候補のランドマークと一致したら A の原稿で話し、A で話した扱いにする', () {
+    test('ランドマーク全体（whole）は B では話さない。A で話した扱いにもしない', () {
       // 歩く道から40m離れた（A のジオフェンスの外の）ランドマークを、正面の視線の中に置く
       final lm = landmark('lm_0002', -200, 40, short: '見本の蔵の説明です。');
       final sim = Sim(bConfig, answer((id) => matchedFor(id, 'lm_0002')));
@@ -451,34 +483,17 @@ void main() {
       expect(search.candidateIds, ['lm_0002']);
       expect(search.gazeAzDeg10, 180);
       expect(search.area, isNull);
-      final d = sim.withReason('answer:matched_landmark').single;
+      final d = sim.withReason('answer:whole_left_to_narrative').single;
       expect(d.kind, 'answer');
       expect(d.targetId, 'lm_0002');
-      expect(d.text, 'さっき正面に見えたのは見本lm_0002です。見本の蔵の説明です。');
-      expect(sim.engine.toldIds, contains('lm_0002'));
+      expect(sim.speaks, isEmpty);
+      expect(sim.engine.toldIds, isNot(contains('lm_0002')));
     });
 
-    test('B で一致して話したランドマークは、次の検索で一致しても二度は話さない', () {
-      // 道から20m、ジオフェンスは10m（A は話さない）。60秒（124m先）と120秒（48m先）の
-      // どちらでも視線の左右30°以内・150m以内に入る
-      final lm = landmark('lm_0009', -200, 20, radiusM: 10);
-      final sim = Sim(bConfig, answer((id) => matchedFor(id, 'lm_0009')));
-      sim.run(
-        130,
-        quality: goodQuality,
-        extra: {
-          0: [
-            tiles(0, [lm]),
-          ],
-        },
-      );
-      expect(sim.searches.map((s) => s.$2.candidateIds), [
-        ['lm_0009'],
-        ['lm_0009'],
-      ]);
-      expect(sim.withReason('answer:matched_landmark'), hasLength(1));
-      expect(sim.withReason('answer:already_told').single.targetId, 'lm_0009');
-      expect(sim.speaks, hasLength(1));
+    test('A で紹介したあとに全体が返っても、B では話さない', () {
+      final sim = introduced(answer((id) => matchedFor(id, 'lm_0009')));
+      expect(sim.withReason('answer:whole_left_to_narrative'), hasLength(3));
+      expect(spokenReasons(sim), ['speak:closest_approach']);
     });
 
     test('論点10：方向は、撮ったときの視線と話し始めるときの進行方向の差で言う', () {
@@ -568,36 +583,25 @@ void main() {
       expect(sim.withReason('answer:already_told'), hasLength(2));
     });
 
-    test('候補外の答えは自信0.7未満なら話さず、候補と一致した答えは0.6以上なら話す', () {
+    test('候補外の答えは自信0.7未満なら話さない', () {
       final lm = landmark('lm_0002', -200, 40);
-      for (final (make, reason)
-          in <(VisualSearchResponse Function(String), String)>[
-            (
-              (id) => unlistedFor(id, confidence: 0.65),
-              'answer:low_confidence',
-            ),
-            (
-              (id) => VisualSearchResponse.fromJson(
-                matchedFor(id, 'lm_0002').toJson()..['confidence'] = 0.65,
-              ),
-              'answer:matched_landmark',
-            ),
-          ]) {
-        final sim = Sim(bConfig, answer(make));
-        sim.run(
-          70,
-          quality: goodQuality,
-          extra: {
-            0: [
-              tiles(0, [lm]),
-            ],
-          },
-        );
-        expect(
-          sim.decisions.where((d) => d.kind == 'answer').single.reason,
-          reason,
-        );
-      }
+      final sim = Sim(
+        bConfig,
+        answer((id) => unlistedFor(id, confidence: 0.65)),
+      );
+      sim.run(
+        70,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [lm]),
+          ],
+        },
+      );
+      expect(
+        sim.decisions.where((d) => d.kind == 'answer').single.reason,
+        'answer:low_confidence',
+      );
     });
 
     test('自信が低い答えは話さない', () {
@@ -785,36 +789,32 @@ void main() {
       return sim;
     }
 
-    test('登録したランドマークの特徴は、特徴の説明を読み、A で話した扱いにはしない', () {
-      final lm = landmark('lm_0002', -200, 40, short: '見本の原稿です。');
-      final sim = Sim(
-        bConfig,
+    test('登録したランドマークの特徴は、A の紹介が済むまで話さず、済んだら特徴の説明を読む', () {
+      final sim = introduced(
         answer(
           (id) => matchedFor(
             id,
-            'lm_0002',
+            'lm_0009',
             part: 'entrance',
             description: '入口の上に白い飾りが付いています。',
             confidence: 0.78,
           ),
         ),
       );
-      sim.run(
-        70,
-        quality: goodQuality,
-        extra: {
-          0: [
-            tiles(0, [lm]),
-          ],
-        },
-      );
+      // 60秒：A の紹介の前なので見送る
+      final before = sim.withReason('answer:feature_before_intro').single;
+      expect(before.targetId, 'lm_0009');
+      expect(sim.secOf(before.tMs), lessThan(80));
       final d = sim.withReason('answer:landmark_feature').single;
-      expect(d.targetId, 'lm_0002');
-      expect(d.text, 'さっき正面に見えたのは見本lm_0002の入口です。入口の上に白い飾りが付いています。');
-      expect(sim.engine.toldIds, isNot(contains('lm_0002')));
+      expect(d.targetId, 'lm_0009');
+      expect(d.text, 'さっき正面に見えたのは見本lm_0009の入口です。入口の上に白い飾りが付いています。');
+      expect(spokenReasons(sim), [
+        'speak:closest_approach',
+        'answer:landmark_feature',
+      ]);
     });
 
-    test('特徴は自信0.7未満なら話さない（全体の紹介は0.6でよい）', () {
+    test('特徴は自信0.7未満なら話さない', () {
       final lm = landmark('lm_0002', -200, 40);
       final sim = Sim(
         bConfig,
@@ -836,8 +836,9 @@ void main() {
     });
 
     test('同じランドマークの同じ部分は、言い方が違っても二度は話さない', () {
-      final sim = twoSearches(
+      final sim = introduced(
         answers([
+          (id) => matchedFor(id, 'lm_0009', part: 'window'),
           (id) => matchedFor(
             id,
             'lm_0009',
@@ -854,38 +855,26 @@ void main() {
       );
       expect(sim.withReason('answer:landmark_feature'), hasLength(1));
       expect(sim.withReason('answer:already_told').single.targetId, 'lm_0009');
-      expect(sim.speaks, hasLength(1));
     });
 
-    test('同じランドマークでも別の部分なら話す', () {
-      final sim = twoSearches(
+    test('同じランドマークでも別の部分なら話す。その他（other）は話さない', () {
+      final sim = introduced(
         answers([
+          (id) => matchedFor(id, 'lm_0009', part: 'window'),
           (id) => matchedFor(id, 'lm_0009', part: 'window'),
           (id) => matchedFor(id, 'lm_0009', part: 'roof'),
         ]),
       );
       expect(sim.withReason('answer:landmark_feature'), hasLength(2));
-      expect(sim.speaks, hasLength(2));
-    });
 
-    test('全体を話したあとでも、新しい部分の特徴は話す。その他（other）は話さない', () {
-      final first = twoSearches(
+      final other = introduced(
         answers([
-          (id) => matchedFor(id, 'lm_0009'),
-          (id) => matchedFor(id, 'lm_0009', part: 'entrance'),
-        ]),
-      );
-      expect(first.withReason('answer:matched_landmark'), hasLength(1));
-      expect(first.withReason('answer:landmark_feature'), hasLength(1));
-
-      final other = twoSearches(
-        answers([
-          (id) => matchedFor(id, 'lm_0009'),
+          (id) => matchedFor(id, 'lm_0009', part: 'window'),
           (id) => matchedFor(id, 'lm_0009', part: 'other'),
         ]),
       );
       expect(other.withReason('answer:landmark_feature'), isEmpty);
-      expect(other.withReason('answer:already_told'), hasLength(1));
+      expect(other.withReason('answer:already_told'), hasLength(2));
     });
 
     test('候補外の対象も（場所, part）で見分ける：同じ蔵の窓と壁は別の話、窓をもう一度は話さない', () {
@@ -918,13 +907,13 @@ void main() {
           ),
         );
     for (final (name, reason) in [
-      ('visual_search_response_matched.json', 'answer:matched_landmark'),
+      ('visual_search_response_matched.json', 'answer:whole_left_to_narrative'),
       ('visual_search_response_unlisted.json', 'answer:unlisted_object'),
       ('visual_search_response_unknown.json', 'answer:unknown'),
       ('visual_search_response_named.json', 'answer:named_object'),
       (
         'visual_search_response_matched_feature.json',
-        'answer:landmark_feature',
+        'answer:feature_before_intro',
       ),
     ]) {
       test('$name → $reason', () {
@@ -942,7 +931,11 @@ void main() {
         );
         final answers = sim.decisions.where((d) => d.kind == 'answer');
         expect(answers.map((d) => d.reason), [reason]);
-        final spoken = reason != 'answer:unknown';
+        final spoken = !{
+          'answer:unknown',
+          'answer:whole_left_to_narrative',
+          'answer:feature_before_intro',
+        }.contains(reason);
         expect(sim.speaks, hasLength(spoken ? 1 : 0));
         if (name.endsWith('named.json')) {
           expect(answers.single.toJson()['sources'], isNotEmpty);

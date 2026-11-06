@@ -830,16 +830,6 @@ class Engine {
       _logAnswer(out, t, 'answer:unknown', search.id, r);
       return;
     }
-    // ランドマーク全体（A の確認済みの原稿で話す）は0.6。画像から見つけた特徴や候補外の対象は、
-    // 根拠が地図にないので0.7（CLAUDE.md 6章「B の仕様」）。
-    final wholeLandmark = r.result == 'matched' && r.part == 'whole';
-    final minConfidence = wholeLandmark
-        ? config.minConfidence
-        : config.unlistedMinConfidence;
-    if (r.confidence < minConfidence) {
-      _logAnswer(out, t, 'answer:low_confidence', search.id, r);
-      return;
-    }
     if (r.result == 'matched') {
       final lm = search.candidateIds.contains(r.landmarkId)
           ? _landmarks[r.landmarkId]
@@ -849,50 +839,55 @@ class Engine {
         _logAnswer(out, t, 'answer:unknown', search.id, r);
         return;
       }
-      if (!wholeLandmark) {
-        // 登録したランドマークの特徴：全体の紹介とは別の話。（ランドマーク, part）で重複を見る。
-        final feature = _ToldObject(
-          landmarkId: lm.id,
-          name: lm.name,
-          named: true,
-          areaId: null,
-          position: search.position,
-          part: r.part!,
-        );
-        final told =
-            _toldObjects.any(feature.sameAs) ||
-            (feature.part == 'other' && _told.contains(lm.id));
-        if (told) {
-          _logAnswer(out, t, 'answer:already_told', lm.id, r);
-          return;
-        }
-        _pendingAnswer = _VisualAnswer(
-          search: search,
-          reason: 'answer:landmark_feature',
-          targetId: lm.id,
-          name: lm.name,
-          body: r.description!,
-          landmarkId: null, // A で話した扱いにはしない
-          partLabel: visualPartLabels[r.part],
-          toldObject: feature,
-          sources: r.sources,
-        );
+      if (r.part == 'whole') {
+        // ランドマーク全体は B では話さない。全体の紹介は A が近づいたときに行う（CLAUDE.md 6章、11/6 夜決定）。
+        _logAnswer(out, t, 'answer:whole_left_to_narrative', lm.id, r);
         return;
       }
-      if (_told.contains(lm.id)) {
+      // 画像から見つけた特徴は、根拠が地図にないので0.7（CLAUDE.md 6章「B の仕様」）。
+      if (r.confidence < config.unlistedMinConfidence) {
+        _logAnswer(out, t, 'answer:low_confidence', search.id, r);
+        return;
+      }
+      // 全体の紹介（A）より先に部分を話さない（11/6 夜決定）。
+      if (!_told.contains(lm.id)) {
+        _logAnswer(out, t, 'answer:feature_before_intro', lm.id, r);
+        return;
+      }
+      // 登録したランドマークの特徴：全体の紹介とは別の話。（ランドマーク, part）で重複を見る。
+      final feature = _ToldObject(
+        landmarkId: lm.id,
+        name: lm.name,
+        named: true,
+        areaId: null,
+        position: search.position,
+        part: r.part!,
+      );
+      // other は部分を見分けられないので、全体の紹介が済んでいれば（＝ここに来れば必ず）話さない。
+      if (feature.part == 'other' || _toldObjects.any(feature.sameAs)) {
         _logAnswer(out, t, 'answer:already_told', lm.id, r);
         return;
       }
       _pendingAnswer = _VisualAnswer(
         search: search,
-        reason: 'answer:matched_landmark',
+        reason: 'answer:landmark_feature',
         targetId: lm.id,
         name: lm.name,
-        body: lm.scriptShort,
-        landmarkId: lm.id,
-        toldObject: null,
+        body: r.description!,
+        partLabel: visualPartLabels[r.part],
+        toldObject: feature,
         sources: r.sources,
       );
+      return;
+    }
+    if (r.confidence < config.unlistedMinConfidence) {
+      _logAnswer(out, t, 'answer:low_confidence', search.id, r);
+      return;
+    }
+    // エリアの中のものは、エリアの紹介（A）が済んでから話す（11/6 夜決定）。
+    final areaId = search.areaId;
+    if (areaId != null && !_told.contains(areaId)) {
+      _logAnswer(out, t, 'answer:feature_before_intro', areaId, r);
       return;
     }
     // unlisted：候補外の対象。（名前で探した場所, part）で重複を判定する（論点9）。
@@ -914,7 +909,6 @@ class Engine {
       targetId: search.id,
       name: r.objectName!,
       body: r.description!,
-      landmarkId: null,
       toldObject: object,
       sources: r.sources,
     );
@@ -959,12 +953,6 @@ class Engine {
     final answer = _pendingAnswer;
     if (answer == null) return;
     _pendingAnswer = null;
-    // 待っている間に A が同じ対象を話したら、話さない。
-    final lmId = answer.landmarkId;
-    if (lmId != null && _told.contains(lmId)) {
-      _log(out, t, 'answer', 'answer:already_told', lmId, priority: 6);
-      return;
-    }
     // 論点10：過去形・方向つき。方向は撮ったときの視線と、いまの進行方向の差。
     final direction = directionWord(
       angleDiffDeg(answer.search.gazeAzDeg, _heading),
@@ -997,7 +985,7 @@ class Engine {
       priority: 6,
       interrupt: false,
       pauseMusic: false,
-      narrative: lmId != null, // DB のランドマークなら A で話した扱いにする
+      narrative: false, // B は全体を話さないので、A で話した扱いにはしない
       toldObject: answer.toldObject,
       sources: answer.sources.isEmpty ? null : answer.sources,
     );
@@ -1181,7 +1169,6 @@ final class _Search {
 final class _VisualAnswer {
   final _Search search;
   final String reason, targetId, name, body;
-  final String? landmarkId;
 
   /// 登録したランドマークの特徴を話すときの部分の呼び方（例：入口）。それ以外は null。
   final String? partLabel;
@@ -1193,7 +1180,6 @@ final class _VisualAnswer {
     required this.targetId,
     required this.name,
     required this.body,
-    required this.landmarkId,
     this.partLabel,
     required this.toldObject,
     required this.sources,

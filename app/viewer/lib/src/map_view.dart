@@ -330,14 +330,12 @@ class _MapViewState extends State<MapView> {
     ];
   }
 
-  /// この時点までに話したランドマーク（A で話した、または B で一致して話した）。
+  /// この時点までに A で紹介したランドマーク（B は全体を話さないので、A の紹介だけ）。
   static Set<String> _toldIds(Replay r, int fi) => {
     for (final n in r.frames[fi].view.nearby)
       if (n.told) n.id,
     for (final d in r.decisions)
-      if (d.frameIndex <= fi &&
-          (d.decision.kind == 'speak' ||
-              d.decision.reason == 'answer:matched_landmark'))
+      if (d.frameIndex <= fi && d.decision.kind == 'speak')
         ?d.decision.targetId,
   };
 }

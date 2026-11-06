@@ -36,6 +36,8 @@
     "answer:already_told": "B：話したことがある対象",
     "answer:expired": "B：鮮度期限を過ぎた",
     "answer:yield_to_narrative": "B：話すと直後の A に間に合わないので見送った",
+    "answer:whole_left_to_narrative": "B：ランドマーク全体が写っていた。全体の紹介は A が行うので B では話さない",
+    "answer:feature_before_intro": "B：ランドマーク・エリアの全体の紹介（A）がまだなので、その部分や中のものの話を見送った",
     "answer:error": "B：通信・サーバーのエラーで話さない",
     "fetch:prefetch_tiles": "先読みのためにタイルを要求"
   }

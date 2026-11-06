@@ -8,6 +8,8 @@ final class EngineConfig {
       topicIntervalMs;
   final int visualIntervalMs, candidateLimit, visualFreshnessMs;
   final double defaultRadiusM, samePlaceDistanceM, samePlaceAzimuthDeg;
+  /// minConfidence（0.6）は、B がランドマーク全体を A の原稿で話していたときのしきい値。
+  /// 11/6 夜から B は全体を話さないので、今は使っていない（部分・候補外は unlistedMinConfidence）。
   final double candidateDistanceM, candidateHalfAngleDeg, minConfidence;
   final double fastWalkingMps, crossingDistanceM, minBlur, minBrightness;
 
@@ -171,6 +173,8 @@ const reasonCodes = <String>{
   'answer:already_told',
   'answer:expired',
   'answer:yield_to_narrative',
+  'answer:whole_left_to_narrative',
+  'answer:feature_before_intro',
   'answer:error',
   'fetch:prefetch_tiles',
 };
