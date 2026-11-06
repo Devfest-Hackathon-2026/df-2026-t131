@@ -8,6 +8,7 @@ final class EngineConfig {
       topicIntervalMs;
   final int visualIntervalMs, candidateLimit, visualFreshnessMs;
   final double defaultRadiusM, samePlaceDistanceM, samePlaceAzimuthDeg;
+
   /// minConfidence（0.6）は、B がランドマーク全体を A の原稿で話していたときのしきい値。
   /// 11/6 夜から B は全体を話さないので、今は使っていない（部分・候補外は unlistedMinConfidence）。
   final double candidateDistanceM, candidateHalfAngleDeg, minConfidence;
@@ -66,6 +67,7 @@ final class EngineConfig {
   final int stillEarlyMs;
 
   /// 前倒しでも、前に撮ってからこれだけは空ける。
+  /// 11/6 夜に30秒から10秒に下げた（計測の間隔を20秒にしたので、30秒では前倒しにならないため）。
   final int stillEarlyMinIntervalMs;
 
   /// 候補外の対象（地図にないもの）の答えを話す自信の下限。
@@ -112,7 +114,7 @@ final class EngineConfig {
     this.visualExpectedLatencyMs = 5000,
     this.visualYieldToNarrativeMs = 15000,
     this.stillEarlyMs = 5000,
-    this.stillEarlyMinIntervalMs = 30000,
+    this.stillEarlyMinIntervalMs = 10000,
     this.unlistedMinConfidence = 0.7,
     this.genericObjectDedupM = 100,
   });
