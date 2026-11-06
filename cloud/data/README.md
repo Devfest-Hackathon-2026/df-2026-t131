@@ -71,7 +71,8 @@ python cloud/data/scripts/build_sqlite.py --examples # 見本から（お試し�
 * 円（中心 `lat`・`lon` と `radius_m`）。入るのは半径以内、出るのは半径＋15m より外（engine の `zoneExitMarginM`。`build_sqlite.py` の `ZONE_EXIT_MARGIN_M` と同じ値）
 * `build_sqlite.py` が、円＋15m がかかるタイルすべてに入れる（エリアと同じ）。`note`・`source`・`schema_version` はタイルに入れない
 * API は環境変数 `TILE_ZONES=on` のときだけ応答に `zones` を付ける
-* 今は `zn_0001` あいの島・バードサンクチュアリ（半径20m、`reason: demo`＝デモのため仮に指定。実際に撮影が禁止されているわけではない）
+* 今は2件（どちらも半径20m、`reason: demo`＝仮に指定。実際に撮影が禁止されているわけではない）
+  * `zn_0001` あいの島・バードサンクチュアリ（環水公園。デモ動画で使う）
 
 ## 住所（町丁目）を作る（11/6 夜、メンバー3の提案。メンバー1）
 
