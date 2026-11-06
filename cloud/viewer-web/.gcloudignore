@@ -1,0 +1,13 @@
+# viewer のビルドで Cloud Build に送るもの：app/engine・app/viewer・cloud/viewer-web だけ
+# （リポジトリの一番上の .gcloudignore は API 用で app/ を除くので、こちらを --ignore-file で使う）
+/*
+!/app/
+/app/*
+!/app/engine/
+!/app/viewer/
+!/cloud/
+/cloud/*
+!/cloud/viewer-web/
+**/.dart_tool/
+**/build/
+**/.flutter-plugins*

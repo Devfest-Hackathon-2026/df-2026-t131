@@ -1,0 +1,20 @@
+# viewer のコンテナを Cloud Build で作り、Artifact Registry に置く。
+# リポジトリの一番上で実行する（手順は cloud/viewer-web/README.md）:
+#   gcloud builds submit --config cloud/viewer-web/cloudbuild.yaml --ignore-file=cloud/viewer-web/.gcloudignore .
+substitutions:
+  _REGION: asia-northeast1
+  _REPO: app
+  _IMAGE: viewer
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - cloud/viewer-web/Dockerfile
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE}:latest
+      - .
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE}:latest
+# Flutter の取得とビルドで時間がかかるので、既定の10分より長くする
+timeout: 1800s
