@@ -6,13 +6,15 @@ final class EngineConfig {
       prefetchHorizonMs,
       proximityHorizonMs,
       topicIntervalMs;
-  final int visualIntervalMs,
-      candidateLimit,
-      visualFreshnessMs,
-      maxSearchesPerWalk;
+  final int visualIntervalMs, candidateLimit, visualFreshnessMs;
   final double defaultRadiusM, samePlaceDistanceM, samePlaceAzimuthDeg;
   final double candidateDistanceM, candidateHalfAngleDeg, minConfidence;
   final double fastWalkingMps, crossingDistanceM, minBlur, minBrightness;
+
+  /// 1回の歩行で B を計測する回数の上限。null なら上限なし（既定）。
+  /// 11/6：1回 約0.4円で費用は小さく、撮りすぎは計測間隔と「同じ場所」で防げ、
+  /// 呼びすぎはサーバーの回数上限が止めるため、既定では外した。必要なら値を入れて使う。
+  final int? maxSearchesPerWalk;
 
   // ---- ここから下は tasks/README.md 2.5 にない、engine の内部の仮の値（実機で調整する）----
 
@@ -86,7 +88,7 @@ final class EngineConfig {
     this.candidateLimit = 10,
     this.visualFreshnessMs = 15000,
     this.minConfidence = 0.6,
-    this.maxSearchesPerWalk = 30,
+    this.maxSearchesPerWalk,
     this.fastWalkingMps = 1.8,
     this.crossingDistanceM = 15,
     this.minBlur = 0.5,

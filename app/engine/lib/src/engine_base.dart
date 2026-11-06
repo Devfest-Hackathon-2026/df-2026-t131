@@ -143,12 +143,14 @@ class Engine {
       return byDist != 0 ? byDist : a.id.compareTo(b.id);
     });
     final ref = _lastCaptureMs ?? _firstFixMs;
-    final left = config.maxSearchesPerWalk - _searchCount;
+    final max = config.maxSearchesPerWalk;
+    final left = max == null ? null : max - _searchCount;
     return EngineView(
       tMs: s.tMs,
       nearby: nearby.take(config.candidateLimit).toList(),
       currentArea: currentArea,
-      nextSearchInMs: ref == null || _inflight != null || left <= 0
+      nextSearchInMs:
+          ref == null || _inflight != null || (left != null && left <= 0)
           ? null
           : math.max(0, ref + config.visualIntervalMs - s.tMs),
       searchSkipReason: _lastSearchSkip,
@@ -724,7 +726,8 @@ class Engine {
 
   /// 自動でも「調べて」でも共通の見送りの条件。null なら撮ってよい。
   String? _captureBlock(SensorFrame s, int t) {
-    if (_searchCount >= config.maxSearchesPerWalk) {
+    final max = config.maxSearchesPerWalk;
+    if (max != null && _searchCount >= max) {
       return 'search_skip:limit_reached';
     }
     if (_searchBlocked(s, t)) return 'search_skip:gate_blocked';
@@ -1087,8 +1090,8 @@ final class EngineView {
   /// B の結果を待っているか。
   final bool searching;
 
-  /// この歩行で B をあと何回計測できるか。
-  final int searchesLeft;
+  /// この歩行で B をあと何回計測できるか。上限なし（既定）なら null。
+  final int? searchesLeft;
 
   /// 最後の判断（理由コードつき）。まだなければ null。
   final Decision? lastDecision;

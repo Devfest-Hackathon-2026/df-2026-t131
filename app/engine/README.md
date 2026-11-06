@@ -42,7 +42,7 @@
 | 立ち止まり（6） | Activity が `still` になって5秒たち、前に撮ってから30秒以上なら前倒し。30秒たっていなければ待つ | `search:stopped_early`、`search_skip:interval_not_elapsed` |
 | 1件ずつ（5） | 結果か失敗が来るまで次を出さない。撮ってから15秒たっても来なければ諦め（`answer:error`）、あとから届いた結果は期限切れ | `answer:error`、`answer:expired` |
 | 「調べて」（共有/visual-search-spec.md 2章） | アプリが `SearchRequested`（歩行ログでは `search_request`）を送ると、計測間隔と同じ場所を見ずに、その場で一度だけ撮る。ほかの見送りの条件は自動と同じ。撮れなければ理由を毎回記録して終わり、あとで勝手に撮らない。結果待ちの間も見送る | `search:user_requested`、`search_skip:*` |
-| 上限 | 1回の歩行で30回まで | `search_skip:limit_reached` |
+| 上限 | 既定ではなし（`maxSearchesPerWalk` に値を入れたときだけ、その回数まで） | `search_skip:limit_reached` |
 | 文脈ゲート（3・4・11） | 音声出力なし・通話中・乗り物・早歩き・横断歩道の手前・読み上げ中・警報やBの答えが待っている・**前の話の終わり＋話題の間隔20秒−答えの見込み5秒より前**・**15秒以内にAが話し始めそう**、のどれかなら撮らない | `search_skip:gate_blocked` |
 | 画質（7） | `image_quality` が null、blur が0.5未満、brightness が0.2未満なら撮らない | `search_skip:low_quality` |
 | 同じ場所 | 前に撮った位置から20m以内かつ視線の差30°以内なら撮らない | `search_skip:same_place` |
@@ -58,7 +58,7 @@
 
 ### 画面に出す値（`engine.view`）
 
-`EngineView`（読み取り専用。判断ログには入れない）：`tMs`、いまいるエリア `currentArea`（外なら null）、近くのランドマーク `nearby`（ID・名前・種類・距離・視線から見た方位 `relativeBearingDeg`（右が正）・話したか。近い順に10件）、B の次の計測までのミリ秒 `nextSearchInMs`（結果待ち・上限・センサー未着は null）、B を止めている理由 `searchSkipReason`（判断ログの reason と同じ値。止められていなければ null）、`searching`、`searchesLeft`、最後の判断 `lastDecision`。
+`EngineView`（読み取り専用。判断ログには入れない）：`tMs`、いまいるエリア `currentArea`（外なら null）、近くのランドマーク `nearby`（ID・名前・種類・距離・視線から見た方位 `relativeBearingDeg`（右が正）・話したか。近い順に10件）、B の次の計測までのミリ秒 `nextSearchInMs`（結果待ち・上限・センサー未着は null）、B を止めている理由 `searchSkipReason`（判断ログの reason と同じ値。止められていなければ null）、`searching`、`searchesLeft`（上限なしなら null）、最後の判断 `lastDecision`。
 mobile のグラス視点の画面と viewer の再生画面の両方で、`handle()` のあとに読む。
 
 **まだ入っていないもの**：交通（`speak:transit_next`）・イベント（`speak:event_nearby`）の読み上げ。

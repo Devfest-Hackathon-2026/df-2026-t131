@@ -186,6 +186,23 @@ void main() {
       expect(sim.engine.view.nextSearchInMs, isNull);
     });
 
+    test('既定では回数の上限がなく、31回目以降も撮る', () {
+      final sim = Sim(
+        const EngineConfig(visualIntervalMs: 20000),
+        answer(unknownFor),
+      );
+      sim.run(
+        700,
+        quality: goodQuality,
+        extra: {
+          0: [tiles(0, const [])],
+        },
+      );
+      expect(sim.searchSecs.length, greaterThan(30));
+      expect(sim.withReason('search_skip:limit_reached'), isEmpty);
+      expect(sim.engine.view.searchesLeft, isNull);
+    });
+
     test('論点6：立ち止まって5秒たち、前に撮ってから30秒以上なら前倒しで撮る', () {
       final sim = Sim(const EngineConfig(), answer(unknownFor));
       sim.run(

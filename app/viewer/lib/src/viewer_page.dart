@@ -449,7 +449,8 @@ class _StatePanel extends StatelessWidget {
             ),
             if (v.searchSkipReason case final reason?)
               Text('見送り：${reasonLabels[reason] ?? reason}'),
-            Text('この歩行であと ${v.searchesLeft} 回'),
+            if (v.searchesLeft case final left?)
+              Text('この歩行であと $left 回'),
           ]),
           section('近くのランドマーク', [
             if (v.nearby.isEmpty) const Text('（150 m 以内にありません）'),
