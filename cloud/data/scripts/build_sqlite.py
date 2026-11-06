@@ -19,9 +19,9 @@
   - 同じ入力なら同じ DB になる（並び順を ID で固定。作った日時は入れない）
   - タイルへの入れ方：点のもの（ランドマーク・電停・横断歩道・イベント）は位置のあるタイルに、
     エリア（kind: area）は範囲（radius_m）が重なるすべてのタイルに入る（API 側で判定）
-  - 町丁目（11/6 夜、メンバー3の提案）：towns と landmark_towns の表に入れるだけ。タイルの応答（features.json）には入れない
-    （schema/api/tile.response.schema.json を変えるまで API の応答は変えない）。ランドマークの町丁目はビルドのときに
-    いちばん近い代表点で決める（town_lookup.py。800m より遠ければ入れない）
+  - 町丁目（11/6 夜、メンバー3の提案）：代表点のあるタイルの応答の towns に入る（ランドマークと同じ点の入れ方。案B）。
+    ほかに towns・landmark_towns の表。ランドマークの町丁目はビルドのときにいちばん近い代表点で決める
+    （town_lookup.py。800m より遠ければ入れない）。ランドマークの JSON（応答）には町丁目を足さない
 """
 
 import argparse
@@ -169,6 +169,8 @@ def build(out: Path, use_examples: bool = False) -> int:
         errors += errs
         towns = [] if errs else t_data["towns"]
     counts["town"] = len(towns)
+    for t in towns:  # タイルの応答の towns（代表点のあるタイルだけ。11/6 夜、案B）
+        rows.append(("town", t["id"], json.dumps(t, ensure_ascii=False, sort_keys=True), bbox("town", t)))
 
     if errors:
         print("入力が schema に合いません。SQLite は作りません:")
@@ -189,7 +191,7 @@ def build(out: Path, use_examples: bool = False) -> int:
             CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             CREATE TABLE features (
                 rowid INTEGER PRIMARY KEY,
-                kind  TEXT NOT NULL,   -- landmark / stop / event / crossing
+                kind  TEXT NOT NULL,   -- landmark / stop / event / crossing / town
                 id    TEXT NOT NULL,
                 area  INTEGER NOT NULL, -- 1 ならエリア（範囲が重なるタイルすべてに入る）
                 json  TEXT NOT NULL,   -- タイル応答にそのまま入れる形

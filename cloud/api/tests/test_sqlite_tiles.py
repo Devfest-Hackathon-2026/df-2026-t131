@@ -38,7 +38,7 @@ def test_tile_math_roundtrip():
     assert tile_of(36.70025945945946, 137.2137) == SAMPLE_TILE  # 見本の石碑
 
 
-KEYS = ("landmarks", "stops", "crossings", "events")
+KEYS = ("landmarks", "stops", "crossings", "events", "towns")
 
 
 def ids(tile: dict) -> dict:
@@ -53,7 +53,8 @@ def test_sample_tile_has_only_items_inside(db):
     """見本のタイル 16/57746/25576 には、その中にある石碑・通り・信号だけが入る。
     （見本の tile_response.json は形の見本で、隣のタイルの電停・イベント・公園も一緒に載せている）"""
     got = SqliteTileSource(db).get_tile(*SAMPLE_TILE)
-    assert ids(got) == {"landmarks": ["lm_0001", "lm_0002"], "stops": [], "crossings": ["cr_0001"], "events": []}
+    assert ids(got) == {"landmarks": ["lm_0001", "lm_0002"], "stops": [], "crossings": ["cr_0001"], "events": [],
+                        "towns": ["162019990001"]}   # 町丁目も代表点のあるタイルだけ（案B）
 
 
 def test_tiles_together_reproduce_example(db):

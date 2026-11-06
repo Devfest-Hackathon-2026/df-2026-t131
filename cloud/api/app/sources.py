@@ -46,6 +46,7 @@ class FakeTileSource:
             "stops": [],
             "crossings": [],
             "events": [],
+            "towns": [],
         }
 
     def landmarks_by_id(self, ids: list[str]) -> dict[str, dict]:
@@ -55,12 +56,12 @@ class FakeTileSource:
 class SqliteTileSource:
     """cloud/data/scripts/build_sqlite.py が作った SQLite からタイルを返す。
 
-    - 点のもの（ランドマーク・電停・横断歩道・イベント）：位置が入るタイルだけに返す
+    - 点のもの（ランドマーク・電停・横断歩道・イベント・町丁目の代表点）：位置が入るタイルだけに返す
     - エリア（kind: area）：範囲が重なるタイルすべてに返す（engine は ID で重複を除く）
     R*Tree は座標を少し外側に丸めるので、点は位置から計算したタイル番号でもう一度確かめる。
     """
 
-    _KEYS = {"landmark": "landmarks", "stop": "stops", "crossing": "crossings", "event": "events"}
+    _KEYS = {"landmark": "landmarks", "stop": "stops", "crossing": "crossings", "event": "events", "town": "towns"}
 
     def __init__(self, path) -> None:
         self._uri = f"file:{Path(path).resolve().as_posix()}?mode=ro&immutable=1"
