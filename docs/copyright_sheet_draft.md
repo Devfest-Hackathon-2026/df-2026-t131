@@ -79,9 +79,9 @@ Cloud Run・Cloud Scheduler・Firestore・Cloud Storage・Firebase Cloud Messagi
 ## 7. 画像・音声・フォント
 
 - 写真・イラスト：使っていない
-- 読み上げの声：端末の TTS（Android の音声合成）
-- 話し始めの合図音：**要確認**（何の音を使うかメンバー3に確かめる）
-- フォント：アプリの既定のフォント（**要確認**）
+- 読み上げの声：端末の TTS（Android の音声合成。`flutter_tts` 経由）
+- 話し始めの合図音：音声ファイルもライブラリも使っていない。Android 標準の `ToneGenerator`（`TONE_PROP_BEEP`）で鳴らす（`app/mobile/android/.../TonePlugin.kt`。11/6 にコードで確認）
+- フォント：アプリではフォントを指定していない（`app/mobile/pubspec.yaml` に `fonts:` が無い）。文字は端末の標準フォントで表示する。アイコンは Flutter に付いている Material Icons（`uses-material-design: true`、Apache-2.0）
 
 ## 8. デモ動画
 
@@ -93,8 +93,8 @@ Cloud Run・Cloud Scheduler・Firestore・Cloud Storage・Firebase Cloud Messagi
 
 ## 9. まだ確かめていないこと
 
-- [ ] 大会の著作物利用シートの様式（項目・ファイル形式）
-- [ ] 合図音・フォントの出どころ（メンバー3）
+- [ ] 大会の著作物利用シートの様式（項目・ファイル形式）。11/6 にウェブで探したが公開のページには見つからなかった → 参加者向けの案内を持っているメンバー1に聞く
+- [x] 合図音・フォントの出どころ（11/6 にアプリのコードで確認。上の7章）
 - [ ] ML Kit Face Detection を入れたら、そのライセンス（Google の ML Kit の利用規約）を足す
 - [ ] 判断画面（app/viewer）で使うライブラリを足す
 - [ ] デモ動画の BGM・映り込み
