@@ -71,7 +71,7 @@ curl -H "X-App-Token: local-test" localhost:8080/v1/tiles/16/57746/25576
 | `VISUAL_MIN_CONFIDENCE` | `0.3` | これ未満の自信は `unknown` |
 | `DESCRIPTION_MAX_CHARS` | `100` | 説明の長さ |
 | `GEMINI_TIMEOUT_S` | `6` | mobile の8秒より短く |
-| `VISUAL_SEARCH_DAILY_LIMIT` | `300` | 1日（日本時間）あたりの B の上限。インスタンスごとに数える |
+| `VISUAL_SEARCH_DAILY_LIMIT` | `1000` | 1日（日本時間）あたりの B の上限。インスタンスごとに数える。11/6 夜に300から上げた（計測間隔を20秒にしたため。30分の歩行で最大約90回、上限いっぱいで約400円/日）。提出後は100に下げる |
 | `MAX_IMAGE_BASE64_CHARS` | `1000000` | 画像の上限（base64 の文字数） |
 
 ## デプロイ（人がやる。`gcloud` は実行前にチームで確認）

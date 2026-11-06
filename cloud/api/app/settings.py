@@ -44,7 +44,7 @@ class Settings:
     description_max_chars: int = field(default_factory=lambda: int(_env("DESCRIPTION_MAX_CHARS", "100")))
     gemini_timeout_s: float = field(default_factory=lambda: float(_env("GEMINI_TIMEOUT_S", "6")))  # mobile の 8 秒より短く
     # 1日あたりの B の呼び出し上限（端末側の上限が壊れても予算を守る）。日付は日本時間で区切る
-    visual_search_daily_limit: int = field(default_factory=lambda: int(_env("VISUAL_SEARCH_DAILY_LIMIT", "300")))
+    visual_search_daily_limit: int = field(default_factory=lambda: int(_env("VISUAL_SEARCH_DAILY_LIMIT", "1000")))
     # 画像の上限（base64 の文字数）。長辺640px の JPEG は通常 100KB 前後なので余裕を持たせる
     max_image_base64_chars: int = field(default_factory=lambda: int(_env("MAX_IMAGE_BASE64_CHARS", str(1_000_000))))
     # X-App-Token の値。空なら /v1/ はすべて拒否する（設定漏れで開きっぱなしにしない）

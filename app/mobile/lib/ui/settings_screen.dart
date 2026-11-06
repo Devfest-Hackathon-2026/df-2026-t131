@@ -54,7 +54,7 @@ class SettingsScreen extends StatelessWidget {
             title: const Text('見ている景色を画像で調べる'),
             subtitle: Text(
               s.visualSearchEnabled
-                  ? '約60秒ごとに1枚、顔をぼかしてから送ります。画像は保存しません。'
+                  ? '約20秒ごとに1枚、顔をぼかしてから送ります。画像は保存しません。'
                   : 'オフ：カメラ画像を端末の外に送りません。地図に登録した場所の案内（A）だけ話します。',
             ),
             secondary: Icon(
