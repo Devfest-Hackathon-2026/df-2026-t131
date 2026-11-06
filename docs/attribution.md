@@ -8,6 +8,7 @@
 | :-- | :-- | :-- | :-- |
 | ランドマークの位置（緯度・経度） | OpenStreetMap（© OpenStreetMap contributors） https://www.openstreetmap.org/copyright | ODbL 1.0 | 各ランドマークの中心の位置を確かめて登録 |
 | 横断歩道・信号（`cloud/data/osm/crossings.json`、365件） | OpenStreetMap（© OpenStreetMap contributors）を Overpass API で取り出した https://www.openstreetmap.org/copyright | ODbL 1.0 | 文脈ゲート（横断歩道の手前では話さない）。タイル API で配る。抽出データとタイルのデータも ODbL |
+| 町丁目の代表点（`cloud/data/address/towns.json`） | 「位置参照情報」（国土交通省）を加工して作成 https://nlftp.mlit.go.jp/isj/ | 国土交通省 位置参照情報の利用規約（出典を明記） | 位置から町丁目を引く（いちばん近い代表点）。番地・街区は使わない。11/6 夜に追加（メンバー3の提案） |
 
 ## 気象データ
 

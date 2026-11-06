@@ -63,3 +63,21 @@ python cloud/data/scripts/build_sqlite.py --examples # 見本から（お試し�
 ```
 
 `reviewed` のランドマークだけが入ります。データが schema に合わないと、どのファイルの何件目のどこが違うかを表示して止まります。Cloud Run のコンテナを作るときにも自動で動きます。
+
+## 住所（町丁目）を作る（11/6 夜、メンバー3の提案。メンバー1）
+
+国土交通省「位置参照情報」から、横断歩道と同じ範囲の**町丁目の代表点**だけを取り出して `address/towns.json` を作ります。
+位置から町丁目を引くときは、いちばん近い代表点で決め、**800m より遠ければ「わからない」**にします（`scripts/town_lookup.py`）。番地・街区は持ちません。
+
+1. **人が行う**：位置参照情報ダウンロードサービス（https://nlftp.mlit.go.jp/isj/ ）で、富山県 → 富山市（16201）の**大字・町丁目レベル**と**街区レベル**の最新の年度を選び、利用規約に同意してダウンロードする
+2. zip を展開して、中の CSV（Shift_JIS のまま）を `cloud/data/raw/address/` に置く（Git 管理外。フォルダの中は下までたどるので、展開したフォルダごとでよい）
+3. 作る：
+
+```sh
+python cloud/data/scripts/build_address.py     # → cloud/data/address/towns.json（Git 管理）
+python cloud/data/scripts/build_sqlite.py      # SQLite の towns・landmark_towns の表に入る
+```
+
+* 街区レベルは、近い代表点で決める方法がどれくらい当たるかを表示するのに使うだけ（出力には入れない）
+* **今はタイルの応答に町丁目を入れていない**（`schema/api/tile.response.schema.json` を変えるまで API の応答は変えない）。ランドマークの町丁目はビルドのときに SQLite の `landmark_towns` に入る（ランドマークのファイルは書き換えない）
+* 出典の表示：「位置参照情報」（国土交通省）を加工して作成（`docs/attribution.md`）

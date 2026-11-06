@@ -82,6 +82,8 @@ DATA_FILES = [
     ("cloud/data/manual/timetable.json", "timetable_sample.json", "timetable_file.schema.json", "stops"),
     ("cloud/data/manual/events.json", "events_sample.json", "events_file.schema.json", "events"),
     ("cloud/data/osm/crossings.json", "crossings_sample.json", "crossings_file.schema.json", "crossings"),
+    # 町丁目の代表点（build_address.py の出力）。見本は engine の往復テストの対象外なので towns/ に分けて置く
+    ("cloud/data/address/towns.json", "towns/towns_sample.json", "towns_file.schema.json", "towns"),
 ]
 
 E = S / "examples"

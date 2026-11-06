@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambient-narrative.example/schema/town.schema.json",
+  "title": "町丁目の代表点（国土交通省 位置参照情報の大字・町丁目レベル）",
+  "description": "町の形ではなく代表点。位置から町丁目を引くときは、いちばん近い代表点で決め、遠すぎれば「わからない」にする（cloud/data/scripts/town_lookup.py）。番地・街区は持たない",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "lat", "lon"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{12}$",
+      "description": "大字町丁目コード（12桁。頭5桁が市区町村コード）"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "大字・町丁目名（例：明輪町、新富町一丁目）。市区町村名は付けない"
+    },
+    "lat": { "$ref": "common.schema.json#/$defs/lat" },
+    "lon": { "$ref": "common.schema.json#/$defs/lon" }
+  }
+}

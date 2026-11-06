@@ -10,6 +10,7 @@
     cloud/data/manual/timetable.json   電停と時刻表
     cloud/data/manual/events.json      イベント
     cloud/data/osm/crossings.json      横断歩道・信号（extract_osm.py の出力）
+    cloud/data/address/towns.json      町丁目の代表点（build_address.py の出力。無ければ町丁目の表は空）
 出力:
     cloud/data/build/tiles.sqlite（Git 管理外）
 
@@ -18,7 +19,11 @@
   - 同じ入力なら同じ DB になる（並び順を ID で固定。作った日時は入れない）
   - タイルへの入れ方：点のもの（ランドマーク・電停・横断歩道・イベント）は位置のあるタイルに、
     エリア（kind: area）は範囲（radius_m）が重なるすべてのタイルに入る（API 側で判定）
+  - 町丁目（11/6 夜、メンバー3の提案）：towns と landmark_towns の表に入れるだけ。タイルの応答（features.json）には入れない
+    （schema/api/tile.response.schema.json を変えるまで API の応答は変えない）。ランドマークの町丁目はビルドのときに
+    いちばん近い代表点で決める（town_lookup.py。800m より遠ければ入れない）
 """
+
 import argparse
 import hashlib
 import json
@@ -30,9 +35,13 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from town_lookup import nearest_town  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[3]
 SCHEMA = ROOT / "schema"
 DEFAULT_OUT = ROOT / "cloud" / "data" / "build" / "tiles.sqlite"
+TOWNS = ("cloud/data/address/towns.json", "schema/examples/towns/towns_sample.json")
 
 # (種類, schema, 中の配列のキー, 本物の置き場所, 見本)
 INPUTS = [
@@ -150,6 +159,17 @@ def build(out: Path, use_examples: bool = False) -> int:
         for it in items:
             rows.append((kind, it["id"], json.dumps(it, ensure_ascii=False, sort_keys=True), bbox(kind, it)))
 
+    towns: list[dict] = []
+    t_rel = TOWNS[1] if use_examples else TOWNS[0]
+    if (ROOT / t_rel).exists():
+        raw = (ROOT / t_rel).read_bytes()
+        digest.update(t_rel.encode() + b"\0" + raw + b"\0")
+        t_data = json.loads(raw.decode("utf-8"))
+        errs = validate(t_rel, t_data, "towns_file.schema.json", "towns", reg)
+        errors += errs
+        towns = [] if errs else t_data["towns"]
+    counts["town"] = len(towns)
+
     if errors:
         print("入力が schema に合いません。SQLite は作りません:")
         for e in errors:
@@ -176,8 +196,22 @@ def build(out: Path, use_examples: bool = False) -> int:
                 UNIQUE (kind, id)
             );
             CREATE VIRTUAL TABLE features_rtree USING rtree(rowid, min_lat, max_lat, min_lon, max_lon);
+            -- 町丁目の代表点（今はタイルの応答に入れない）
+            CREATE TABLE towns (id TEXT PRIMARY KEY, name TEXT NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL);
+            -- ランドマークの町丁目（いちばん近い代表点。遠すぎれば行を作らない）
+            CREATE TABLE landmark_towns (
+                landmark_id TEXT PRIMARY KEY, town_id TEXT NOT NULL REFERENCES towns(id), distance_m REAL NOT NULL
+            );
             """
         )
+        con.executemany("INSERT INTO towns VALUES (?,?,?,?)", [(t["id"], t["name"], t["lat"], t["lon"]) for t in towns])
+        for kind, ident, js, _ in rows:
+            if kind != "landmark":
+                continue
+            item = json.loads(js)
+            got = nearest_town(item["lat"], item["lon"], towns)
+            if got:
+                con.execute("INSERT INTO landmark_towns VALUES (?,?,?)", (ident, got["id"], got["distance_m"]))
         for i, (kind, ident, js, (a, b, c, d)) in enumerate(rows, 1):
             is_area = int(kind == "landmark" and json.loads(js).get("kind") == "area")
             con.execute("INSERT INTO features VALUES (?,?,?,?,?)", (i, kind, ident, is_area, js))
