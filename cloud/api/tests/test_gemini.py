@@ -216,3 +216,32 @@ def test_prompt_lists_parts():
     GeminiVisualSearch(S, FakeTileSource(), client=c).search(request())
     prompt = c.calls[0].contents[1]
     assert "whole（全体）" in prompt and "railing（欄干・手すり）" in prompt and "{parts}" not in prompt
+
+
+# ---- ありふれたものは話さない（11/6 夜）----
+
+def test_commonplace_true_becomes_unknown():
+    assert pp(ans(commonplace=True, result="unlisted", object_name="緑の箱", description="緑色の箱が並んでいます。"))["result"] == "unknown"
+    assert pp(ans(commonplace=True, result="matched", landmark_id="lm_0001", part="window",
+                  description="窓が大きいです。"))["result"] == "unknown"
+
+
+def test_commonplace_false_or_missing_keeps_answer():
+    assert pp(ans(commonplace=False, result="unlisted", object_name="木造の蔵", description="黒い瓦の蔵です。"))["result"] == "unlisted"
+    assert pp(ans(result="unlisted", object_name="木造の蔵", description="黒い瓦の蔵です。"))["result"] == "unlisted"
+
+
+@pytest.mark.parametrize("name", ["自動販売機", "雪の積もった駐車場", "ふつうの街路樹", "コンビニ"])
+def test_commonplace_generic_names_become_unknown(name):
+    assert pp(ans(result="unlisted", object_name=name, named=False, description="緑色の本体が並んでいます。"))["result"] == "unknown"
+
+
+def test_named_object_is_not_blocked_by_generic_words():
+    r = pp(ans(result="unlisted", object_name="旧森田家住宅", named=True, description="黒い瓦の屋根が続く町家です。"))
+    assert r["result"] == "unlisted" and r["object_name"] == "旧森田家住宅"
+
+
+def test_response_schema_asks_commonplace_first():
+    from app.gemini import RESPONSE_SCHEMA
+    assert "commonplace" in RESPONSE_SCHEMA["required"]
+    assert RESPONSE_SCHEMA["propertyOrdering"][0] == "commonplace"

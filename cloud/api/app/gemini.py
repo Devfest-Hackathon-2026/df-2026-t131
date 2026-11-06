@@ -7,6 +7,8 @@
   matched・whole は説明を返さない（11/6 夜：B では全体の紹介をしない＝engine が A に任せて見送る）。
   matched・whole 以外は「登録したランドマークの特徴」で、見えていることだけの説明を返す（engine は全体の紹介とは別の話として扱う）。
   ありふれたもの（電柱・自動販売機など）や、見た目をなぞるだけの説明しか言えないものは unknown にさせる（11/6 夜、メンバー2の提案）。
+  プロンプトだけでは自動販売機・駐車場を答えてしまった（実測）ので、commonplace を必ず答えさせ、true なら unknown。
+  一般名（named=false）がありふれたものの名前でも unknown（COMMONPLACE_RE）。
 
 後処理（AI の答えをそのまま信じない）:
   - JSON が壊れている・候補に無い ID を返した・名前が無い → unknown（推測で補わない）
@@ -43,6 +45,11 @@ NUMBER_RE = re.compile(
     r"|(?:明治|大正|昭和|平成|令和|江戸時代|慶長|元和|寛永|元禄|享保|天保|安政|文久|慶応)"
     r"|[一二三四五六七八九十百千万]+(?:年|月|日|メートル|キロ|階|代|世紀|周年|番目|基|本|人|棟)"
 )
+# 一般名で返ってきたら話さない、どこにでもあるもの（固有名＝named のときは止めない）
+COMMONPLACE_RE = re.compile(
+    r"自動販売機|自販機|電柱|電線|信号|ガードレール|駐車場|駐輪場|コンビニ|住宅|民家|マンション|アパート"
+    r"|街路樹|植え込み|道路|歩道|車道|横断歩道|標識|カーブミラー|マンホール|ゴミ箱|ごみ箱|フェンス|自動車|自転車|バス停"
+)
 SENTENCE_RE = re.compile(r"[^。！？!?]+[。！？!?]?")
 
 PROMPT = """あなたは、富山市を歩く人のための音声ガイドです。利用者はカメラ付きのメガネをかけて歩いています。
@@ -57,8 +64,8 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 
 # 答え方
 - 目的は、ふだん見過ごしてしまうものに気づくきっかけを短く伝えること
-- 中央にあるのが、どこにでもあるもの（電柱・信号・自動販売機・ふつうの住宅・駐車場・チェーン店・コンビニ・
-  ふつうの街路樹・ガードレールなど）だけなら result="unknown" にする
+- commonplace に、中央にあるのが、どこにでもあるもの（電柱・信号・自動販売機・ふつうの住宅・駐車場・チェーン店・コンビニ・
+  ふつうの街路樹・ガードレール・ふつうの道路や歩道など）かどうかを true/false で必ず入れる。true なら result="unknown" にする
 - part に、中央に写っているのがどの部分かを、次の一覧から1つ選んで入れる（unknown のときは null）
   {parts}
   対象のそのもの全体（建物の外観全体・像全体・橋全体など）なら "whole"、特定の部分が中心なら、その部分を選ぶ。
@@ -77,13 +84,14 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 - 中央に写っているのが道・地面・水面・空・人などで、名前の付いたものが写っていないときは、
   一般的な名前（例：運河沿いの散策路）で named=false にするか、result="unknown" にする
 - 分からない・自信がないなら result="unknown"。推測で答えない
-- 年号・数字・人数・高さなどの数は書かない
+- 年号・数字・人数・高さなどの数は書かない。ものの数も数字で書かず、言葉で言う（「2つの塔」ではなく「両端の塔」「並んだ窓」）。
+  数字を含む文は読み上げずに捨てるので、数字を使うと説明が残らない
 - 「右手に」「正面に」など方向の言葉は書かない
 - confidence は 0〜1 で、答えの確からしさ
 {grounding_rule}
 # 出力
 次の JSON だけを出力する。
-{{"result": "matched|unlisted|unknown", "landmark_id": "lm_0001 または null", "object_name": "名前 または null",
+{{"commonplace": true/false, "result": "matched|unlisted|unknown", "landmark_id": "lm_0001 または null", "object_name": "名前 または null",
   "named": true/false, "description": "説明 または null", "part": "whole など または null", "confidence": 0.0}}
 """
 
@@ -93,6 +101,8 @@ GROUNDING_RULE = "- 名前は Google マップの場所のデータで確かめ�
 RESPONSE_SCHEMA = {
     "type": "OBJECT",
     "properties": {
+        # どこにでもあるものか。先に答えさせ、true なら後処理で unknown にする（プロンプトだけでは守られなかった。11/6 夜に実測）
+        "commonplace": {"type": "BOOLEAN"},
         "result": {"type": "STRING", "enum": list(RESULTS)},
         "landmark_id": {"type": "STRING", "nullable": True},
         "object_name": {"type": "STRING", "nullable": True},
@@ -101,7 +111,8 @@ RESPONSE_SCHEMA = {
         "part": {"type": "STRING", "enum": list(PARTS), "nullable": True},
         "confidence": {"type": "NUMBER"},
     },
-    "required": ["result", "landmark_id", "object_name", "named", "description", "part", "confidence"],
+    "required": ["commonplace", "result", "landmark_id", "object_name", "named", "description", "part", "confidence"],
+    "propertyOrdering": ["commonplace", "result", "landmark_id", "object_name", "named", "part", "description", "confidence"],
 }
 
 
@@ -141,6 +152,8 @@ def postprocess(raw_text: str, search_id: str, candidate_ids: list[str], sources
         conf = 0.0
     if data["result"] == "unknown" or conf < settings.visual_min_confidence:
         return unknown(search_id, conf)
+    if data.get("commonplace") is True:  # どこにでもあるもの → 話さない
+        return unknown(search_id, conf)
 
     base = unknown(search_id, conf)
     part = data.get("part")
@@ -161,6 +174,8 @@ def postprocess(raw_text: str, search_id: str, candidate_ids: list[str], sources
 
     name = (data.get("object_name") or "").strip()
     if not name or NUMBER_RE.search(name):
+        return unknown(search_id, conf)
+    if not data.get("named") and COMMONPLACE_RE.search(name):  # 一般名がありふれたもの → 話さない（commonplace の取りこぼし対策）
         return unknown(search_id, conf)
     desc = clean_description(data.get("description") or "", settings.description_max_chars)
     if desc is None:
