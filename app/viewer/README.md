@@ -46,18 +46,12 @@ flutter run -d chrome
 flutter build web          # build/web ができる
 ```
 
-## Firebase Hosting に出す（人が行う）
+## 公開（Cloud Run。メンバー1が行う）
 
-設定は `firebase.json`（公開するのは `build/web`）と `.firebaserc`（プロジェクト `ambient-guide-toyama-2026`）。
+審査用のデプロイ URL：https://viewer-566419227445.asia-northeast1.run.app （11/14 まで動かし続ける）
 
-```sh
-cd app/viewer
-flutter build web
-firebase login             # Hosting の権限があるアカウントで。済んでいれば不要
-firebase deploy --only hosting
-```
-
-出てきた URL（`https://ambient-guide-toyama-2026.web.app` の形）をメンバー1に伝える。審査用のデプロイ URL として 11/14 まで動かし続ける。
+* 公開の設定は `cloud/viewer-web/`（Flutter Web をビルドして nginx で配る。Firebase Hosting は使わない）
+* viewer・地図データ（`assets/map.json`）・同梱の歩行ログを変えたら、push したあとメンバー1に出し直しを頼む（自動では出し直さない）
 
 ## ファイル
 
