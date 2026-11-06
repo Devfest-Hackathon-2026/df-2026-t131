@@ -26,3 +26,4 @@
   - B を話すと直後の A に間に合わないときは B を捨てる（`answer:yield_to_narrative`。schema に追加）。
   - 最初の1枚の基準を「タイルが初めて届いた時刻」から「位置と向きが初めて取れた時刻」に変えた。
   - `EngineView` に `currentArea`・`searchSkipReason` を追加し、`NearbyLandmark.relativeDeg` を `relativeBearingDeg` に改名（リーダーの案に合わせた）。
+- B の応答の `part`（どの部分か）に対応（メンバー1の m1/visual-part）：`VisualSearchResponse.part`、`visualPartLabels`。登録したランドマークの特徴（`answer:landmark_feature`）を話す。重複は（場所, part）で見る。

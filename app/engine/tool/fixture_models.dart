@@ -86,8 +86,8 @@ Map<String, dynamic> roundtripExample(String name, Map<String, dynamic> json) =>
       'visual_search_response_matched.json' ||
       'visual_search_response_unlisted.json' ||
       'visual_search_response_unknown.json' ||
-      'visual_search_response_named.json' => VisualSearchResponse.fromJson(
-        json,
-      ).toJson(),
+      'visual_search_response_named.json' ||
+      'visual_search_response_matched_feature.json' =>
+        VisualSearchResponse.fromJson(json).toJson(),
       _ => throw ArgumentError('未対応の見本: $name'),
     };

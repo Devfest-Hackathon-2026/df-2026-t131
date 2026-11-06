@@ -28,6 +28,7 @@
     "search_skip:low_quality": "B：画像がぶれている・暗い",
     "search_skip:limit_reached": "B：1回の歩行の上限に達した",
     "answer:matched_landmark": "B：候補のランドマークと一致（A の原稿で話す）",
+    "answer:landmark_feature": "B：登録したランドマークの特徴（窓・入口など）を話した。全体の紹介とは別の話",
     "answer:unlisted_object": "B：候補外の対象を短く説明（名前が分からないもの）",
     "answer:named_object": "B：エリア内などで名前の付いた対象を特定して解説",
     "answer:unknown": "B：分からなかったので話さない",

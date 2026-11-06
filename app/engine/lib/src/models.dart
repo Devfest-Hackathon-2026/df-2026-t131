@@ -796,6 +796,9 @@ final class VisualSearchResponse {
   final String? landmarkId;
   final String? objectName;
   final String? description;
+
+  /// 中央に写っているのがどの部分か（`visualParts` のどれか）。unknown のときだけ null。
+  final String? part;
   final double confidence;
   final bool named;
   final List<VisualSearchSource> sources;
@@ -806,6 +809,7 @@ final class VisualSearchResponse {
     required this.landmarkId,
     required this.objectName,
     required this.description,
+    required this.part,
     required this.confidence,
     required this.named,
     required this.sources,
@@ -817,6 +821,7 @@ final class VisualSearchResponse {
     required String? landmarkId,
     required String? objectName,
     required String? description,
+    required String? part,
     required double confidence,
     required bool named,
     required List<VisualSearchSource> sources,
@@ -827,6 +832,7 @@ final class VisualSearchResponse {
     "landmark_id": landmarkId,
     "object_name": objectName,
     "description": description,
+    "part": part,
     "confidence": confidence,
     "named": named,
     "sources": sources.map((item) => item.toJson()).toList(),
@@ -841,6 +847,7 @@ final class VisualSearchResponse {
         "landmark_id",
         "object_name",
         "description",
+        "part",
         "confidence",
         "sources",
         "named",
@@ -852,6 +859,7 @@ final class VisualSearchResponse {
         "landmark_id",
         "object_name",
         "description",
+        "part",
         "confidence",
         "named",
         "sources",
@@ -882,6 +890,9 @@ final class VisualSearchResponse {
       description: json["description"] == null
           ? null
           : wireString(json["description"], "description", maxLength: 120),
+      part: json["part"] == null
+          ? null
+          : wireString(json["part"], "part", values: visualParts),
       confidence: wireDouble(json["confidence"], "confidence", min: 0, max: 1),
       named: wireBool(json["named"], "named"),
       sources: wireList(
@@ -890,19 +901,23 @@ final class VisualSearchResponse {
         (value) => VisualSearchSource.fromJson(wireMap(value, "sources")),
       ),
     );
+    // matched：全体（whole）なら説明なし、部分なら特徴の説明あり。unknown だけ part が null。
     final valid = switch (result.result) {
       'matched' =>
         result.landmarkId != null &&
             result.objectName == null &&
-            result.description == null,
+            result.part != null &&
+            (result.part == 'whole') == (result.description == null),
       'unlisted' =>
         result.landmarkId == null &&
             result.objectName != null &&
-            result.description != null,
+            result.description != null &&
+            result.part != null,
       'unknown' =>
         result.landmarkId == null &&
             result.objectName == null &&
-            result.description == null,
+            result.description == null &&
+            result.part == null,
       _ => false,
     };
     if (!valid) {
@@ -917,6 +932,7 @@ final class VisualSearchResponse {
     "landmark_id": landmarkId,
     "object_name": objectName,
     "description": description,
+    "part": part,
     "confidence": confidence,
     "named": named,
     "sources": sources.map((item) => item.toJson()).toList(),

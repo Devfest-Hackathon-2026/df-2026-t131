@@ -115,6 +115,24 @@ final class EngineConfig {
 }
 
 /// schema/reason_codes.jsonと照合する。追加・変更はmember1が決定する。
+/// B の応答の part（schema/api/visual_search.response.schema.json）と、読み上げ・画面での呼び方。
+/// 値（英語）は schema と同じ。変えない。
+const visualPartLabels = <String, String>{
+  'whole': '全体',
+  'window': '窓',
+  'entrance': '入口',
+  'roof': '屋根',
+  'wall': '壁',
+  'pillar': '柱',
+  'sign': '看板',
+  'statue': '像',
+  'railing': '欄干',
+  'planting': '植え込み',
+  'waterside': '水辺',
+  'other': 'その他',
+};
+final visualParts = visualPartLabels.keys.toList(growable: false);
+
 const reasonCodes = <String>{
   'speak:closest_approach',
   'speak:area_entered',
@@ -143,6 +161,7 @@ const reasonCodes = <String>{
   'search_skip:low_quality',
   'search_skip:limit_reached',
   'answer:matched_landmark',
+  'answer:landmark_feature',
   'answer:unlisted_object',
   'answer:named_object',
   'answer:unknown',

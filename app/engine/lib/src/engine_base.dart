@@ -827,8 +827,10 @@ class Engine {
       _logAnswer(out, t, 'answer:unknown', search.id, r);
       return;
     }
-    // 候補外は根拠が地図にないので、一致より高い自信を求める（CLAUDE.md 6章）。
-    final minConfidence = r.result == 'matched'
+    // ランドマーク全体（A の確認済みの原稿で話す）は0.6。画像から見つけた特徴や候補外の対象は、
+    // 根拠が地図にないので0.7（CLAUDE.md 6章「B の仕様」）。
+    final wholeLandmark = r.result == 'matched' && r.part == 'whole';
+    final minConfidence = wholeLandmark
         ? config.minConfidence
         : config.unlistedMinConfidence;
     if (r.confidence < minConfidence) {
@@ -842,6 +844,36 @@ class Engine {
       if (lm == null) {
         // この検索で送った候補にない ID は、取り違えとみなして話さない。
         _logAnswer(out, t, 'answer:unknown', search.id, r);
+        return;
+      }
+      if (!wholeLandmark) {
+        // 登録したランドマークの特徴：全体の紹介とは別の話。（ランドマーク, part）で重複を見る。
+        final feature = _ToldObject(
+          landmarkId: lm.id,
+          name: lm.name,
+          named: true,
+          areaId: null,
+          position: search.position,
+          part: r.part!,
+        );
+        final told =
+            _toldObjects.any(feature.sameAs) ||
+            (feature.part == 'other' && _told.contains(lm.id));
+        if (told) {
+          _logAnswer(out, t, 'answer:already_told', lm.id, r);
+          return;
+        }
+        _pendingAnswer = _VisualAnswer(
+          search: search,
+          reason: 'answer:landmark_feature',
+          targetId: lm.id,
+          name: lm.name,
+          body: r.description!,
+          landmarkId: null, // A で話した扱いにはしない
+          partLabel: visualPartLabels[r.part],
+          toldObject: feature,
+          sources: r.sources,
+        );
         return;
       }
       if (_told.contains(lm.id)) {
@@ -860,12 +892,13 @@ class Engine {
       );
       return;
     }
-    // unlisted：候補外の対象。名前で重複を判定する（論点9）。
+    // unlisted：候補外の対象。（名前で探した場所, part）で重複を判定する（論点9）。
     final object = _ToldObject(
       name: r.objectName!,
       named: r.named,
       areaId: search.areaId,
       position: search.position,
+      part: r.part!,
       genericRadiusM: config.genericObjectDedupM,
     );
     if (_toldObjects.any(object.sameAs)) {
@@ -934,7 +967,10 @@ class Engine {
       angleDiffDeg(answer.search.gazeAzDeg, _heading),
       config,
     );
-    final text = 'さっき$directionに見えたのは${answer.name}です。${answer.body}';
+    final part = answer.partLabel;
+    final text = part == null
+        ? 'さっき$directionに見えたのは${answer.name}です。${answer.body}'
+        : 'さっき$directionに見えたのは${answer.name}の$partです。${answer.body}';
     // B を話し終えて話題の間隔を空けると、直後の A が通り過ぎて話せなくなるなら B を見送る（仕様書 5章）。
     if (_narrativeMissedAfter(_durationMs(text) + config.topicIntervalMs)) {
       _log(
@@ -1143,6 +1179,9 @@ final class _VisualAnswer {
   final _Search search;
   final String reason, targetId, name, body;
   final String? landmarkId;
+
+  /// 登録したランドマークの特徴を話すときの部分の呼び方（例：入口）。それ以外は null。
+  final String? partLabel;
   final _ToldObject? toldObject;
   final List<VisualSearchSource> sources;
   const _VisualAnswer({
@@ -1152,28 +1191,38 @@ final class _VisualAnswer {
     required this.name,
     required this.body,
     required this.landmarkId,
+    this.partLabel,
     required this.toldObject,
     required this.sources,
   });
 }
 
-/// B で話した候補外の対象（論点9、11/6 に一般名の扱いを決定）。
+/// B で話した話のかぎ（場所, part）。B の仕様書 5章・CLAUDE.md 6章「B の仕様」。
+///
+/// 場所は、登録したランドマークの特徴なら landmarkId。候補外の対象なら、固有名はエリア＋名前、
+/// 一般名は名前＋撮った場所（genericRadiusM 以内）。ランドマーク全体の紹介はここに入れず、ID で A と共有する。
 final class _ToldObject {
+  final String? landmarkId;
   final String name;
   final bool named;
   final String? areaId;
   final Vec2 position;
   final double genericRadiusM;
+  final String part;
   const _ToldObject({
+    this.landmarkId,
     required this.name,
     required this.named,
     required this.areaId,
     required this.position,
+    required this.part,
     this.genericRadiusM = 0,
   });
 
-  /// 同じ対象の話か。固有名はエリアごとに名前で、一般名は撮った場所が近いときだけ名前で比べる。
-  bool sameAs(_ToldObject other) {
+  bool samePlace(_ToldObject other) {
+    if (landmarkId != null || other.landmarkId != null) {
+      return landmarkId == other.landmarkId;
+    }
     if (name != other.name || named != other.named) return false;
     if (named) return areaId == other.areaId;
     final radius = genericRadiusM > other.genericRadiusM
@@ -1181,6 +1230,11 @@ final class _ToldObject {
         : other.genericRadiusM;
     return (position - other.position).length <= radius;
   }
+
+  /// すでに話した [other] と同じ話か。同じ場所で同じ part なら同じ。
+  /// part が other（その他）は見分けられないので、同じ場所で何か話していれば同じとみなす。
+  bool sameAs(_ToldObject other) =>
+      samePlace(other) && (part == other.part || part == 'other');
 }
 
 /// 進行方向（または視線）から見た角度を、方向の言葉にする。右が正、左が負（度）。

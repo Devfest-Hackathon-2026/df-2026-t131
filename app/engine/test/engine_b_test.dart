@@ -16,6 +16,7 @@ VisualSearchResponse unknownFor(String searchId) => VisualSearchResponse(
   landmarkId: null,
   objectName: null,
   description: null,
+  part: null,
   confidence: 0.2,
   named: false,
   sources: const [],
@@ -27,6 +28,7 @@ VisualSearchResponse unlistedFor(
   String description = '白い漆喰の壁と黒い瓦屋根の蔵が見えます。',
   double confidence = 0.8,
   bool named = false,
+  String part = 'whole',
   List<VisualSearchSource> sources = const [],
 }) => VisualSearchResponse(
   searchId: searchId,
@@ -34,25 +36,42 @@ VisualSearchResponse unlistedFor(
   landmarkId: null,
   objectName: name,
   description: description,
+  part: part,
   confidence: confidence,
   named: named,
   sources: sources,
 );
 
-VisualSearchResponse matchedFor(String searchId, String landmarkId) =>
-    VisualSearchResponse(
-      searchId: searchId,
-      result: 'matched',
-      landmarkId: landmarkId,
-      objectName: null,
-      description: null,
-      confidence: 0.86,
-      named: false,
-      sources: const [],
-    );
+VisualSearchResponse matchedFor(
+  String searchId,
+  String landmarkId, {
+  String part = 'whole',
+  String? description,
+  double confidence = 0.86,
+}) => VisualSearchResponse(
+  searchId: searchId,
+  result: 'matched',
+  landmarkId: landmarkId,
+  objectName: null,
+  description: part == 'whole' ? null : description ?? '入口の上に白い飾りが付いています。',
+  part: part,
+  confidence: confidence,
+  named: false,
+  sources: const [],
+);
 
 Responder answer(VisualSearchResponse Function(String searchId) make) =>
     (c, t) => VisualResult(tMs: t, response: make(c.searchId));
+
+/// 検索ごとに順に違う答えを返す（足りなければ最後の答えを繰り返す）。
+Responder answers(List<VisualSearchResponse Function(String searchId)> makes) {
+  var i = 0;
+  return (c, t) {
+    final make = makes[i < makes.length ? i : makes.length - 1];
+    i++;
+    return VisualResult(tMs: t, response: make(c.searchId));
+  };
+}
 
 /// 止まって立っている場所（原点）。
 Pose standing(int _) => (north: 0, east: 0, speed: 0, course: 180);
@@ -732,6 +751,147 @@ void main() {
     });
   });
 
+  group('どの部分か（part）', () {
+    // 道から20m・範囲10m（A は話さない）。60秒と120秒の2回とも候補に入る（上の lm_0009 の場面と同じ）
+    Landmark near() => landmark('lm_0009', -200, 20, radiusM: 10);
+    Sim twoSearches(Responder respond) {
+      final sim = Sim(const EngineConfig(), respond);
+      sim.run(
+        130,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [near()]),
+          ],
+        },
+      );
+      expect(sim.searchSecs, [60, 120]);
+      return sim;
+    }
+
+    test('登録したランドマークの特徴は、特徴の説明を読み、A で話した扱いにはしない', () {
+      final lm = landmark('lm_0002', -200, 40, short: '見本の原稿です。');
+      final sim = Sim(
+        const EngineConfig(),
+        answer(
+          (id) => matchedFor(
+            id,
+            'lm_0002',
+            part: 'entrance',
+            description: '入口の上に白い飾りが付いています。',
+            confidence: 0.78,
+          ),
+        ),
+      );
+      sim.run(
+        70,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [lm]),
+          ],
+        },
+      );
+      final d = sim.withReason('answer:landmark_feature').single;
+      expect(d.targetId, 'lm_0002');
+      expect(d.text, 'さっき正面に見えたのは見本lm_0002の入口です。入口の上に白い飾りが付いています。');
+      expect(sim.engine.toldIds, isNot(contains('lm_0002')));
+    });
+
+    test('特徴は自信0.7未満なら話さない（全体の紹介は0.6でよい）', () {
+      final lm = landmark('lm_0002', -200, 40);
+      final sim = Sim(
+        const EngineConfig(),
+        answer(
+          (id) => matchedFor(id, 'lm_0002', part: 'roof', confidence: 0.65),
+        ),
+      );
+      sim.run(
+        70,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [lm]),
+          ],
+        },
+      );
+      expect(sim.withReason('answer:low_confidence'), hasLength(1));
+      expect(sim.speaks, isEmpty);
+    });
+
+    test('同じランドマークの同じ部分は、言い方が違っても二度は話さない', () {
+      final sim = twoSearches(
+        answers([
+          (id) => matchedFor(
+            id,
+            'lm_0009',
+            part: 'window',
+            description: '窓の上に波の形の飾りがあります。',
+          ),
+          (id) => matchedFor(
+            id,
+            'lm_0009',
+            part: 'window',
+            description: '窓の上に波模様が見えます。',
+          ),
+        ]),
+      );
+      expect(sim.withReason('answer:landmark_feature'), hasLength(1));
+      expect(sim.withReason('answer:already_told').single.targetId, 'lm_0009');
+      expect(sim.speaks, hasLength(1));
+    });
+
+    test('同じランドマークでも別の部分なら話す', () {
+      final sim = twoSearches(
+        answers([
+          (id) => matchedFor(id, 'lm_0009', part: 'window'),
+          (id) => matchedFor(id, 'lm_0009', part: 'roof'),
+        ]),
+      );
+      expect(sim.withReason('answer:landmark_feature'), hasLength(2));
+      expect(sim.speaks, hasLength(2));
+    });
+
+    test('全体を話したあとでも、新しい部分の特徴は話す。その他（other）は話さない', () {
+      final first = twoSearches(
+        answers([
+          (id) => matchedFor(id, 'lm_0009'),
+          (id) => matchedFor(id, 'lm_0009', part: 'entrance'),
+        ]),
+      );
+      expect(first.withReason('answer:matched_landmark'), hasLength(1));
+      expect(first.withReason('answer:landmark_feature'), hasLength(1));
+
+      final other = twoSearches(
+        answers([
+          (id) => matchedFor(id, 'lm_0009'),
+          (id) => matchedFor(id, 'lm_0009', part: 'other'),
+        ]),
+      );
+      expect(other.withReason('answer:landmark_feature'), isEmpty);
+      expect(other.withReason('answer:already_told'), hasLength(1));
+    });
+
+    test('候補外の対象も（場所, part）で見分ける：同じ蔵の窓と壁は別の話、窓をもう一度は話さない', () {
+      final both = twoSearches(
+        answers([
+          (id) => unlistedFor(id, part: 'window'),
+          (id) => unlistedFor(id, part: 'wall'),
+        ]),
+      );
+      expect(both.withReason('answer:unlisted_object'), hasLength(2));
+
+      final again = twoSearches(
+        answers([
+          (id) => unlistedFor(id, part: 'window'),
+          (id) => unlistedFor(id, part: 'window'),
+        ]),
+      );
+      expect(again.withReason('answer:unlisted_object'), hasLength(1));
+      expect(again.withReason('answer:already_told'), hasLength(1));
+    });
+  });
+
   group('見本の答え（schema/examples/visual_search_response_*.json）', () {
     // 見本の search_id を、engine が出した検索の ID に差し替えて返す
     Responder example(String name) =>
@@ -746,6 +906,10 @@ void main() {
       ('visual_search_response_unlisted.json', 'answer:unlisted_object'),
       ('visual_search_response_unknown.json', 'answer:unknown'),
       ('visual_search_response_named.json', 'answer:named_object'),
+      (
+        'visual_search_response_matched_feature.json',
+        'answer:landmark_feature',
+      ),
     ]) {
       test('$name → $reason', () {
         // matched の見本が返す lm_0001 を、視線の中（候補）に置く

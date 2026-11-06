@@ -49,6 +49,7 @@
 | 送るもの | 平滑化した位置のタイル、10°単位に丸めた視線、候補 ID（150m以内・視線の左右30°以内・近い順に10件・エリアは除く・**話したものも入れる**（8））、エリアの中なら `area` | — |
 | 答えの採否 | 鮮度期限15秒を過ぎた → `unknown` → 自信が足りない（候補と一致は0.6、候補外は0.7未満） → 送った候補にない ID → 話した対象、の順に確かめる。候補外の重複（9）は、固有名（`named: true`）ならエリアごと（外は全体）に名前で、一般名なら前に話した撮影場所から100m以内で同じ名前のときだけ | `answer:expired`、`answer:unknown`、`answer:low_confidence`、`answer:already_told` |
 | 話す（10・11） | 優先度6。警報・A が先で、同じ文脈ゲートを通ったら話す。「さっき{方向}に見えたのは{名前}です。{原稿の短い版／説明}」。方向は撮ったときの視線と、話し始めるときの進行方向（止まっていれば視線）の差。DB のランドマークなら A で話した扱いにする | `answer:matched_landmark`、`answer:unlisted_object`、`answer:named_object` |
+| どの部分か（part） | 応答の `part`（whole・window・entrance など。呼び方は `visualPartLabels`）。`matched`＋`whole` は今までどおり（自信0.6、A の原稿、ID で A・B 共有）。`matched`＋部分は登録したランドマークの特徴：自信0.7以上で「さっき{方向}に見えたのは{名前}の{部分}です。{説明}」、A で話した扱いにはしない。重複は（場所, part）で見る。場所はランドマーク ID、なければ固有名はエリア＋名前、一般名は名前＋撮影場所100m。`other` は同じ場所で何か話していれば話さない | `answer:landmark_feature`、`answer:already_told` |
 | A に譲る（共有/visual-search-spec.md 5章） | B を読み終えて話題の間隔20秒を空けると、その間に A が話したいはずのランドマーク（エリア）を、出る前に話し終えられなくなるなら B を捨てる | `answer:yield_to_narrative` |
 
 - 判断ログの kind は、撮る＝`search`、撮らない＝`search_skip`（理由が変わったときだけ記録。撮るたびに消す）、答え＝`answer`
