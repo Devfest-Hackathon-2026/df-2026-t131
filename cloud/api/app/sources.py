@@ -58,12 +58,15 @@ class SqliteTileSource:
 
     - 点のもの（ランドマーク・電停・横断歩道・イベント・町丁目の代表点）：位置が入るタイルだけに返す
     - エリア（kind: area）：範囲が重なるタイルすべてに返す（engine は ID で重複を除く）
+    - カメラで調べない区域：円＋出る判定の幅がかかるタイルすべてに返す。include_zones（TILE_ZONES=on）のときだけ。
+      engine が zones を読めるようになるまでは off（engine は知らないキーがあるとタイルを読めないため）
     R*Tree は座標を少し外側に丸めるので、点は位置から計算したタイル番号でもう一度確かめる。
     """
 
     _KEYS = {"landmark": "landmarks", "stop": "stops", "crossing": "crossings", "event": "events", "town": "towns"}
 
-    def __init__(self, path) -> None:
+    def __init__(self, path, include_zones: bool = False) -> None:
+        self._include_zones = include_zones
         self._uri = f"file:{Path(path).resolve().as_posix()}?mode=ro&immutable=1"
         with self._connect() as con:  # 起動時に開けるか・版が合うかを確かめる
             meta = dict(con.execute("SELECT key, value FROM meta"))
@@ -77,6 +80,8 @@ class SqliteTileSource:
         south, north, west, east = tile_bounds(x, y)
         out = {"schema_version": SCHEMA_VERSION, "tile": {"z": TILE_ZOOM, "x": x, "y": y}}
         out |= {k: [] for k in self._KEYS.values()}
+        if self._include_zones:
+            out["zones"] = []
         con = self._connect()
         try:
             rows = con.execute(
@@ -88,6 +93,10 @@ class SqliteTileSource:
         finally:
             con.close()
         for kind, area, js in rows:
+            if kind == "zone":
+                if self._include_zones:
+                    out["zones"].append(json.loads(js))
+                continue
             item = json.loads(js)
             if not area and tile_of(item["lat"], item["lon"]) != (x, y):
                 continue

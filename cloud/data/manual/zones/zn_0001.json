@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.3",
+  "id": "zn_0001",
+  "name": "あいの島・バードサンクチュアリ",
+  "lat": 36.710112,
+  "lon": 137.212705,
+  "radius_m": 20,
+  "reason": "demo",
+  "note": "デモのため、仮に指定した区域（実際に撮影が禁止されているわけではない）。野鳥の観察舎の建物（約13m×9m）とそのすぐ前。11/7 にメンバー1が決定",
+  "source": "位置は OpenStreetMap の建物 way 583226168 の中心（© OpenStreetMap contributors）"
+}

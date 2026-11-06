@@ -158,6 +158,13 @@
       "items": {
         "$ref": "../town.schema.json"
       }
+    },
+    "zones": {
+      "type": "array",
+      "description": "カメラで調べない区域。円（中心＋radius_m）に出る判定の幅15mを足した範囲がかかるタイルすべてに入る（エリアと同じ入れ方。engine は ID で重複を除く）。11/7 に追加。API は TILE_ZONES=on のときだけ付ける。古いタイルに無くても読めるよう required にはしない",
+      "items": {
+        "$ref": "../zone.schema.json"
+      }
     }
   }
 }

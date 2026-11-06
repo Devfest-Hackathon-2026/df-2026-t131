@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.3",
+  "id": "zn_0901",
+  "name": "見本の観察舎",
+  "lat": 36.7006,
+  "lon": 137.2140,
+  "radius_m": 20,
+  "reason": "demo",
+  "note": "テスト用の架空の区域",
+  "source": "架空"
+}

@@ -65,7 +65,7 @@ def create_app(
         log.warning("APP_TOKEN が未設定のため、/v1/ はすべて 401 を返す")
 
     if tile_source is None:
-        tile_source = SqliteTileSource(settings.tiles_db_path) if settings.tile_source == "sqlite" else FakeTileSource()
+        tile_source = SqliteTileSource(settings.tiles_db_path, include_zones=settings.tile_zones == "on") if settings.tile_source == "sqlite" else FakeTileSource()
     tiles = tile_source
     if visual_search is None:
         if settings.gemini_mode == "real":

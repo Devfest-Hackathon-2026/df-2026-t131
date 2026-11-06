@@ -64,6 +64,15 @@ python cloud/data/scripts/build_sqlite.py --examples # 見本から（お試し�
 
 `reviewed` のランドマークだけが入ります。データが schema に合わないと、どのファイルの何件目のどこが違うかを表示して止まります。Cloud Run のコンテナを作るときにも自動で動きます。
 
+## カメラで調べない区域（11/7。メンバー1）
+
+建物の中など、B（画像での案内）で撮らない場所。`cloud/data/manual/zones/<ID>.json` に1件1ファイル（形は `schema/zone_entry.schema.json`）。
+
+* 円（中心 `lat`・`lon` と `radius_m`）。入るのは半径以内、出るのは半径＋15m より外（engine の `zoneExitMarginM`。`build_sqlite.py` の `ZONE_EXIT_MARGIN_M` と同じ値）
+* `build_sqlite.py` が、円＋15m がかかるタイルすべてに入れる（エリアと同じ）。`note`・`source`・`schema_version` はタイルに入れない
+* API は環境変数 `TILE_ZONES=on` のときだけ応答に `zones` を付ける
+* 今は `zn_0001` あいの島・バードサンクチュアリ（半径20m、`reason: demo`＝デモのため仮に指定。実際に撮影が禁止されているわけではない）
+
 ## 住所（町丁目）を作る（11/6 夜、メンバー3の提案。メンバー1）
 
 国土交通省「位置参照情報」から、横断歩道と同じ範囲の**町丁目の代表点**だけを取り出して `address/towns.json` を作ります。

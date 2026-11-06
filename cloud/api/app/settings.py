@@ -24,6 +24,8 @@ def _env(name: str, default: str) -> str:
 class Settings:
     # fake：見本のタイルを返す／sqlite：build_sqlite.py が作った SQLite から返す
     tile_source: str = field(default_factory=lambda: _env("TILE_SOURCE", "fake"))
+    # on：タイルの応答に zones（カメラで調べない区域）を付ける。engine が zones を読めるようになってから on にする（11/7）
+    tile_zones: str = field(default_factory=lambda: _env("TILE_ZONES", "off"))
     tiles_db_path: str = field(default_factory=lambda: _env("TILES_DB_PATH", str(ROOT / "cloud" / "data" / "build" / "tiles.sqlite")))
     # file：events.json の開催状態のまま／firestore：Firestore の event_status で上書き（デモで「中止」に切り替える）
     event_status: str = field(default_factory=lambda: _env("EVENT_STATUS", "file"))
@@ -55,6 +57,8 @@ class Settings:
             raise ValueError(f"GEMINI_MODE は fake か real: {self.gemini_mode}")
         if self.tile_source not in ("fake", "sqlite"):
             raise ValueError(f"TILE_SOURCE は fake か sqlite: {self.tile_source}")
+        if self.tile_zones not in ("on", "off"):
+            raise ValueError(f"TILE_ZONES は on か off: {self.tile_zones}")
         if self.event_status not in ("file", "firestore"):
             raise ValueError(f"EVENT_STATUS は file か firestore: {self.event_status}")
         if self.gemini_grounding not in ("maps", "off"):

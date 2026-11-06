@@ -152,6 +152,23 @@ for p in sorted(LM_DIR.glob("*.json")) if LM_DIR.exists() else []:
         lm_items.append(data)
 check_items(lm_items, "cloud/data/manual/landmarks/")
 
+# カメラで調べない区域（1件1ファイル）。見本は engine の往復テストの対象外なので examples/zones/ に分けて置く
+zone_items = []
+for d in (E / "zones", ROOT / "cloud" / "data" / "manual" / "zones"):
+    for p in sorted(d.glob("*.json")) if d.exists() else []:
+        rel = p.relative_to(ROOT).as_posix()
+        data = load(p)
+        check("zone_entry.schema.json", data, rel)
+        if isinstance(data, dict):
+            if data.get("id") != p.stem:
+                print(f"NG {rel}: ファイル名（{p.stem}）と id（{data.get('id')}）を同じにしてください")
+                failed += 1
+            zone_items.append(data)
+            # タイルに入れる形（schema_version・note・source を外したもの）も通ること
+            check("zone.schema.json", {k: v for k, v in data.items() if k not in ("schema_version", "note", "source")},
+                  f"{rel} をタイルの形にしたもの")
+check_items(zone_items, "zones")
+
 # 登録用のひな形（メンバー4がコピーして使う）
 for p in sorted((S / "templates").glob("landmark_*.json")):
     check("landmark_entry.schema.json", load(p), p.relative_to(ROOT).as_posix())

@@ -11,6 +11,7 @@
     cloud/data/manual/events.json      イベント
     cloud/data/osm/crossings.json      横断歩道・信号（extract_osm.py の出力）
     cloud/data/address/towns.json      町丁目の代表点（build_address.py の出力。無ければ町丁目の表は空）
+    cloud/data/manual/zones/*.json     カメラで調べない区域（1件1ファイル。見本は schema/examples/zones/）
 出力:
     cloud/data/build/tiles.sqlite（Git 管理外）
 
@@ -22,6 +23,8 @@
   - 町丁目（11/6 夜、メンバー3の提案）：代表点のあるタイルの応答の towns に入る（ランドマークと同じ点の入れ方。案B）。
     ほかに towns・landmark_towns の表。ランドマークの町丁目はビルドのときにいちばん近い代表点で決める
     （town_lookup.py。800m より遠ければ入れない）。ランドマークの JSON（応答）には町丁目を足さない
+  - カメラで調べない区域（11/7）：円に出る判定の幅（ZONE_EXIT_MARGIN_M）を足した範囲がかかるタイルすべてに入る
+    （エリアと同じ）。schema_version・note・source は外して入れる。API は TILE_ZONES=on のときだけ返す
 """
 
 import argparse
@@ -42,6 +45,10 @@ ROOT = Path(__file__).resolve().parents[3]
 SCHEMA = ROOT / "schema"
 DEFAULT_OUT = ROOT / "cloud" / "data" / "build" / "tiles.sqlite"
 TOWNS = ("cloud/data/address/towns.json", "schema/examples/towns/towns_sample.json")
+ZONES = ("cloud/data/manual/zones", "schema/examples/zones")
+# 区域から「出た」とみなす幅（m）。engine の zoneExitMarginM と同じ値にする。出る判定に要るのでこの幅のタイルにも入れる
+ZONE_EXIT_MARGIN_M = 15.0
+ZONE_DROP_KEYS = ("schema_version", "note", "source")
 
 # (種類, schema, 中の配列のキー, 本物の置き場所, 見本)
 INPUTS = [
@@ -114,11 +121,39 @@ def load_landmark_dir(d: Path, reg: Registry) -> tuple[dict, list[str], bytes]:
     return {"schema_version": "0.3", "landmarks": items}, errors, raw_all
 
 
+def load_zone_dir(d: Path, reg: Registry) -> tuple[list[dict], list[str], bytes]:
+    """カメラで調べない区域の1件1ファイルを集める。(タイルに入れる形, エラー, ハッシュ用の中身)"""
+    if not d.exists():
+        return [], [], b""
+    v = Draft202012Validator(_load(SCHEMA / "zone_entry.schema.json"), registry=reg)
+    items, errors, raw_all = [], [], b""
+    for p in sorted(d.glob("*.json")):
+        rel = p.relative_to(ROOT).as_posix() if p.is_relative_to(ROOT) else str(p)
+        raw = p.read_bytes()
+        raw_all += rel.encode() + b"\0" + raw + b"\0"
+        try:
+            item = json.loads(raw.decode("utf-8"))
+        except json.JSONDecodeError as e:
+            errors.append(f"{rel}: JSON として読めません（{e.msg}、{e.lineno}行目）")
+            continue
+        errs = [f"{rel}: {'.'.join(map(str, e.path)) or '（ファイル全体）'}: {e.message}" for e in v.iter_errors(item)]
+        if isinstance(item, dict) and item.get("id") != p.stem:
+            errs.append(f"{rel}: ファイル名（{p.stem}）と id（{item.get('id')}）を同じにしてください")
+        if errs:
+            errors += errs
+            continue
+        items.append({k: val for k, val in item.items() if k not in ZONE_DROP_KEYS})
+    ids = [it["id"] for it in items]
+    for dup in sorted({i for i in ids if ids.count(i) > 1}):
+        errors.append(f"{d.name}/: ID が重複 {dup}")
+    return items, errors, raw_all
+
+
 def bbox(kind: str, item: dict) -> tuple[float, float, float, float]:
     """(min_lat, max_lat, min_lon, max_lon)。エリアは半径の分だけ広げる。"""
     lat, lon = item["lat"], item["lon"]
-    if kind == "landmark" and item.get("kind") == "area":
-        r = float(item["radius_m"])
+    if (kind == "landmark" and item.get("kind") == "area") or kind == "zone":
+        r = float(item["radius_m"]) + (ZONE_EXIT_MARGIN_M if kind == "zone" else 0.0)
         dlat = r / M_PER_DEG_LAT
         dlon = r / (M_PER_DEG_LAT * math.cos(math.radians(lat)))
         return lat - dlat, lat + dlat, lon - dlon, lon + dlon
@@ -172,6 +207,13 @@ def build(out: Path, use_examples: bool = False) -> int:
     for t in towns:  # タイルの応答の towns（代表点のあるタイルだけ。11/6 夜、案B）
         rows.append(("town", t["id"], json.dumps(t, ensure_ascii=False, sort_keys=True), bbox("town", t)))
 
+    zones, z_errs, z_raw = load_zone_dir(ROOT / (ZONES[1] if use_examples else ZONES[0]), reg)
+    digest.update(z_raw)
+    errors += z_errs
+    counts["zone"] = len(zones)
+    for z in zones:
+        rows.append(("zone", z["id"], json.dumps(z, ensure_ascii=False, sort_keys=True), bbox("zone", z)))
+
     if errors:
         print("入力が schema に合いません。SQLite は作りません:")
         for e in errors:
@@ -191,9 +233,9 @@ def build(out: Path, use_examples: bool = False) -> int:
             CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
             CREATE TABLE features (
                 rowid INTEGER PRIMARY KEY,
-                kind  TEXT NOT NULL,   -- landmark / stop / event / crossing / town
+                kind  TEXT NOT NULL,   -- landmark / stop / event / crossing / town / zone
                 id    TEXT NOT NULL,
-                area  INTEGER NOT NULL, -- 1 ならエリア（範囲が重なるタイルすべてに入る）
+                area  INTEGER NOT NULL, -- 1 ならエリア・区域（範囲が重なるタイルすべてに入る）
                 json  TEXT NOT NULL,   -- タイル応答にそのまま入れる形
                 UNIQUE (kind, id)
             );
@@ -215,7 +257,7 @@ def build(out: Path, use_examples: bool = False) -> int:
             if got:
                 con.execute("INSERT INTO landmark_towns VALUES (?,?,?)", (ident, got["id"], got["distance_m"]))
         for i, (kind, ident, js, (a, b, c, d)) in enumerate(rows, 1):
-            is_area = int(kind == "landmark" and json.loads(js).get("kind") == "area")
+            is_area = int((kind == "landmark" and json.loads(js).get("kind") == "area") or kind == "zone")
             con.execute("INSERT INTO features VALUES (?,?,?,?,?)", (i, kind, ident, is_area, js))
             con.execute("INSERT INTO features_rtree VALUES (?,?,?,?,?)", (i, a, b, c, d))
         schema_version = _load(SCHEMA / "examples" / "tile_response.json")["schema_version"]

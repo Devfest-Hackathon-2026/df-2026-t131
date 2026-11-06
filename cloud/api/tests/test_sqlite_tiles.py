@@ -171,3 +171,80 @@ def test_build_stops_when_filename_and_id_differ(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(build_sqlite, "INPUTS", [("landmark", "landmarks_file.schema.json", "landmarks", str(d), str(d))])
     assert build_sqlite.build(tmp_path / "t.sqlite") == 1
     assert "ファイル名（lm_0099）と id（lm_0001）" in capsys.readouterr().out
+
+
+# ---- カメラで調べない区域（11/7）----
+
+ZONE_KEYS = ("id", "name", "lat", "lon", "radius_m", "reason")
+
+
+def zone_sample() -> dict:
+    with open(EXAMPLES_DIR / "zones" / "zn_0901.json", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def test_zones_are_off_by_default(db):
+    """engine が zones を読めるようになるまで、API は zones を付けない（知らないキーで engine がタイルを読めなくなるため）。"""
+    z = zone_sample()
+    got = SqliteTileSource(db).get_tile(*home_tile(z))
+    assert "zones" not in got
+
+
+def test_zones_in_every_tile_the_circle_and_exit_margin_touch(db):
+    """区域は、円＋出る判定の幅15m がかかるタイルすべてに入り、ほかのタイルには入らない。タイルの形は schema どおり。"""
+    src = SqliteTileSource(db, include_zones=True)
+    z = zone_sample()
+    hx, hy = home_tile(z)
+    z_s, z_n, z_w, z_e = build_sqlite.bbox("zone", z)
+    assert z_n - z_s > 2 * (z["radius_m"] + 14) / 111_320  # 出る判定の幅を足している
+    for dx in (-2, -1, 0, 1, 2):
+        for dy in (-2, -1, 0, 1, 2):
+            got = src.get_tile(hx + dx, hy + dy)
+            assert "zones" in got
+            s, n, w, e = tile_bounds(hx + dx, hy + dy)
+            expected = z_n >= s and z_s <= n and z_e >= w and z_w <= e
+            assert ([x["id"] for x in got["zones"]] == [z["id"]]) == expected
+            assert not list(contracts.validator(contracts.TILE_RESPONSE).iter_errors(got))
+    home = src.get_tile(hx, hy)["zones"][0]
+    assert tuple(sorted(home)) == tuple(sorted(ZONE_KEYS))  # note・source・schema_version はタイルに入れない
+    assert home["radius_m"] == z["radius_m"]
+
+
+def test_zone_does_not_change_other_keys(db):
+    on = SqliteTileSource(db, include_zones=True).get_tile(*SAMPLE_TILE)
+    off = SqliteTileSource(db).get_tile(*SAMPLE_TILE)
+    assert {k: v for k, v in on.items() if k != "zones"} == off
+
+
+def test_api_serves_zones_only_when_tile_zones_on(db):
+    z = zone_sample()
+    path = "/v1/tiles/16/%d/%d" % home_tile(z)
+    for flag, want in (("off", False), ("on", True)):
+        s = Settings(gemini_mode="fake", app_token="t", tile_source="sqlite", tiles_db_path=str(db), tile_zones=flag)
+        r = TestClient(create_app(settings=s)).get(path, headers={"X-App-Token": "t"})
+        assert r.status_code == 200
+        assert ("zones" in r.json()) == want
+        assert not list(contracts.validator(contracts.TILE_RESPONSE).iter_errors(r.json()))
+
+
+def test_tile_zones_setting_is_checked():
+    with pytest.raises(ValueError):
+        Settings(tile_zones="yes").check()
+
+
+def test_real_zone_file_builds(tmp_path):
+    """本物の区域（あいの島・バードサンクチュアリ、半径20m）が入る。"""
+    out = tmp_path / "real.sqlite"
+    assert build_sqlite.build(out) == 0
+    got = SqliteTileSource(out, include_zones=True).get_tile(*tile_of(36.710112, 137.212705))
+    assert [(x["id"], x["name"], x["radius_m"], x["reason"]) for x in got["zones"]] == [
+        ("zn_0001", "あいの島・バードサンクチュアリ", 20, "demo")]
+
+
+def test_build_stops_when_zone_filename_and_id_differ(tmp_path, monkeypatch, capsys):
+    d = tmp_path / "zones"
+    d.mkdir()
+    (d / "zn_0002.json").write_text(json.dumps(zone_sample(), ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(build_sqlite, "ZONES", (str(d), str(d)))
+    assert build_sqlite.build(tmp_path / "t.sqlite") == 1
+    assert "ファイル名（zn_0002）と id（zn_0901）" in capsys.readouterr().out

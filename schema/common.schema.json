@@ -54,6 +54,10 @@
       "type": "string",
       "pattern": "^lm_\\d{4}$"
     },
+    "zone_id": {
+      "type": "string",
+      "pattern": "^zn_\\d{4}$"
+    },
     "area_code": {
       "type": "string",
       "pattern": "^\\d{7}$",
