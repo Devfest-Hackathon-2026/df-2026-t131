@@ -674,6 +674,42 @@ final class LandmarksFile {
   };
 }
 
+/// 町丁目の代表点（schema/town.schema.json）。タイルの応答の towns に入る。
+final class Town {
+  final String id;
+  final String name;
+  final double lat;
+  final double lon;
+  Town._({
+    required this.id,
+    required this.name,
+    required this.lat,
+    required this.lon,
+  });
+  factory Town({
+    required String id,
+    required String name,
+    required double lat,
+    required double lon,
+  }) => Town.fromJson({"id": id, "name": name, "lat": lat, "lon": lon});
+  factory Town.fromJson(Map<String, dynamic> json) {
+    wireKeys(json, ["id", "name", "lat", "lon"], ["id", "name", "lat", "lon"]);
+    final result = Town._(
+      id: wireString(json["id"], "id", pattern: r'^[0-9]{12}$'),
+      name: wireString(json["name"], "name", minLength: 1),
+      lat: wireDouble(json["lat"], "lat", min: -90, max: 90),
+      lon: wireDouble(json["lon"], "lon", min: -180, max: 180),
+    );
+    return result;
+  }
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "name": name,
+    "lat": lat,
+    "lon": lon,
+  };
+}
+
 final class TileResponse {
   final String schemaVersion;
   final TileId tile;
@@ -681,6 +717,10 @@ final class TileResponse {
   final List<TransitStop> stops;
   final List<Crossing> crossings;
   final List<LocalEvent> events;
+
+  /// このタイルの中に代表点がある町丁目。端末に残っている古いタイルには無いので、無ければ空。
+  final List<Town> towns;
+  final bool _hasTowns;
   TileResponse._({
     required this.schemaVersion,
     required this.tile,
@@ -688,7 +728,9 @@ final class TileResponse {
     required this.stops,
     required this.crossings,
     required this.events,
-  });
+    required this.towns,
+    required bool hasTowns,
+  }) : _hasTowns = hasTowns;
   factory TileResponse({
     String schemaVersion = currentSchemaVersion,
     required TileId tile,
@@ -696,6 +738,7 @@ final class TileResponse {
     required List<TransitStop> stops,
     required List<Crossing> crossings,
     required List<LocalEvent> events,
+    List<Town>? towns,
   }) => TileResponse.fromJson({
     "schema_version": schemaVersion,
     "tile": tile.toJson(),
@@ -703,12 +746,21 @@ final class TileResponse {
     "stops": stops.map((item) => item.toJson()).toList(),
     "crossings": crossings.map((item) => item.toJson()).toList(),
     "events": events.map((item) => item.toJson()).toList(),
+    if (towns != null) "towns": towns.map((item) => item.toJson()).toList(),
   });
   factory TileResponse.fromJson(Map<String, dynamic> json) {
     wireKeys(
       json,
       ["schema_version", "tile", "landmarks", "stops", "crossings", "events"],
-      ["schema_version", "tile", "landmarks", "stops", "crossings", "events"],
+      [
+        "schema_version",
+        "tile",
+        "landmarks",
+        "stops",
+        "crossings",
+        "events",
+        "towns",
+      ],
     );
     final result = TileResponse._(
       schemaVersion: wireString(
@@ -737,6 +789,14 @@ final class TileResponse {
         "events",
         (value) => LocalEvent.fromJson(wireMap(value, "events")),
       ),
+      towns: json.containsKey("towns")
+          ? wireList(
+              json["towns"],
+              "towns",
+              (value) => Town.fromJson(wireMap(value, "towns")),
+            )
+          : const [],
+      hasTowns: json.containsKey("towns"),
     );
     return result;
   }
@@ -747,6 +807,7 @@ final class TileResponse {
     "stops": stops.map((item) => item.toJson()).toList(),
     "crossings": crossings.map((item) => item.toJson()).toList(),
     "events": events.map((item) => item.toJson()).toList(),
+    if (_hasTowns) "towns": towns.map((item) => item.toJson()).toList(),
   };
 }
 

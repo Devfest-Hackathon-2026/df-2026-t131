@@ -151,6 +151,13 @@
       "items": {
         "$ref": "../event.schema.json"
       }
+    },
+    "towns": {
+      "type": "array",
+      "description": "このタイルの中に代表点がある町丁目（国土交通省 位置参照情報を加工）。位置から町丁目を引くときは、持っているタイルの町丁目のうち、いちばん近い代表点にする。800m より遠ければ「わからない」（cloud/data/scripts/town_lookup.py と同じ決め方）。11/6 夜に追加。API は必ず付けるが、端末に残っている古いタイルに無くても読めるよう required にはしない",
+      "items": {
+        "$ref": "../town.schema.json"
+      }
     }
   }
 }

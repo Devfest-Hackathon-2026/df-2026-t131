@@ -87,9 +87,12 @@ extension on Sim {
   List<double> get searchSecs => [for (final (t, _) in searches) secOf(t)];
 }
 
-/// 場面のテストは、作ったときの計測の間隔（60秒）で時刻を組んである。
-/// 既定（20秒）で動くことは「既定の間隔は20秒」のテストで確かめる。
-const bConfig = EngineConfig(visualIntervalMs: 60000);
+/// 場面のテストは、作ったときの計測の間隔（60秒）と、立ち止まりの前倒しの間隔（30秒）で時刻を組んである。
+/// 既定（20秒・10秒）で動くことは「既定の間隔は20秒」「既定では立ち止まって5秒・前から10秒」のテストで確かめる。
+const bConfig = EngineConfig(
+  visualIntervalMs: 60000,
+  stillEarlyMinIntervalMs: 30000,
+);
 
 /// 道から8m・範囲30mの lm_0009 に向かって歩き、85秒で立ち止まる。A は81秒ごろに紹介する。
 /// 60秒（紹介の前）・120秒・180秒（視線を右へ35°振る）に撮り、3回とも lm_0009 が候補に入る。
@@ -263,6 +266,22 @@ void main() {
         },
       );
       expect(sim.searchSecs, [40]);
+      expect(sim.withReason('search:stopped_early'), hasLength(1));
+    });
+
+    test('既定では、立ち止まって5秒たち、前に撮ってから10秒以上なら前倒しで撮る', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        18,
+        pose: (sec) => sec < 10 ? southWalk(sec) : stopAt(10),
+        activity: (sec) => sec < 10 ? Activity.walking : Activity.still,
+        quality: goodQuality,
+        extra: {
+          0: [tiles(0, const [])],
+        },
+      );
+      // 15秒：止まって5秒、位置と向きが取れてから15秒（10秒以上）。間隔の20秒を待たずに撮る
+      expect(sim.searchSecs, [15]);
       expect(sim.withReason('search:stopped_early'), hasLength(1));
     });
 

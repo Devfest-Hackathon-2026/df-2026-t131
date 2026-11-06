@@ -39,7 +39,7 @@
 | 段階 | やっていること | 理由コード |
 | :-- | :-- | :-- |
 | 計測の間隔（1・2） | 最後に撮った時刻から20秒（11/6 に60秒から短くした）。最初の1枚は位置と向きが初めて取れてから20秒（タイルが未着でも撮る。候補は空）。止められて撮れなかったときは数え直さず、次の秒にまた試す | `search:interval_elapsed` |
-| 立ち止まり（6） | Activity が `still` になって5秒たち、前に撮ってから30秒以上なら前倒し。30秒たっていなければ待つ | `search:stopped_early`、`search_skip:interval_not_elapsed` |
+| 立ち止まり（6） | Activity が `still` になって5秒たち、前に撮ってから10秒以上なら前倒し（11/6 夜に30秒から下げた）。10秒たっていなければ待つ | `search:stopped_early`、`search_skip:interval_not_elapsed` |
 | 1件ずつ（5） | 結果か失敗が来るまで次を出さない。撮ってから15秒たっても来なければ諦め（`answer:error`）、あとから届いた結果は期限切れ | `answer:error`、`answer:expired` |
 | 「調べて」（共有/visual-search-spec.md 2章） | アプリが `SearchRequested`（歩行ログでは `search_request`）を送ると、計測間隔と同じ場所を見ずに、その場で一度だけ撮る。ほかの見送りの条件は自動と同じ。撮れなければ理由を毎回記録して終わり、あとで勝手に撮らない。結果待ちの間も見送る | `search:user_requested`、`search_skip:*` |
 | 上限 | 既定ではなし（`maxSearchesPerWalk` に値を入れたときだけ、その回数まで） | `search_skip:limit_reached` |
