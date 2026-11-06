@@ -200,10 +200,11 @@ def test_zones_in_every_tile_the_circle_and_exit_margin_touch(db):
     for dx in (-2, -1, 0, 1, 2):
         for dy in (-2, -1, 0, 1, 2):
             got = src.get_tile(hx + dx, hy + dy)
-            assert "zones" in got
             s, n, w, e = tile_bounds(hx + dx, hy + dy)
             expected = z_n >= s and z_s <= n and z_e >= w and z_w <= e
-            assert ([x["id"] for x in got["zones"]] == [z["id"]]) == expected
+            # 区域のあるタイルにだけ zones のキーが付く（古いアプリが区域の無いタイルを読めるように）
+            assert ("zones" in got) == expected
+            assert ([x["id"] for x in got.get("zones", [])] == [z["id"]]) == expected
             assert not list(contracts.validator(contracts.TILE_RESPONSE).iter_errors(got))
     home = src.get_tile(hx, hy)["zones"][0]
     assert tuple(sorted(home)) == tuple(sorted(ZONE_KEYS))  # note・source・schema_version はタイルに入れない
