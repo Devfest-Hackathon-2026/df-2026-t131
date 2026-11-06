@@ -233,12 +233,12 @@ def test_tile_zones_setting_is_checked():
 
 
 def test_real_zone_file_builds(tmp_path):
-    """本物の区域（あいの島・バードサンクチュアリ、半径20m）が入る。"""
+    """本物の区域（環水公園の南側、半径20m）が入る。"""
     out = tmp_path / "real.sqlite"
     assert build_sqlite.build(out) == 0
-    got = SqliteTileSource(out, include_zones=True).get_tile(*tile_of(36.710112, 137.212705))
+    got = SqliteTileSource(out, include_zones=True).get_tile(*tile_of(36.707472, 137.214222))
     assert [(x["id"], x["name"], x["radius_m"], x["reason"]) for x in got["zones"]] == [
-        ("zn_0001", "あいの島・バードサンクチュアリ", 20, "demo")]
+        ("zn_0001", "環水公園の南側", 20, "demo")]
 
 
 def test_build_stops_when_zone_filename_and_id_differ(tmp_path, monkeypatch, capsys):
