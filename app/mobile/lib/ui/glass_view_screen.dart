@@ -17,6 +17,7 @@ import 'layout.dart';
 import 'glass_overlay.dart';
 import 'heading_tape.dart';
 import 'style.dart';
+import 'search_indicator.dart';
 
 /// 記録中の画面（グラス視点）。地図アプリの案内中の画面のように、
 /// 上に「今話していること」のカード、下に時間・距離と「終了」の白い帯を置き、映像を広く見せる。
@@ -112,6 +113,12 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
           RepaintBoundary(
             child: CameraView(camera: services.camera, error: cameraError),
           ),
+          // カメラで調べない区域の中：映像を暗くし、札を出す。
+          // 撮って送る・調べることは engine が止めている（カメラ自体は画面のために動いている）
+          if (overlay.noCameraZoneName case final zone?) ...[
+            const IgnorePointer(child: ColoredBox(color: Color(0x99000000))),
+            Center(child: NoCameraZoneBadge(zoneName: zone)),
+          ],
           // 左上：今話していること・今の判断（地図アプリの案内カードの位置）
           // たたむと消える（話している間の字幕だけは残す）
           Positioned(
@@ -150,16 +157,7 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
                       children: [
                         const SubstituteBanner(),
                         const SizedBox(width: 8),
-                        // B：今見ているものをその場で調べる（撮るかは engine が決める）
-                        if (settings.visualSearchEnabled) ...[
-                          RoundIconButton(
-                            icon: Icons.image_search,
-                            tooltip: '今見ているものを検索',
-                            onPressed: () => _requestSearch(context),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        // 設定はたたんでいても開ける
+                        // 設定はたたんでいても開ける（検索ボタンは下の帯）
                         RoundIconButton(
                           icon: Icons.settings_outlined,
                           tooltip: '設定',
@@ -204,13 +202,18 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
                             const SizedBox(width: 8),
                             ValueListenableBuilder<String>(
                               valueListenable: services.voiceCommands!.status,
-                              builder: (context, v, _) => StatusChip(
-                                icon: Icons.mic_none,
-                                label: '「検索して」$v',
-                                color: v.startsWith('聞いています')
-                                    ? AppColors.primary
-                                    : AppColors.subtext,
-                              ),
+                              // 札は短くし（右上の列が縮まないように）、聞いているかは印と色で見せる
+                              builder: (context, v, _) {
+                                final listening = v.startsWith('聞いています');
+                                return StatusChip(
+                                  icon: listening ? Icons.mic : Icons.mic_off,
+                                  label: '検索して',
+                                  color: listening
+                                      ? AppColors.primary
+                                      : AppColors.subtext,
+                                  tooltip: v,
+                                );
+                              },
                             ),
                           ],
                           const SizedBox(width: 8),
@@ -229,16 +232,58 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
               ),
             ),
           ),
-          // 受け取った気象警報（右上の札の下。たたんでいても出す）
+          // 右上の札の下：B の検索の進み具合と、受け取った気象警報（たたんでいても出す）。
+          // 検索の札は右上の列の外に置く（列に入れると列ごと縮んで小さくなるため）
           Positioned(
             right: l.margin,
             top: l.margin + (l.compact ? 96 : 104),
             width: l.size.width - l.nowCardWidth - l.margin * 3,
-            child: Align(
-              alignment: Alignment.topRight,
-              child: AlertBanner(
-                alert: services.activeAlert,
-                onClose: services.dismissAlert,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                SearchIndicator(
+                  progress: services.searchIndicator,
+                  label: services.searchLabel,
+                ),
+                // 開発者モード：音声認識が聞き取った文字（確かめる用。残さない）
+                if (settings.developerMode &&
+                    settings.visualSearchEnabled &&
+                    services.voiceCommands != null)
+                  ValueListenableBuilder<String?>(
+                    valueListenable: services.voiceCommands!.heard,
+                    builder: (context, h, _) => h == null
+                        ? const SizedBox.shrink()
+                        : Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: StatusChip(
+                              icon: Icons.hearing,
+                              label:
+                                  '聞き取り：${h.length > 20 ? '…${h.substring(h.length - 20)}' : h}',
+                              color: AppColors.subtext,
+                            ),
+                          ),
+                  ),
+                AlertBanner(
+                  alert: services.activeAlert,
+                  onClose: services.dismissAlert,
+                ),
+              ],
+            ),
+          ),
+          // カメラで調べない区域に入った・出たのポップアップ（上の中央、数秒で消える）
+          Positioned(
+            left: 0,
+            right: 0,
+            top: l.margin,
+            child: Center(
+              child: ValueListenableBuilder<ZoneNotice?>(
+                valueListenable: services.zoneNotice,
+                builder: (context, n, _) => AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: n == null
+                      ? const SizedBox.shrink()
+                      : ZoneNoticePopup(key: ValueKey(n), notice: n),
+                ),
               ),
             ),
           ),
@@ -333,13 +378,22 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
             bottom: _miniBottom,
             child: AppearWhenCollapsed(
               progress: _progress,
-              child: FloatingActionButton.small(
-                heroTag: null,
-                tooltip: '終了',
-                backgroundColor: AppColors.danger,
-                foregroundColor: Colors.white,
-                onPressed: () => _confirmStop(context),
-                child: const Icon(Icons.close),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (settings.visualSearchEnabled) ...[
+                    FloatingActionButton.small(
+                      heroTag: null,
+                      tooltip: '今見ているものを検索',
+                      backgroundColor: AppColors.surface,
+                      foregroundColor: AppColors.primary,
+                      onPressed: () => _requestSearch(context),
+                      child: const Icon(Icons.image_search),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  _stopFab(context),
+                ],
               ),
             ),
           ),
@@ -347,6 +401,15 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
       ),
     );
   }
+
+  Widget _stopFab(BuildContext context) => FloatingActionButton.small(
+    heroTag: null,
+    tooltip: '終了',
+    backgroundColor: AppColors.danger,
+    foregroundColor: Colors.white,
+    onPressed: () => _confirmStop(context),
+    child: const Icon(Icons.close),
+  );
 
   /// たたんだときの小さな札の高さ（下に残るバーの帯の上）。
   static const double _miniBottom = 34;
@@ -392,7 +455,8 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
               _InfoLine(
                 icon: Icons.place_outlined,
                 text:
-                    '${overlay.areaName ?? 'エリアの外'}'
+                    // エリア＝公園など範囲で登録した場所（今は環水公園だけ）。外でも A・B は動く
+                    '${overlay.areaName ?? '登録エリア外'}'
                     '${l.compact ? '・${loc?.speedMps?.toStringAsFixed(1) ?? '-'} m/s' : ''}',
               ),
               _InfoLine(
@@ -402,6 +466,18 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
             ],
           ),
         ),
+        // B：今見ているものをその場で調べる（撮るかは engine が決める）
+        if (settings.visualSearchEnabled) ...[
+          SizedBox(
+            height: l.buttonHeight,
+            child: FilledButton.tonalIcon(
+              onPressed: () => _requestSearch(context),
+              icon: const Icon(Icons.image_search),
+              label: const Text('検索'),
+            ),
+          ),
+          SizedBox(width: gap * 0.5),
+        ],
         SizedBox(
           height: l.buttonHeight,
           child: FilledButton.icon(
@@ -420,6 +496,7 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
 
   static String _bLine(bool enabled, GlassOverlay o) {
     if (!enabled) return '画像検索オフ（画像は送りません）';
+    if (o.inNoCameraZone) return '画像での案内は止めています';
     final next = o.nextSearchIn;
     final head = next == null ? '画像検索 待機中' : '次の画像検索まで ${next.inSeconds} 秒';
     return o.lastSearch == null ? head : '$head・前回 ${o.lastSearch}';
@@ -473,16 +550,17 @@ class _NowCard extends StatelessWidget {
     if (subtitle != null) {
       return FloatingCard(
         color: const Color(0xFF0B6E3B),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        // 映像を隠しすぎないよう小さめに（B の答えなど長めの文でも2行まで）
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         child: Row(
           children: [
-            const Icon(Icons.volume_up, color: Colors.white, size: 28),
-            const SizedBox(width: 12),
+            const Icon(Icons.volume_up, color: Colors.white, size: 22),
+            const SizedBox(width: 10),
             Expanded(
               child: CaptionText(
                 text: subtitle,
                 spoken: spoken,
-                fontSize: 22,
+                fontSize: 18,
                 maxLines: 2,
               ),
             ),
@@ -563,6 +641,118 @@ class _RecDotState extends State<_RecDot> with SingleTickerProviderStateMixin {
             style: TextStyle(fontSize: 15, color: AppColors.text),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 「カメラで調べない区域」にいる間、画面の中央に出す札。
+class NoCameraZoneBadge extends StatelessWidget {
+  const NoCameraZoneBadge({super.key, required this.zoneName});
+
+  final String zoneName;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.warn, width: 2),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.no_photography_outlined, color: AppColors.warn),
+              SizedBox(width: 8),
+              Text(
+                'カメラで調べない区域（デモのため仮に指定）',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            zoneName,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            '画像での案内は止めています',
+            style: TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// カメラで調べない区域に入った・出たときのポップアップ。
+class ZoneNoticePopup extends StatelessWidget {
+  const ZoneNoticePopup({super.key, required this.notice});
+
+  final ZoneNotice notice;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = notice.entered ? AppColors.warn : AppColors.ok;
+    return IgnorePointer(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color, width: 2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x66000000), blurRadius: 12),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                notice.entered
+                    ? Icons.no_photography_outlined
+                    : Icons.photo_camera_outlined,
+                color: color,
+              ),
+              const SizedBox(width: 10),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    notice.entered ? 'カメラで調べない区域に入りました' : 'カメラで調べない区域を出ました',
+                    style: const TextStyle(
+                      color: AppColors.text,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    notice.entered
+                        ? '${notice.zoneName}・画像での案内を止めます'
+                        : '${notice.zoneName}・画像での案内を再開します',
+                    style: const TextStyle(
+                      color: AppColors.subtext,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

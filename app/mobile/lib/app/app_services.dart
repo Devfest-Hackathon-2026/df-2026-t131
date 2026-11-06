@@ -35,6 +35,7 @@ import '../sources/location_source.dart';
 import '../sources/voice_command_source.dart';
 import '../ui/glass_overlay.dart';
 import '../vision/face_detector.dart';
+import '../vision/search_progress.dart';
 import '../vision/visual_searcher.dart';
 import 'app_mode.dart';
 import 'app_settings.dart';
@@ -81,6 +82,8 @@ class AppServices {
         this.speaker.subtitle.value,
       ),
     );
+    // 「検索します」の返事の終わりを覚える（自分の声を合図と聞き違えないため）
+    this.speaker.subtitle.addListener(_trackAck);
     // 読み上げの終わりは、engine の発話の分だけ EngineRunner が歩行ログと engine に渡す
     // 声の設定を読み上げに反映する
     settings.addListener(() => this.speaker.useVoice(settings.value.voice));
@@ -110,6 +113,7 @@ class AppServices {
     alertList = AlertListFetcher(
       baseUrl: AppConfig.alertsBaseUrl,
       onData: alerts.receive,
+      onCurrent: _onAlertListCurrent,
     );
     tiles = TileFetcher(api: this.api, cache: tileCache);
     final faces = faceFinder;
@@ -262,6 +266,23 @@ class AppServices {
     _alertTimer = Timer(alertShownFor, dismissAlert);
   }
 
+  /// 警報の一覧を読めたとき：解除・引き下げで一覧から消えた警報を、画面の帯と預かりから外す。
+  void _onAlertListCurrent(
+    Set<String> currentIds,
+    int updatedAtMs, {
+    required bool mock,
+  }) {
+    bool lifted(InfoItem item) => alertLifted(
+      item,
+      currentIds: currentIds,
+      updatedAtMs: updatedAtMs,
+      mockList: mock,
+    );
+    final cur = activeAlert.value;
+    if (cur != null && lifted(cur)) dismissAlert();
+    _alertSink.dropWhere(lifted);
+  }
+
   /// 警報の表示を閉じる。
   void dismissAlert() {
     _alertTimer?.cancel();
@@ -314,6 +335,7 @@ class AppServices {
     void update() => _updateOverlayFromEngine(r);
     r.view.addListener(update);
     r.lastDecision.addListener(update);
+    r.searchProgress.addListener(() => _showSearch(r.searchProgress.value));
     _syncVoice();
     // 計測前に届いていた警報は、ここで engine に渡す（話すかは engine が決める）
     _alertSink.releaseHeld(DateTime.now().toUtc().millisecondsSinceEpoch);
@@ -337,18 +359,139 @@ class AppServices {
   /// 撮るかどうか（読み上げ中・横断歩道の手前などで見送るか）は engine が決める。
   bool requestSearch() {
     final r = _runner;
-    if (r == null || !settings.value.visualSearchEnabled) return false;
+    if (r == null || !settings.value.visualSearchEnabled || _background) {
+      return false;
+    }
+    // 短い間の重ね押し（ダブルタップ）や、ボタンと声の重なりは1回にまとめる
+    final now = _nowMs();
+    final last = _lastSearchRequestMs;
+    if (last != null && now - last < searchRequestCooldown.inMilliseconds) {
+      return true; // 受け付け済みとして扱う（画面には何も足さない）
+    }
+    _lastSearchRequestMs = now;
     r.requestSearch();
     return true;
   }
 
-  /// 計測中かつ画像検索オンのときだけマイクで聞く。
+  /// 頼んだ検索を、この間は重ねて受け付けない。
+  static const searchRequestCooldown = Duration(seconds: 3);
+  int? _lastSearchRequestMs;
+
+  /// 重ね押しの判定に使う時計（テストで差し替える）。
+  int Function() _nowMs = () => DateTime.now().millisecondsSinceEpoch;
+  @visibleForTesting
+  set nowMsForTest(int Function() f) => _nowMs = f;
+
+  /// 画面の札に出す B の検索の進み具合（出していないときは null）。
+  /// 終わった札（答えが届いた・失敗・見送り）は数秒で消す。
+  final ValueNotifier<SearchProgress?> searchIndicator = ValueNotifier(null);
+  Timer? _searchIndicatorTimer;
+
+  void _showSearch(SearchProgress? p) {
+    _searchIndicatorTimer?.cancel();
+    searchIndicator.value = p;
+    // 「聞き取りました」も、続きの知らせ（撮影・見送り）が来なければ数秒で消す
+    if (p == null || (p.active && p.phase != SearchPhase.heard)) return;
+    _searchIndicatorTimer = Timer(const Duration(seconds: 4), () {
+      if (identical(searchIndicator.value, p)) searchIndicator.value = null;
+    });
+  }
+
+  /// カメラで調べない区域に入った・出たときのポップアップ（出していないときは null）。
+  /// 音声の知らせは engine が Speak で出す。ポップアップは状態が変わった瞬間に出し、数秒で消す。
+  final ValueNotifier<ZoneNotice?> zoneNotice = ValueNotifier(null);
+  Timer? _zoneNoticeTimer;
+
+  void _showZoneNotice(ZoneNotice n) {
+    _zoneNoticeTimer?.cancel();
+    zoneNotice.value = n;
+    _zoneNoticeTimer = Timer(const Duration(seconds: 6), () {
+      if (identical(zoneNotice.value, n)) zoneNotice.value = null;
+    });
+  }
+
+  /// 札の文言。
+  String searchLabel(SearchProgress p) {
+    final who = p.requested ? '検索' : '自動の検索';
+    return switch (p.phase) {
+      SearchPhase.heard => '「検索して」を聞き取りました',
+      SearchPhase.capturing => '$who：撮影中',
+      SearchPhase.blurring => '$who：顔をぼかしています',
+      SearchPhase.sending => '$who：送信中',
+      SearchPhase.answered => '$who：答えが届きました',
+      SearchPhase.failed => switch (p.detail) {
+        'network' when !api.hasUrl => '$who：送信先が未設定のため、送る手前で止めました',
+        'network' => '$who：送れませんでした（通信）',
+        'timeout' => '$who：時間切れ',
+        'face_blur_failed' => '$who：顔をぼかせなかったので送っていません',
+        'no_frame' => '$who：撮れませんでした',
+        _ => '$who：サーバーのエラー',
+      },
+      SearchPhase.skipped =>
+        '検索できません：${reasonText[p.detail] ?? p.detail ?? ''}',
+    };
+  }
+
+  /// アプリが裏に回っているか（画面オフ・ポケットの中）。
+  bool get inBackground => _background;
+  bool _background = false;
+
+  /// 裏に回った・前に戻った（HomeShell のライフサイクルから呼ぶ）。
+  ///
+  /// 裏にいる間は、GPS で分かること（A のランドマーク案内・警報）だけを届ける。
+  /// - 視線の代わりに進行方向を使う（ポケットの中では端末の向きが当てにならない）
+  /// - カメラは止まり、画質が無いので engine は B を撮らない。「検索して」の聞き取りも止める
+  /// 位置は前面サービスで取り続け、判断と読み上げはそのまま動く。
+  void setBackground(bool on) {
+    if (on == _background) return;
+    _background = on;
+    ticker.background = on;
+    _syncVoice();
+    if (on) _showSearch(null);
+  }
+
+  /// engine の「検索します」の返事（engine_base の speak:search_ack の文）。
+  static const searchAckText = '検索します。';
+
+  /// 返事を話し終えてから、聞き取った合図を使わない間。
+  static const ackEchoGuard = Duration(milliseconds: 2500);
+  int? _ackEndedMs;
+  String? _lastSubtitle;
+
+  void _trackAck() {
+    final now = speaker.subtitle.value;
+    if (_lastSubtitle == searchAckText && now != searchAckText) {
+      _ackEndedMs = _nowMs();
+    }
+    _lastSubtitle = now;
+  }
+
+  bool _inAckEcho() {
+    if (speaker.subtitle.value == searchAckText) return true;
+    final end = _ackEndedMs;
+    return end != null && _nowMs() - end < ackEchoGuard.inMilliseconds;
+  }
+
+  /// 計測中かつ画像検索オンで、前に出ているときだけマイクで聞く。
   void _syncVoice() {
     final v = voiceCommands;
     if (v == null) return;
-    final want = _runner != null && settings.value.visualSearchEnabled;
+    final want =
+        _runner != null && settings.value.visualSearchEnabled && !_background;
     if (want && _voiceSub == null) {
-      _voiceSub = v.requests.listen((_) => requestSearch());
+      _voiceSub = v.requests.listen((_) {
+        // アプリ自身の「検索します」を「検索して」と聞き違えると、検索がくり返し起きる。
+        // 返事の最中と、話し終えてすぐの間に聞き取った合図は使わない
+        if (_inAckEcho()) return;
+        final last = _lastSearchRequestMs;
+        final cooling =
+            last != null &&
+            _nowMs() - last < searchRequestCooldown.inMilliseconds;
+        if (!cooling) {
+          _showSearch(const SearchProgress(SearchPhase.heard, requested: true));
+        }
+        requestSearch();
+      });
       unawaited(v.start());
     } else if (!want && _voiceSub != null) {
       unawaited(_voiceSub!.cancel());
@@ -364,6 +507,13 @@ class AppServices {
     _runner = null;
     _syncVoice();
     await r?.dispose();
+    // 途中だった検索の札は、次の計測に持ち越さない
+    _searchIndicatorTimer?.cancel();
+    _searchIndicatorTimer = null;
+    searchIndicator.value = null;
+    _zoneNoticeTimer?.cancel();
+    _zoneNoticeTimer = null;
+    zoneNotice.value = null;
     overlay.value = GlassOverlay(subtitle: overlay.value.subtitle);
   }
 
@@ -373,6 +523,15 @@ class AppServices {
   void _updateOverlayFromEngine(EngineRunner r) {
     final v = r.view.value;
     final d = r.lastDecision.value;
+    final wasZone = overlay.value.noCameraZoneName;
+    final nowZone = v?.noCameraZone?.name;
+    if (wasZone != nowZone) {
+      if (nowZone != null) {
+        _showZoneNotice(ZoneNotice(zoneName: nowZone, entered: true));
+      } else if (wasZone != null) {
+        _showZoneNotice(ZoneNotice(zoneName: wasZone, entered: false));
+      }
+    }
     final skip = v?.searchSkipReason;
     overlay.value = GlassOverlay(
       candidates: [
@@ -391,6 +550,7 @@ class AppServices {
           ? null
           : Duration(milliseconds: v!.nextSearchInMs!),
       lastSearch: skip == null ? null : (reasonText[skip] ?? skip),
+      noCameraZoneName: v?.noCameraZone?.name,
     );
   }
 
@@ -439,6 +599,15 @@ class AppServices {
     await speaker.useVoice(preset);
     // 声の切り替えを待つ間にもう一度押されていたら、古い方は話さない
     if (id != '$previewPrefix$_previewCount') return;
+    // 話し終えたら（止められても）、選んでいる声に戻す（試し聞きの声で案内しないように）。
+    // あとの試し聞きが続いていれば、戻すのはその試し聞きに任せる
+    unawaited(
+      speaker.finished.firstWhere((f) => f == id).then((_) async {
+        if (id == '$previewPrefix$_previewCount') {
+          await speaker.useVoice(settings.value.voice);
+        }
+      }, onError: (Object _) {}),
+    );
     speaker.execute(
       SpeakRequest(
         utteranceId: id,
@@ -498,7 +667,18 @@ class AppServices {
     await camera.stop();
     settings.dispose();
     overlay.dispose();
+    _searchIndicatorTimer?.cancel();
+    searchIndicator.dispose();
+    _zoneNoticeTimer?.cancel();
+    zoneNotice.dispose();
   }
+}
+
+/// カメラで調べない区域に入った（entered）・出たのポップアップの中身。
+class ZoneNotice {
+  const ZoneNotice({required this.zoneName, required this.entered});
+  final String zoneName;
+  final bool entered;
 }
 
 /// 警報などの行き先：計測中は engine（`AlertReceived`）。警報以外の種類は直接読み上げる。
@@ -523,16 +703,18 @@ class _AlertSink implements InfoSink {
     }
   }
 
-  /// 計測を始めたとき：預かっていた分を、来た順に渡す。
+  /// 計測を始めたとき：預かっていた分を、来た順に渡す（期限の切れたもの・古い警報は捨てる）。
   void releaseHeld(int nowMs) {
     final items = List.of(_held);
     _held.clear();
     for (final item in items) {
-      final exp = item.expiresMs;
-      if (exp != null && nowMs > exp) continue;
+      if (heldItemStale(item, nowMs)) continue;
       deliver(item);
     }
   }
+
+  /// 預かっている分から外す（解除・引き下げで警報の一覧から消えた警報）。
+  void dropWhere(bool Function(InfoItem item) test) => _held.removeWhere(test);
 }
 
 /// 理由コードの説明（assets/reason_codes.json）を読む。読めなければ空（コードのまま出す）。

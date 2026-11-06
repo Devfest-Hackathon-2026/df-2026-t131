@@ -65,6 +65,9 @@ LocationFix fixFromPosition(Position p) {
 }
 
 /// Fused Location で 1 秒ごとに測位する。
+///
+/// 前面サービス（通知を出す）で測るので、画面を消しても・アプリが裏に回っても位置が届き続ける
+/// （音楽アプリのようにポケットに入れたまま、A と警報を声で聞ける）。
 class GeolocatorLocationSource implements LocationSource {
   @override
   Stream<LocationFix> get fixes => Geolocator.getPositionStream(
@@ -72,6 +75,14 @@ class GeolocatorLocationSource implements LocationSource {
       accuracy: LocationAccuracy.best,
       distanceFilter: 0,
       intervalDuration: AppConfig.sensorTick,
+      foregroundNotificationConfig: const ForegroundNotificationConfig(
+        notificationTitle: 'まち歩きガイドが動いています',
+        notificationText: '画面を消しても、ランドマークの案内と警報を声で届けます',
+        notificationChannelName: '歩行中の案内',
+        // 画面を消しても CPU を止めない（1秒ごとの判断と読み上げを続けるため）
+        enableWakeLock: true,
+        setOngoing: true,
+      ),
     ),
   ).map(fixFromPosition);
 }

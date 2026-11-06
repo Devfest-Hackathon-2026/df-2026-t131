@@ -111,8 +111,20 @@ class SessionController extends ChangeNotifier {
   Duration get elapsed =>
       _startedAt == null ? Duration.zero : _now().difference(_startedAt!);
 
+  /// ファイルを開いている途中か（2回押しで記録を2つ始めないため）。
+  bool _starting = false;
+
   Future<void> start() async {
-    if (_phase == SessionPhase.running) return;
+    if (_phase == SessionPhase.running || _starting) return;
+    _starting = true;
+    try {
+      await _open();
+    } finally {
+      _starting = false;
+    }
+  }
+
+  Future<void> _open() async {
     final start = _now();
     final dir = await _walkDirectory();
     _writer = await JsonlWriter.open(

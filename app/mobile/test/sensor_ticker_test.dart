@@ -77,6 +77,31 @@ void main() {
     frame = null;
   });
 
+  test('裏に回ったら、視線は進行方向・水平に、画質は無し（B を撮らない）にする', () async {
+    frame = CameraFrame(
+      nv21: Uint8List(4 * 4 * 3 ~/ 2),
+      width: 4,
+      height: 4,
+      yRowStride: 4,
+      sensorOrientation: 90,
+    );
+    final t = build()..start();
+    final got = <SensorSnapshot>[];
+    t.snapshots.listen(got.add);
+    loc.c.add(fix(36.7)); // 進行方向 10°
+    gaze.c.add(const GazeReading(azDeg: 250, pitchDeg: -40)); // ポケットの中の向き
+    await t.tick();
+    t.background = true;
+    await t.tick();
+    t.background = false;
+    await t.tick();
+    await Future<void>.delayed(Duration.zero);
+    expect(got.map((s) => s.gaze.azDeg), [250, 10, 250]);
+    expect(got[1].gaze.pitchDeg, 0);
+    expect(got.map((s) => s.imageQuality == null), [false, true, false]);
+    await t.dispose();
+  });
+
   test('最初の測位までは何も出さない', () async {
     final t = build()..start();
     final got = <SensorSnapshot>[];

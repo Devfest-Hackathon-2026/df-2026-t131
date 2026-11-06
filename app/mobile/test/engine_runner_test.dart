@@ -15,7 +15,12 @@ import 'package:mobile/sources/audio_state_source.dart';
 import 'package:mobile/sources/gaze_source.dart';
 import 'package:mobile/sources/location_source.dart';
 
+import 'package:mobile/sources/image_quality.dart';
+import 'package:mobile/vision/search_progress.dart';
+import 'package:mobile/vision/visual_searcher.dart';
+
 import 'speak_executor_test.dart' show FakeTts, FakeFocus, FakeChime;
+import 'visual_search_test.dart' show FakeCamera, FakeFaces;
 import 'support/alert_fixture.dart';
 
 /// schema/examples の見本（架空の地名）：歩行ログと、そのタイル。
@@ -27,7 +32,11 @@ final Map<String, dynamic> _tile = _walk.firstWhere(
   (r) => r['type'] == 'tiles_loaded',
 )['data'];
 
-SensorSnapshot _snap(Map<String, dynamic> row, {bool speaking = false}) {
+SensorSnapshot _snap(
+  Map<String, dynamic> row, {
+  bool speaking = false,
+  bool quality = false,
+}) {
   final d = row['data'] as Map<String, dynamic>;
   return SensorSnapshot(
     tMs: row['t_ms'] as int,
@@ -46,7 +55,7 @@ SensorSnapshot _snap(Map<String, dynamic> row, {bool speaking = false}) {
     activity: ActivityKind.walking,
     audio: const AudioState(earphone: true, inCall: false),
     ttsSpeaking: speaking,
-    imageQuality: null,
+    imageQuality: quality ? const ImageQuality(blur: 1, brightness: 0.5) : null,
   );
 }
 
@@ -151,6 +160,37 @@ void main() {
     // 警報はすぐ割り込む（いま話しているのは警報の最初の文）
     expect(a.text, startsWith(tts.spoken.last));
     expect(focus.log.last, 'pause');
+  });
+
+  test('頼んだ検索でカメラが撮れなければ、すぐ engine に失敗を返し、結果待ちを残さない', () async {
+    final rec = <Map<String, dynamic>>[];
+    final r2 = EngineRunner(
+      speaker: speaker,
+      tiles: TileFetcher(
+        api: ApiClient(baseUrl: '', token: ''),
+      ),
+      record: rec.add,
+      searcher: VisualSearcher(
+        camera: FakeCamera(null),
+        faces: FakeFaces(),
+        post: (_) async => (json: null, error: 'network'),
+      ),
+      now: () => now,
+    );
+    addTearDown(r2.dispose);
+    for (final row in _walk.where((x) => x['type'] == 'sensor').take(5)) {
+      now = row['t_ms'] as int;
+      r2.onSnapshot(_snap(row, quality: true));
+    }
+    r2.requestSearch();
+    await settle();
+    expect(rec.map((x) => x['type']), contains('visual_error'));
+    expect(r2.searchProgress.value?.phase, SearchPhase.failed);
+    expect(r2.searchProgress.value?.detail, 'no_frame');
+    // 結果待ちが残っていないので、すぐ頼み直せる（前の検索待ちで断られない）
+    r2.requestSearch();
+    await settle();
+    expect(rec.where((x) => x['type'] == 'visual_error'), hasLength(2));
   });
 
   test('レベル3の警報は割り込まず、今の話の後に話す', () async {

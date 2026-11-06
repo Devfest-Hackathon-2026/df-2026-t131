@@ -62,11 +62,15 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused) {
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
       // 裏に回った瞬間に書き出しておく（OS に終了させられても失わない）
       _services.session.flush();
       _services.camera.stop();
+      // 画面オフ・ポケットの中：GPS で分かること（A・警報）だけ声で届ける
+      if (state != AppLifecycleState.inactive) _services.setBackground(true);
     } else if (state == AppLifecycleState.resumed) {
+      _services.setBackground(false);
       // 戻ったときに全画面（ステータスバーを隠す）をかけ直す
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       if (_services.camera.controller == null) _startCamera();

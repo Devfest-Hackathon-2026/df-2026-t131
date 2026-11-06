@@ -234,6 +234,16 @@ void main() {
       expect(session.phase, SessionPhase.idle);
     });
 
+    test('開始を続けて2回押しても、記録は1つだけ（sensor 行も二重にならない）', () async {
+      loc.c.add(_fix(36.7));
+      await Future.wait([session.start(), session.start()]);
+      await ticker.tick();
+      await session.stop();
+      expect(session.summary!.rows, 1);
+      final files = dir.listSync().whereType<File>().toList();
+      expect(files, hasLength(1));
+    });
+
     test('3秒を超える抜けを見つける', () async {
       loc.c.add(_fix(36.7));
       await session.start();

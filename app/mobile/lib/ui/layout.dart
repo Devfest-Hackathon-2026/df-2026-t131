@@ -22,7 +22,8 @@ class Layout {
   double get sheetWidth => (size.width * 0.44).clamp(280.0, 440.0);
 
   /// 記録中の画面の左上のカードの幅。
-  double get nowCardWidth => math.min(520, size.width * 0.5);
+  /// 右上の札の列（代用の明示・検索・状態）が縮まないよう、半分より狭くする。
+  double get nowCardWidth => math.min(420, size.width * 0.4);
 
   /// 方位テープの幅。
   double get tapeWidth => math.min(560, size.width * 0.6);

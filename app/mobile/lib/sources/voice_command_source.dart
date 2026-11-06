@@ -19,6 +19,10 @@ abstract class VoiceCommandSource {
   /// 画面に出す短い状態（「聞いています」「マイク未許可」など）。
   ValueListenable<String> get status;
 
+  /// 開発者モードで、聞き取れているかを確かめる用の「今聞き取った文字」（無ければ null）。
+  /// メモリの中だけに置き、数秒で消す。保存・記録・送信はしない。
+  ValueListenable<String?> get heard;
+
   Future<void> start();
   Future<void> stop();
 }
@@ -31,6 +35,10 @@ bool containsSearchWord(String text) {
   final t = text.replaceAll(RegExp(r'[\s、。,.!?！？]'), '');
   return voiceSearchWords.any(t.contains);
 }
+
+/// 端末内の認識に対応していないことを表す認識のエラーか（言語のモデルが無い・サーバーが要る）。
+bool onDeviceUnsupported(String errorMsg) =>
+    errorMsg.contains('language') || errorMsg.contains('server');
 
 /// 音声認識を起動し直すたびに Android が鳴らす「ポン」を消す係（Kotlin の TonePlugin）。
 class BeepMuter {
@@ -52,7 +60,8 @@ class BeepMuter {
 /// Android の認識は数秒の無音で止まるので、止まるたびに聞き直す。
 /// 聞き直すたびに鳴る起動音は [BeepMuter] で消す（音を出すのは読み上げの合図音だけにする）。
 /// アプリが話しているときは、読み上げを消さないようメディアの音は消さない。
-/// できれば端末内で認識する（`onDevice`）。端末が対応していなければ通常の認識に切り替える。
+/// 認識は**端末内だけ**で行う（`onDevice`）。音声をサーバーに送らない（CLAUDE.md 7章）。
+/// 端末が端末内の認識に対応していなければ、聞き取りをやめる（検索はボタンで頼める）。
 class SpeechVoiceCommandSource implements VoiceCommandSource {
   SpeechVoiceCommandSource({
     required this.currentSpeech,
@@ -74,7 +83,6 @@ class SpeechVoiceCommandSource implements VoiceCommandSource {
   final StreamController<void> _requests = StreamController.broadcast();
   final ValueNotifier<String> _status = ValueNotifier('停止中');
   bool _active = false;
-  bool _onDevice = true;
   bool _listening = false;
   DateTime _mutedUntil = DateTime.fromMillisecondsSinceEpoch(0);
   Timer? _retry;
@@ -84,6 +92,18 @@ class SpeechVoiceCommandSource implements VoiceCommandSource {
 
   @override
   ValueListenable<String> get status => _status;
+
+  final ValueNotifier<String?> _heard = ValueNotifier(null);
+  Timer? _heardClear;
+
+  @override
+  ValueListenable<String?> get heard => _heard;
+
+  void _showHeard(String text) {
+    _heardClear?.cancel();
+    _heard.value = text.isEmpty ? null : text;
+    _heardClear = Timer(const Duration(seconds: 4), () => _heard.value = null);
+  }
 
   @override
   Future<void> start() async {
@@ -95,6 +115,7 @@ class SpeechVoiceCommandSource implements VoiceCommandSource {
       _status.value = '音声認識を使えません（マイクの許可を確認）';
       return;
     }
+    if (!_active) return; // 用意している間に止められた（音を消さずに終える）
     await beeps?.muteBeeps(true);
     _listen();
   }
@@ -107,7 +128,7 @@ class SpeechVoiceCommandSource implements VoiceCommandSource {
       return;
     }
     _listening = true;
-    _status.value = _onDevice ? '聞いています（端末内）' : '聞いています';
+    _status.value = '聞いています（端末内）';
     // 話していないときだけ、起動の瞬間のメディアの音も消す
     if (currentSpeech() == null) unawaited(beeps?.muteMusicBriefly());
     _speech
@@ -116,7 +137,7 @@ class SpeechVoiceCommandSource implements VoiceCommandSource {
           listenOptions: SpeechListenOptions(
             localeId: localeId,
             partialResults: true,
-            onDevice: _onDevice,
+            onDevice: true, // 端末内だけ。サーバーの認識には切り替えない
             cancelOnError: true,
             listenMode: ListenMode.search,
             listenFor: const Duration(seconds: 30),
@@ -130,6 +151,7 @@ class SpeechVoiceCommandSource implements VoiceCommandSource {
   }
 
   void _onResult(SpeechRecognitionResult r) {
+    _showHeard(r.recognizedWords); // 確かめる用に画面へ（残さない）
     if (!containsSearchWord(r.recognizedWords)) return;
     // 読み上げている文そのものに合図の言葉があれば、アプリ自身の声を拾ったとみなす
     final speech = currentSpeech();
@@ -153,10 +175,13 @@ class SpeechVoiceCommandSource implements VoiceCommandSource {
       _status.value = 'マイク未許可';
       return;
     }
-    // 端末内の認識に対応していなければ、通常の認識に切り替える
-    if (_onDevice &&
-        (e.errorMsg.contains('language') || e.errorMsg.contains('server'))) {
-      _onDevice = false;
+    // 端末内の認識に対応していなければ、聞き取りをやめる（サーバーの認識には切り替えない）
+    if (onDeviceUnsupported(e.errorMsg)) {
+      _active = false;
+      _retry?.cancel();
+      _status.value = '端末内の音声認識が使えません（検索はボタンで）';
+      unawaited(beeps?.muteBeeps(false));
+      return;
     }
     _scheduleRestart();
   }
@@ -174,6 +199,8 @@ class SpeechVoiceCommandSource implements VoiceCommandSource {
     _retry = null;
     _listening = false;
     _status.value = '停止中';
+    _heardClear?.cancel();
+    _heard.value = null;
     try {
       await _speech.cancel();
     } catch (_) {}

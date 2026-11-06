@@ -10,6 +10,7 @@ import 'package:mobile/sources/camera_source.dart';
 import 'package:mobile/sources/voice_command_source.dart';
 import 'package:mobile/vision/face_detector.dart';
 import 'package:mobile/vision/search_image.dart';
+import 'package:mobile/vision/search_progress.dart';
 import 'package:mobile/vision/visual_searcher.dart';
 
 /// 輝度がでたらめ（ざらざら）な NV21。モザイクをかけた所だけ平らになるかで確かめる。
@@ -205,6 +206,33 @@ void main() {
       expect(img.decodeJpg(jpeg), isNotNull);
     });
 
+    test('撮影 → 顔ぼかし → 送信の順に、画面の札へ段階を知らせる', () async {
+      final phases = <SearchPhase>[];
+      final s = VisualSearcher(
+        camera: FakeCamera(noiseFrame(640, 480)),
+        faces: FakeFaces(),
+        post: (body) async => (json: unknownJson('s_1'), error: null),
+        encode: (input) async => encodeSearchJpeg(input),
+      );
+      await s.run(command(), onPhase: phases.add);
+      expect(phases, [
+        SearchPhase.capturing,
+        SearchPhase.blurring,
+        SearchPhase.sending,
+      ]);
+    });
+
+    test('顔ぼかしに失敗したら送信の段階に進まない', () async {
+      final phases = <SearchPhase>[];
+      final s = VisualSearcher(
+        camera: FakeCamera(noiseFrame(640, 480)),
+        faces: FakeFaces(fail: true),
+        post: (body) async => (json: null, error: null),
+      );
+      await s.run(command(), onPhase: phases.add);
+      expect(phases, [SearchPhase.capturing, SearchPhase.blurring]);
+    });
+
     test('顔を見つけられなければ送らない（face_blur_failed）', () async {
       var posted = false;
       final s = VisualSearcher(
@@ -265,6 +293,15 @@ void main() {
   });
 
   group('「検索して」の聞き取り', () {
+    test('端末内の認識に対応していないエラーなら、サーバーの認識に切り替えずにやめる', () {
+      expect(onDeviceUnsupported('error_language_not_supported'), isTrue);
+      expect(onDeviceUnsupported('error_language_unavailable'), isTrue);
+      expect(onDeviceUnsupported('error_server_disconnected'), isTrue);
+      // 無音などの一時的なエラーは聞き直す
+      expect(onDeviceUnsupported('error_no_match'), isFalse);
+      expect(onDeviceUnsupported('error_speech_timeout'), isFalse);
+    });
+
     test('合図の言葉を含めば検索する', () {
       expect(containsSearchWord('検索して'), isTrue);
       expect(containsSearchWord('ちょっと 検索して。'), isTrue);

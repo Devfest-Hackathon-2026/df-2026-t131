@@ -8,6 +8,7 @@ import 'package:mobile/info/alert_list_fetcher.dart';
 import 'package:mobile/info/alert_message.dart';
 import 'package:mobile/info/heard_store.dart';
 import 'package:mobile/info/info_hub.dart';
+import 'package:mobile/info/info_kind.dart';
 import 'package:mobile/info/info_source.dart';
 import 'package:mobile/info/pending_alerts.dart';
 import 'package:mobile/info/sources.dart';
@@ -179,5 +180,81 @@ void main() {
     now += const Duration(hours: 49).inMilliseconds;
     expect((await boot()).got, hasLength(1)); // 48時間を過ぎたら忘れる
     await dir.delete(recursive: true);
+  });
+
+  InfoItem alertAt(String id, int receivedMs) => InfoItem(
+    id: id,
+    kind: InfoKind.alert,
+    text: 't',
+    receivedMs: receivedMs,
+    level: 4,
+  );
+
+  test('計測前に預かった警報は、30分より古ければ捨てる', () {
+    const t0 = 1000000;
+    final a = alertAt('a', t0);
+    expect(
+      heldItemStale(a, t0 + const Duration(minutes: 29).inMilliseconds),
+      isFalse,
+    );
+    expect(
+      heldItemStale(a, t0 + const Duration(minutes: 31).inMilliseconds),
+      isTrue,
+    );
+  });
+
+  test('一覧から消えた警報は解除とみなす（一覧が受け取りより新しいときだけ）', () {
+    final a = alertAt('real_1', 5000);
+    final m = alertAt('mock_x_1', 5000);
+    // 一覧に載っている → 続いている
+    expect(
+      alertLifted(
+        a,
+        currentIds: {'real_1'},
+        updatedAtMs: 6000,
+        mockList: false,
+      ),
+      isFalse,
+    );
+    // 一覧から消えた → 解除・引き下げ
+    expect(
+      alertLifted(a, currentIds: {}, updatedAtMs: 6000, mockList: false),
+      isTrue,
+    );
+    // 受け取りより古い一覧（キャッシュ）では判断しない
+    expect(
+      alertLifted(a, currentIds: {}, updatedAtMs: 4000, mockList: false),
+      isFalse,
+    );
+    // 本物は本物の一覧で、模擬は模擬の一覧で判断する
+    expect(
+      alertLifted(a, currentIds: {}, updatedAtMs: 6000, mockList: true),
+      isFalse,
+    );
+    expect(
+      alertLifted(m, currentIds: {}, updatedAtMs: 6000, mockList: false),
+      isFalse,
+    );
+    expect(
+      alertLifted(m, currentIds: {}, updatedAtMs: 6000, mockList: true),
+      isTrue,
+    );
+  });
+
+  test('一覧を読めたら、今出ている ID と書き換え時刻を渡す', () async {
+    final got = <(Set<String>, int, bool)>[];
+    final f = AlertListFetcher(
+      baseUrl: 'https://example.test/bucket',
+      onData: (_) {},
+      onCurrent: (ids, at, {required mock}) => got.add((ids, at, mock)),
+      client: MockClient(
+        (req) async => http.Response.bytes(utf8.encode(jsonEncode(_list)), 200),
+      ),
+    );
+    await f.fetch();
+    final (ids, at, mock) = got.single;
+    expect(ids, {'sample_1'});
+    expect(at, 1793581200000);
+    expect(mock, isFalse);
   });
 }

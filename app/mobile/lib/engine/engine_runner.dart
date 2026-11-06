@@ -8,6 +8,7 @@ import '../executors/speak_executor.dart';
 import '../info/info_source.dart';
 import '../net/tile_fetcher.dart';
 import '../sources/activity_source.dart';
+import '../vision/search_progress.dart';
 import '../vision/visual_searcher.dart';
 
 /// 判断エンジン（app/engine）を動かし、返ってきた指示（Command）を実行する係。合流3。
@@ -61,6 +62,9 @@ class EngineRunner {
 
   /// 最後の判断（画面の「今の判断」）。
   final ValueNotifier<eng.Decision?> lastDecision = ValueNotifier(null);
+
+  /// B の検索の進み具合（画面の札）。頼んだ検索を engine が見送ったときは skipped。
+  final ValueNotifier<SearchProgress?> searchProgress = ValueNotifier(null);
 
   final Set<String> _myUtterances = {};
   final List<eng.EngineEvent> _queue = [];
@@ -133,24 +137,64 @@ class EngineRunner {
   ///
   /// 撮るかどうかは engine が決める。読み上げ中・横断歩道の手前などで撮れないときは、
   /// engine が見送った理由を判断として出す（画面の「今の判断」に出る）。あとで勝手に撮らない。
-  void requestSearch() => _push(eng.SearchRequested(tMs: _t()));
+  void requestSearch() {
+    final decisions = <eng.Decision>[];
+    _collect = decisions;
+    try {
+      _push(eng.SearchRequested(tMs: _t()));
+    } finally {
+      _collect = null;
+    }
+    for (final d in decisions) {
+      if (d.kind == 'search_skip') {
+        searchProgress.value = SearchProgress(
+          SearchPhase.skipped,
+          requested: true,
+          detail: d.reason,
+        );
+      }
+    }
+  }
 
-  Future<void> _search(eng.CaptureAndSearch c) async {
+  /// [requestSearch] の間に出た判断を集める所（それ以外のときは null）。
+  List<eng.Decision>? _collect;
+
+  Future<void> _search(eng.CaptureAndSearch c, {bool requested = false}) async {
     final s = searcher;
     if (s == null || !_searchEnabled()) return;
+    void show(SearchPhase phase, [String? detail]) {
+      if (_closed) return;
+      searchProgress.value = SearchProgress(
+        phase,
+        requested: requested,
+        detail: detail,
+      );
+    }
+
     final VisualOutcome outcome;
     try {
-      outcome = await s.run(c);
+      outcome = await s.run(c, onPhase: show);
     } catch (_) {
-      return; // 1回の失敗で止まらない（engine が鮮度期限で諦める）
+      show(SearchPhase.failed, 'server');
+      // 結果待ちのまま残さない（頼んだ検索だと、その間 A も次の検索も止まるため）
+      _push(eng.VisualError(tMs: _t(), searchId: c.searchId, error: 'server'));
+      return;
     }
     switch (outcome) {
       case VisualAnswered(:final response):
+        show(SearchPhase.answered);
         _push(eng.VisualResult(tMs: _t(), response: response));
       case VisualFailed(:final error):
+        show(SearchPhase.failed, error);
         _push(eng.VisualError(tMs: _t(), searchId: c.searchId, error: error));
       case VisualNoFrame():
-        break; // engine の失敗の種類に無い。作り話の失敗は残さない
+        show(SearchPhase.failed, 'no_frame');
+        // 撮れなかったことをすぐ engine に返し、結果待ちを終わらせる（待つと、頼んだ検索では
+        // 15秒の間 A も次の検索も止まる）。schema の失敗の種類にカメラが無いので、
+        // 端末の中の失敗として server で返す（画面の札には「撮れませんでした」と出す）
+        _push(
+          eng.VisualError(tMs: _t(), searchId: c.searchId, error: 'server'),
+        );
     }
   }
 
@@ -186,8 +230,15 @@ class EngineRunner {
         } catch (_) {
           continue; // 1つのイベントで止まらない
         }
+        // 頼まれた検索の撮影か（判断の理由で見分ける。画面の札で「検索します」と出すため）
+        final requested = {
+          for (final c in cmds)
+            if (c is eng.LogDecision &&
+                c.decision.reason == 'search:user_requested')
+              c.decision.targetId,
+        };
         for (final c in cmds) {
-          _run(c);
+          _run(c, requested);
         }
       }
       view.value = engine.view;
@@ -196,7 +247,7 @@ class EngineRunner {
     }
   }
 
-  void _run(eng.Command c) {
+  void _run(eng.Command c, Set<String?> requestedSearches) {
     switch (c) {
       case eng.Speak():
         _myUtterances.add(c.utteranceId);
@@ -213,9 +264,12 @@ class EngineRunner {
       case eng.FetchTiles():
         tiles.request([for (final t in c.tiles) TileId(t.x, t.y, z: t.z)]);
       case eng.CaptureAndSearch():
-        unawaited(_search(c));
+        unawaited(
+          _search(c, requested: requestedSearches.contains(c.searchId)),
+        );
       case eng.LogDecision():
         lastDecision.value = c.decision;
+        _collect?.add(c.decision);
     }
   }
 
@@ -225,5 +279,6 @@ class EngineRunner {
     await _finishedSub?.cancel();
     view.dispose();
     lastDecision.dispose();
+    searchProgress.dispose();
   }
 }

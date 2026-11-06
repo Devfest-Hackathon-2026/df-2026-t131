@@ -149,7 +149,7 @@ class FcmAlerts {
 
   /// 預けておいた警報をこれより前に届いたものは捨てる（今出たように話さない）。
   /// 続いている警報なら、警報の一覧（Cloud Storage）の方から「発表されています」で届く。
-  static const pendingMaxAge = Duration(minutes: 30);
+  static const pendingMaxAge = heldAlertMaxAge;
 
   /// 閉じている間に届いて預けておいた警報を読み上げに渡す（アプリを前面に戻したときにも呼ぶ）。
   Future<void> drainPending() async {

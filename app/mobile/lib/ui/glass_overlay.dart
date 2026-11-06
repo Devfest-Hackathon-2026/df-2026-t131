@@ -27,6 +27,7 @@ class GlassOverlay {
     this.areaName,
     this.nextSearchIn,
     this.lastSearch,
+    this.noCameraZoneName,
   });
 
   final List<CandidateMark> candidates;
@@ -45,6 +46,12 @@ class GlassOverlay {
   /// B の前回の結果かスキップ理由。
   final String? lastSearch;
 
+  /// いる「カメラで調べない区域」の名前（区域の外なら null）。
+  /// 中にいる間は B が撮らない（engine が決める）。画面はそれを見せるだけ。
+  final String? noCameraZoneName;
+
+  bool get inNoCameraZone => noCameraZoneName != null;
+
   bool get engineConnected => decision != null;
 
   /// 字幕だけを入れ替えたもの（null で消す）。
@@ -56,6 +63,7 @@ class GlassOverlay {
     areaName: areaName,
     nextSearchIn: nextSearchIn,
     lastSearch: lastSearch,
+    noCameraZoneName: noCameraZoneName,
   );
 
   /// A の候補だけを入れ替えたもの。
@@ -67,6 +75,7 @@ class GlassOverlay {
     areaName: areaName,
     nextSearchIn: nextSearchIn,
     lastSearch: lastSearch,
+    noCameraZoneName: noCameraZoneName,
   );
 
   static const empty = GlassOverlay();

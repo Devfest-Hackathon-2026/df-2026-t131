@@ -238,4 +238,53 @@ void main() {
     expect(tester.takeException(), isNull);
     s.ticker.stop();
   });
+
+  for (final e in sizes.entries) {
+    testWidgets('カメラで調べない区域の札が ${e.key} に収まり、B の行が止めている表示になる', (tester) async {
+      // 画面は親の通知で描き直すので、描く前に値を入れる
+      tester.view.physicalSize = e.value;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final s = _services();
+      final o = s.overlay.value;
+      s.overlay.value = GlassOverlay(
+        decision: o.decision,
+        reason: o.reason,
+        areaName: o.areaName,
+        nextSearchIn: o.nextSearchIn,
+        noCameraZoneName: 'あいの島・バードサンクチュアリ',
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildTheme(),
+          builder: clampTextScale,
+          home: GlassViewScreen(services: s),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('カメラで調べない区域（デモのため仮に指定）'), findsOneWidget);
+      expect(find.text('あいの島・バードサンクチュアリ'), findsOneWidget);
+      expect(find.text('画像での案内は止めています'), findsWidgets);
+      expect(find.textContaining('次の画像検索まで'), findsNothing);
+      expect(tester.takeException(), isNull);
+      s.ticker.stop();
+    });
+  }
+
+  testWidgets('区域に入った・出たのポップアップを出す', (tester) async {
+    final s = await _pump(
+      tester,
+      sizes.values.first,
+      (s) => GlassViewScreen(services: s),
+    );
+    s.zoneNotice.value = const ZoneNotice(zoneName: 'あいの島', entered: true);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('カメラで調べない区域に入りました'), findsOneWidget);
+    expect(find.text('あいの島・画像での案内を止めます'), findsOneWidget);
+    s.zoneNotice.value = const ZoneNotice(zoneName: 'あいの島', entered: false);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('カメラで調べない区域を出ました'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    s.ticker.stop();
+  });
 }

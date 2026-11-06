@@ -42,8 +42,11 @@ class FakeTts implements TtsEngine {
     finish(); // 止めると speak の Future も終わる（flutter_tts の onCancel と同じ）
   }
 
+  /// 当てた声の順。
+  final voices = <VoicePreset>[];
+
   @override
-  Future<void> useVoice(VoicePreset preset) async {}
+  Future<void> useVoice(VoicePreset preset) async => voices.add(preset);
 }
 
 class FakeFocus implements AudioFocus {

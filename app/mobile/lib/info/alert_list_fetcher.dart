@@ -17,6 +17,7 @@ class AlertListFetcher {
   AlertListFetcher({
     required this.baseUrl,
     required this.onData,
+    this.onCurrent,
     this.area = demoAlertArea,
     http.Client? client,
     int Function()? now,
@@ -39,6 +40,15 @@ class AlertListFetcher {
 
   /// 一覧の警報1件ずつ（FCM の data と同じ形）を渡す先。
   final void Function(Map<String, Object?> data) onData;
+
+  /// 一覧を読めたときに、今出ている警報の ID と一覧の書き換え時刻を渡す先
+  /// （解除・引き下げで消えた警報を、画面と預かりから外すため。[alertLifted]）。
+  final void Function(
+    Set<String> currentIds,
+    int updatedAtMs, {
+    required bool mock,
+  })?
+  onCurrent;
   final http.Client _client;
   final int Function() _now;
 
@@ -115,6 +125,17 @@ class AlertListFetcher {
       }
       for (final d in list) {
         onData(d);
+      }
+      final updatedAt = json['updated_at_ms'];
+      if (updatedAt is int) {
+        onCurrent?.call(
+          {
+            for (final d in list)
+              if (d['alert_id'] case final String id) id,
+          },
+          updatedAt,
+          mock: mock,
+        );
       }
       lastResult = '$name：${list.length}件（200）';
       return list.length;

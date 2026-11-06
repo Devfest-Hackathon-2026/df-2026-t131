@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../sources/camera_source.dart';
 import 'face_detector.dart';
 import 'search_image.dart';
+import 'search_progress.dart';
 
 /// B の検索1回の結果。engine に渡す `VisualResult` か `VisualError` のどちらか。
 sealed class VisualOutcome {
@@ -24,8 +25,7 @@ final class VisualFailed extends VisualOutcome {
   final String error;
 }
 
-/// カメラが1枚も返さなかった（engine の失敗の種類に無いので、engine には渡さない。
-/// engine は結果の来ない検索を鮮度期限で諦める）。
+/// カメラが1枚も返さなかった（engine の失敗の種類に無いので、EngineRunner が server として返す）。
 final class VisualNoFrame extends VisualOutcome {
   const VisualNoFrame();
 }
@@ -57,13 +57,19 @@ class VisualSearcher {
   static Future<Uint8List> _encodeInIsolate(SearchImageInput input) =>
       compute(encodeSearchJpeg, input);
 
-  Future<VisualOutcome> run(eng.CaptureAndSearch c) async {
+  /// [onPhase] には、撮影・顔ぼかし・送信の各段階に入るたびに知らせる（画面の札用）。
+  Future<VisualOutcome> run(
+    eng.CaptureAndSearch c, {
+    void Function(SearchPhase phase)? onPhase,
+  }) async {
+    onPhase?.call(SearchPhase.capturing);
     final frame = await camera.captureFrame();
     if (frame == null) return const VisualNoFrame();
     final rotation = landscapeLeftRotation(frame.sensorOrientation);
 
     final Uint8List jpeg;
     try {
+      onPhase?.call(SearchPhase.blurring);
       final found = await faces.find(frame, rotation);
       jpeg = await _encode(
         SearchImageInput(
@@ -87,6 +93,7 @@ class VisualSearcher {
       imageJpegBase64: base64Encode(jpeg),
       area: c.area,
     ).toJson();
+    onPhase?.call(SearchPhase.sending);
     final res = await post(body);
     if (res.error != null) return VisualFailed(res.error!);
     try {

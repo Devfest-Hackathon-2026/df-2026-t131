@@ -84,6 +84,13 @@ class SensorTicker {
   LocationFix? _location;
   GazeReading? _gaze;
 
+  /// アプリが裏に回っている（画面オフ・ポケットの中）か。
+  /// このときは端末の向きが視線にならないので、視線の代わりに進行方向を使う
+  /// （A の「右手に」などは歩く向きから言う）。カメラも止まるので画質は null になり、B は撮らない。
+  /// 代わりの値は SensorSnapshot に入るので、歩行ログにも同じ値が残る（再生しても同じ判断）。
+  bool background = false;
+  double? _lastCourseDeg;
+
   /// 画面用：視線を届いたとおり（約10Hz）に流す。方位テープをなめらかに動かすため。
   final ValueNotifier<GazeReading?> gazeLive = ValueNotifier(null);
   ActivityKind _activity = ActivityKind.unknown;
@@ -134,6 +141,7 @@ class SensorTicker {
   /// 位置を受けたとき。偏角は最初と、その後10分に1回だけ更新する。
   void onLocation(LocationFix fix) {
     _location = fix;
+    if (fix.courseDeg != null) _lastCourseDeg = fix.courseDeg;
     final now = _clock();
     final last = _lastDeclinationMs;
     if (last == null ||
@@ -151,7 +159,7 @@ class SensorTicker {
     if (loc == null || gaze == null) return;
     _busy = true;
     try {
-      final frame = latestFrame?.call();
+      final frame = background ? null : latestFrame?.call();
       ImageQuality? quality;
       if (frame != null) {
         try {
@@ -165,7 +173,7 @@ class SensorTicker {
         SensorSnapshot(
           tMs: _clock(),
           location: _location ?? loc,
-          gaze: _gaze ?? gaze,
+          gaze: background ? _pocketGaze(_gaze ?? gaze) : (_gaze ?? gaze),
           activity: _activity,
           audio: _audio,
           ttsSpeaking: ttsSpeaking?.call() ?? false,
@@ -176,6 +184,10 @@ class SensorTicker {
       _busy = false;
     }
   }
+
+  /// 裏に回っているときの視線：最後に分かった進行方向（まだ無ければ端末の向き）・水平。
+  GazeReading _pocketGaze(GazeReading device) =>
+      GazeReading(azDeg: _lastCourseDeg ?? device.azDeg, pitchDeg: 0);
 
   static void _ignore(Object _) {}
 }
