@@ -221,7 +221,20 @@ class GeminiVisualSearch:
             raise ApiError(502, "gemini_error")
         finally:
             del image
+        _log_usage(res)
         return postprocess(res.text or "", request["search_id"], [c["id"] for c in candidates], self._sources(res), self._s)
+
+
+def _log_usage(res) -> None:
+    """1回あたりの費用を実測するため、トークン数だけをログに出す（本文・画像は出さない）。"""
+    u = getattr(res, "usage_metadata", None)
+    if u is None:
+        return
+    log.info(
+        "gemini usage: prompt=%s output=%s thoughts=%s total=%s",
+        getattr(u, "prompt_token_count", None), getattr(u, "candidates_token_count", None),
+        getattr(u, "thoughts_token_count", None), getattr(u, "total_token_count", None),
+    )
 
 
 def _is_timeout(e: Exception) -> bool:
