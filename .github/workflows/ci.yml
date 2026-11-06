@@ -101,3 +101,29 @@ jobs:
           flutter test
       - if: steps.has_viewer.outputs.exists != 'true'
         run: echo "app/viewer がまだ無いので飛ばします"
+
+  # mobile のテスト：Android の実機・SDK は使わない（flutter test は端末なしで動く）。
+  # google-services.json はリポジトリに無いが、無くてもビルド・テストできる作り（app/mobile/README.md）
+  mobile-tests:
+    name: mobile の flutter test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: has_mobile
+        run: |
+          if [ -f app/mobile/pubspec.yaml ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      # Flutter の版は tasks/README.md 10章にそろえる
+      - uses: subosito/flutter-action@v2
+        if: steps.has_mobile.outputs.exists == 'true'
+        with:
+          flutter-version: 3.47.9
+          channel: stable
+          cache: true
+      - name: flutter test
+        if: steps.has_mobile.outputs.exists == 'true'
+        working-directory: app/mobile
+        run: |
+          flutter pub get
+          flutter test
+      - if: steps.has_mobile.outputs.exists != 'true'
+        run: echo "app/mobile がまだ無いので飛ばします"
