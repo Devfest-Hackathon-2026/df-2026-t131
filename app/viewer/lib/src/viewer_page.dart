@@ -23,7 +23,8 @@ final class BundledWalk {
 
 /// 判断画面：歩行ログを engine に流し直し、位置・判断・理由コードを時系列で見せる。
 class ViewerPage extends StatefulWidget {
-  const ViewerPage({super.key});
+  const ViewerPage({super.key, this.showMapTiles = true});
+  final bool showMapTiles;
   @override
   State<ViewerPage> createState() => _ViewerPageState();
 }
@@ -199,7 +200,12 @@ class _ViewerPageState extends State<ViewerPage> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          MapView(replay: r, frameIndex: frameIndex, map: _map),
+          MapView(
+            replay: r,
+            frameIndex: frameIndex,
+            map: _map,
+            showTiles: widget.showMapTiles,
+          ),
           const Positioned(left: 8, top: 8, child: _MapLegend()),
         ],
       ),
@@ -338,7 +344,8 @@ class _MapLegend extends StatelessWidget {
         ],
       ),
     );
-    Widget dot(Color c) => Icon(Icons.circle, size: 10, color: c);
+    Widget dot(int c, [double size = 10]) =>
+        Icon(Icons.circle, size: size, color: Color(c));
     return Card(
       color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
       child: Padding(
@@ -346,25 +353,22 @@ class _MapLegend extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            item(dot(Colors.orange), 'ランドマーク（円は話す範囲）'),
-            item(dot(Colors.green), 'エリア'),
+            item(dot(0xFFD62728), 'ランドマーク・エリア（円＝範囲）'),
+            item(dot(0xFF9467BD), 'イベント'),
+            item(dot(0xFF1F77B4, 7), '信号'),
+            item(dot(0xFF2CA02C, 7), '横断歩道'),
             item(
-              const Icon(Icons.square, size: 10, color: Colors.redAccent),
-              '横断歩道・信号',
+              const Icon(Icons.navigation, size: 12, color: Color(0xFF3949AB)),
+              'いまの位置と向き・歩いた道',
             ),
-            item(dot(Colors.pinkAccent), 'イベント会場'),
-            item(dot(Colors.blue), '話し始めた場所'),
+            item(dot(0xFFFF7F0E), '話し始めた場所'),
             item(
-              const Icon(
-                Icons.crop_square,
-                size: 12,
-                color: Colors.purpleAccent,
-              ),
+              const Icon(Icons.crop_square, size: 12, color: Color(0xFFE377C2)),
               'B で撮った場所',
             ),
             const SizedBox(height: 2),
             const Text(
-              '独自マップ（デモの範囲のデータ）',
+              '灰色＝もう話したもの',
               style: TextStyle(fontSize: 11, color: Colors.grey),
             ),
           ],

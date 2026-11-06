@@ -2,72 +2,100 @@ import 'dart:math' as math;
 
 import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'demo_map.dart';
 import 'replay.dart';
 
-// 地図：独自マップ（cloud/data の元データ。demo_map.dart）の上に、
-// 歩いた道・話した場所・B の撮影位置を、自前の平面（北が上）に描く。
-// 背景の地図タイル（Google Maps など）を足すときは、この MapView を差し替える。
+// 地図：チームの確認用の地図（cloud/data/scripts/preview_map.py が作る map.html）と同じ作り。
+//   背景＝地理院タイル（標準地図・航空写真を切り替え。API キー不要）
+//   点＝独自マップ（cloud/data の reviewed のランドマーク・イベント・横断歩道と信号。demo_map.dart）
+// その上に、歩いた道・いまの位置と視線・話し始めた場所・B で撮った場所を重ねる。
+// 色は map.html に合わせる（ランドマーク＝赤、イベント＝紫、信号＝青、横断歩道＝緑）。
 
-class MapView extends StatelessWidget {
+const _landmarkColor = Color(0xFFD62728);
+const _eventColor = Color(0xFF9467BD);
+const _signalColor = Color(0xFF1F77B4);
+const _crosswalkColor = Color(0xFF2CA02C);
+const _speakColor = Color(0xFFFF7F0E);
+const _searchColor = Color(0xFFE377C2);
+const _trackColor = Color(0xFF3949AB);
+
+const _gsiStd = 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png';
+const _gsiPhoto =
+    'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg';
+
+class MapView extends StatefulWidget {
   final Replay replay;
   final int frameIndex;
   final DemoMap map;
+
+  /// 地図のタイルを読むか（テストではネットワークを使わないので false）。
+  final bool showTiles;
+
   const MapView({
     super.key,
     required this.replay,
     required this.frameIndex,
     required this.map,
+    this.showTiles = true,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRect(
-      child: CustomPaint(
-        painter: _MapPainter(
-          replay,
-          frameIndex,
-          map,
-          Theme.of(context).colorScheme,
-        ),
-        child: const SizedBox.expand(),
-      ),
-    );
-  }
+  State<MapView> createState() => _MapViewState();
 }
 
-class _MapPainter extends CustomPainter {
-  final Replay replay;
-  final int frameIndex;
-  final DemoMap map;
-  final ColorScheme colors;
-  _MapPainter(this.replay, this.frameIndex, this.map, this.colors);
+class _MapViewState extends State<MapView> {
+  final _controller = MapController();
+  bool _follow = true;
+  bool _photo = false;
+  bool _ready = false;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final track = replay.track;
-    if (track.isEmpty) return;
-    final origin = track.first.position;
-    final cosLat = math.cos(origin.lat * math.pi / 180);
-    const mPerDeg = 6371008.8 * math.pi / 180;
-    Offset local(double lat, double lon) => Offset(
-      (lon - origin.lon) * mPerDeg * cosLat,
-      -(lat - origin.lat) * mPerDeg, // 画面は下が正なので北を上にする
-    );
-
-    // 表示範囲：歩いた道と、その近く（300m 以内）のランドマーク。
-    final points = [
-      for (final p in track) local(p.position.lat, p.position.lon),
-    ];
-    var bounds = Rect.fromPoints(points.first, points.first);
-    for (final p in points) {
-      bounds = bounds.expandToInclude(Rect.fromPoints(p, p));
+  void didUpdateWidget(MapView old) {
+    super.didUpdateWidget(old);
+    if (!_ready) return;
+    if (old.replay != widget.replay) {
+      _fitTrack(); // 別のログを開いたら、歩いた範囲に合わせ直す
+    } else if (_follow && old.frameIndex != widget.frameIndex) {
+      final p = _position;
+      if (p != null) _controller.move(p, _controller.camera.zoom);
     }
-    // 独自マップのランドマークに、歩行ログのタイルで届いたものを重ねる（同じ ID はログの方）。
+  }
+
+  LatLng? get _position {
+    final s = widget.replay.frames[widget.frameIndex].sensor;
+    return s == null ? null : LatLng(s.lat, s.lon);
+  }
+
+  CameraFit? get _trackFit {
+    final track = widget.replay.track;
+    if (track.isEmpty) return null;
+    return CameraFit.bounds(
+      bounds: LatLngBounds.fromPoints([
+        for (final t in track) LatLng(t.position.lat, t.position.lon),
+      ]),
+      padding: const EdgeInsets.all(80),
+      maxZoom: 17,
+    );
+  }
+
+  void _fitTrack() {
+    final fit = _trackFit;
+    if (fit != null) _controller.fitCamera(fit);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final r = widget.replay;
+    final fi = widget.frameIndex;
+    final nowMs = r.frames[fi].tMs;
+    final told = _toldIds(r, fi);
     final places = <String, MapPlace>{
-      for (final p in map.landmarks) p.id: p,
-      for (final lm in replay.landmarks)
+      for (final p in widget.map.landmarks) p.id: p,
+      // 歩行ログのタイルで届いたものを重ねる（同じ ID はログの方）
+      for (final lm in r.landmarks)
         lm.id: MapPlace(
           id: lm.id,
           name: lm.name,
@@ -77,203 +105,291 @@ class _MapPainter extends CustomPainter {
           radiusM: lm.radiusM,
         ),
     };
-    for (final lm in places.values) {
-      final p = local(lm.lat, lm.lon);
-      if (_distanceToTrack(p, points) <= 300) {
-        bounds = bounds.expandToInclude(Rect.fromCircle(center: p, radius: 30));
+    final crossings = <String, MapPlace>{
+      for (final c in widget.map.crossings) c.id: c,
+      for (final c in r.crossings)
+        c.id: MapPlace(
+          id: c.id,
+          name: '',
+          kind: c.kind,
+          lat: c.lat,
+          lon: c.lon,
+        ),
+    };
+    final past = <LatLng>[], future = <LatLng>[];
+    for (final t in r.track) {
+      final p = LatLng(t.position.lat, t.position.lon);
+      if (t.tMs <= nowMs) {
+        past.add(p);
+      } else {
+        if (future.isEmpty && past.isNotEmpty) future.add(past.last);
+        future.add(p);
       }
     }
-    bounds = bounds.inflate(40);
-    final scale = math.min(
-      size.width / bounds.width,
-      size.height / bounds.height,
-    );
-    final offset = Offset(
-      (size.width - bounds.width * scale) / 2 - bounds.left * scale,
-      (size.height - bounds.height * scale) / 2 - bounds.top * scale,
-    );
-    Offset screen(Offset p) => p * scale + offset;
+    final sensor = r.frames[fi].sensor;
 
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()..color = colors.surfaceContainerLowest,
-    );
-    _drawScale(canvas, size, scale);
-
-    // ランドマーク・エリア（話したものは色を変える）
-    final view = replay.frames[frameIndex].view;
-    final told = {
-      for (final n in view.nearby)
-        if (n.told) n.id,
-    };
-    final toldBySpeak = <String>{
-      for (final d in replay.decisions)
-        if (d.frameIndex <= frameIndex &&
-            (d.decision.kind == 'speak' ||
-                d.decision.reason == 'answer:matched_landmark'))
-          ?d.decision.targetId,
-    };
-    final visible = Offset.zero & size;
-    for (final lm in places.values) {
-      final c = screen(local(lm.lat, lm.lon));
-      if (!visible.inflate(200).contains(c)) continue;
-      final isTold = told.contains(lm.id) || toldBySpeak.contains(lm.id);
-      final r = (lm.radiusM ?? 25) * scale;
-      final color = lm.kind == 'area' ? Colors.green : Colors.orange;
-      canvas.drawCircle(
-        c,
-        r,
-        Paint()..color = color.withValues(alpha: isTold ? 0.08 : 0.18),
-      );
-      canvas.drawCircle(
-        c,
-        r,
-        Paint()
-          ..color = color.withValues(alpha: 0.6)
-          ..style = PaintingStyle.stroke,
-      );
-      canvas.drawCircle(c, 4, Paint()..color = isTold ? Colors.grey : color);
-      _label(
-        canvas,
-        c + const Offset(6, -8),
-        lm.name,
-        isTold ? Colors.grey : colors.onSurface,
-      );
-    }
-
-    // 横断歩道・信号
-    final crossings = <String, ({double lat, double lon})>{
-      for (final c in map.crossings) c.id: (lat: c.lat, lon: c.lon),
-      for (final c in replay.crossings) c.id: (lat: c.lat, lon: c.lon),
-    };
-    for (final cr in crossings.values) {
-      final c = screen(local(cr.lat, cr.lon));
-      if (!visible.contains(c)) continue;
-      canvas.drawRect(
-        Rect.fromCenter(center: c, width: 7, height: 7),
-        Paint()..color = Colors.redAccent,
-      );
-    }
-
-    // イベント会場
-    for (final e in map.events) {
-      final c = screen(local(e.lat, e.lon));
-      if (!visible.contains(c)) continue;
-      canvas.drawCircle(c, 5, Paint()..color = Colors.pinkAccent);
-      _label(canvas, c + const Offset(6, 4), e.name, Colors.pinkAccent);
-    }
-
-    // 歩いた道（いままで＝濃く、これから＝薄く）
-    final nowMs = replay.frames[frameIndex].tMs;
-    final stroke = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-    for (var i = 1; i < points.length; i++) {
-      stroke.color = track[i].tMs <= nowMs
-          ? colors.primary
-          : colors.outlineVariant;
-      canvas.drawLine(screen(points[i - 1]), screen(points[i]), stroke);
-    }
-
-    // 話した場所・B の撮影位置
-    for (final s in replay.speaks) {
-      if (s.frameIndex > frameIndex) break;
-      final sensor = replay.frames[s.frameIndex].sensor;
-      if (sensor == null) continue;
-      final c = screen(local(sensor.lat, sensor.lon));
-      canvas.drawCircle(
-        c,
-        6,
-        Paint()..color = Colors.blue.withValues(alpha: 0.8),
-      );
-    }
-    for (final s in replay.searches) {
-      if (s.frameIndex > frameIndex) break;
-      final p = s.position;
-      if (p == null) continue;
-      final c = screen(local(p.lat, p.lon));
-      canvas.drawRect(
-        Rect.fromCenter(center: c, width: 10, height: 10),
-        Paint()
-          ..color = Colors.purpleAccent
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
-    }
-
-    // いまの位置と視線
-    final sensor = replay.frames[frameIndex].sensor;
-    if (sensor != null) {
-      final c = screen(local(sensor.lat, sensor.lon));
-      final rad = sensor.gazeAzDeg * math.pi / 180;
-      final tip = c + Offset(math.sin(rad), -math.cos(rad)) * 28;
-      canvas.drawLine(
-        c,
-        tip,
-        Paint()
-          ..color = colors.primary
-          ..strokeWidth = 3,
-      );
-      canvas.drawCircle(c, 8, Paint()..color = colors.primary);
-      canvas.drawCircle(c, 4, Paint()..color = colors.onPrimary);
-    }
-  }
-
-  double _distanceToTrack(Offset p, List<Offset> points) {
-    var best = double.infinity;
-    for (final q in points) {
-      best = math.min(best, (p - q).distance);
-    }
-    return best;
-  }
-
-  void _drawScale(Canvas canvas, Size size, double scale) {
-    const meters = 50.0;
-    final len = meters * scale;
-    final start = Offset(16, size.height - 20);
-    final paint = Paint()
-      ..color = colors.onSurfaceVariant
-      ..strokeWidth = 2;
-    canvas.drawLine(start, start + Offset(len, 0), paint);
-    _label(
-      canvas,
-      start + const Offset(0, -18),
-      '50 m',
-      colors.onSurfaceVariant,
-    );
-    _label(canvas, Offset(size.width - 24, 8), '北↑', colors.onSurfaceVariant);
-    var y = size.height - 18.0;
-    for (final a in map.attributions.reversed) {
-      final tp = TextPainter(
-        text: TextSpan(
-          text: a,
-          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11),
+    return Stack(
+      children: [
+        FlutterMap(
+          mapController: _controller,
+          options: MapOptions(
+            initialCameraFit: _trackFit,
+            initialCenter: const LatLng(36.7016, 137.2129), // 富山駅（ログが無いとき）
+            initialZoom: 16,
+            maxZoom: 18,
+            onMapReady: () => _ready = true,
+            onPositionChanged: (_, hasGesture) {
+              if (hasGesture && _follow) setState(() => _follow = false);
+            },
+          ),
+          children: [
+            if (widget.showTiles)
+              TileLayer(
+                urlTemplate: _photo ? _gsiPhoto : _gsiStd,
+                maxNativeZoom: 18,
+                userAgentPackageName: 'jp.dfhack26.viewer',
+              ),
+            CircleLayer(
+              circles: [
+                for (final p in places.values)
+                  CircleMarker(
+                    point: LatLng(p.lat, p.lon),
+                    radius: p.radiusM ?? 25,
+                    useRadiusInMeter: true,
+                    color: _landmarkColor.withValues(
+                      alpha: told.contains(p.id) ? 0.05 : 0.12,
+                    ),
+                    borderColor: told.contains(p.id)
+                        ? Colors.grey
+                        : _landmarkColor,
+                    borderStrokeWidth: 1,
+                  ),
+                for (final c in crossings.values)
+                  CircleMarker(
+                    point: LatLng(c.lat, c.lon),
+                    radius: 3,
+                    color:
+                        (c.kind == 'traffic_signals'
+                                ? _signalColor
+                                : _crosswalkColor)
+                            .withValues(alpha: 0.8),
+                  ),
+              ],
+            ),
+            PolylineLayer(
+              polylines: [
+                if (future.length >= 2)
+                  Polyline(
+                    points: future,
+                    strokeWidth: 3,
+                    color: Colors.black26,
+                  ),
+                if (past.length >= 2)
+                  Polyline(points: past, strokeWidth: 4, color: _trackColor),
+              ],
+            ),
+            CircleLayer(
+              circles: [
+                for (final e in widget.map.events)
+                  _dot(LatLng(e.lat, e.lon), _eventColor),
+                for (final p in places.values)
+                  _dot(
+                    LatLng(p.lat, p.lon),
+                    told.contains(p.id) ? Colors.grey : _landmarkColor,
+                  ),
+                for (final s in r.speaks)
+                  if (s.frameIndex <= fi)
+                    if (r.frames[s.frameIndex].sensor case final ss?)
+                      _dot(LatLng(ss.lat, ss.lon), _speakColor, radius: 6),
+              ],
+            ),
+            PolygonLayer(
+              polygons: [
+                for (final s in r.searches)
+                  if (s.frameIndex <= fi)
+                    if (s.position case final p?)
+                      Polygon(
+                        points: _square(LatLng(p.lat, p.lon), 4),
+                        borderColor: _searchColor,
+                        borderStrokeWidth: 2,
+                        color: _searchColor.withValues(alpha: 0.2),
+                      ),
+              ],
+            ),
+            MarkerLayer(
+              markers: [
+                for (final p in places.values)
+                  Marker(
+                    point: LatLng(p.lat, p.lon),
+                    width: 200,
+                    height: 22,
+                    alignment: const Alignment(1.1, 0),
+                    child: _Label(
+                      p.name,
+                      color: told.contains(p.id) ? Colors.grey : Colors.black87,
+                    ),
+                  ),
+                for (final e in widget.map.events)
+                  Marker(
+                    point: LatLng(e.lat, e.lon),
+                    width: 240,
+                    height: 22,
+                    alignment: const Alignment(1.08, 1.6),
+                    child: _Label(e.name, color: _eventColor),
+                  ),
+                if (sensor != null)
+                  Marker(
+                    point: LatLng(sensor.lat, sensor.lon),
+                    width: 64,
+                    height: 64,
+                    child: _PositionMark(gazeAzDeg: sensor.gazeAzDeg),
+                  ),
+              ],
+            ),
+          ],
         ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(size.width - tp.width - 8, y));
-      y -= 14;
-    }
+        // 出典は畳まずに常に出す（地理院タイル・OpenStreetMap の決まり）
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: Container(
+            color: Colors.white.withValues(alpha: 0.8),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            child: const Text(
+              '地図：地理院タイル（国土地理院）　横断歩道・信号の位置：© OpenStreetMap contributors',
+              style: TextStyle(fontSize: 11, color: Colors.black87),
+            ),
+          ),
+        ),
+        Positioned(
+          right: 8,
+          top: 8,
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SegmentedButton<bool>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: false, label: Text('地図')),
+                      ButtonSegment(value: true, label: Text('航空写真')),
+                    ],
+                    selected: {_photo},
+                    onSelectionChanged: (v) => setState(() => _photo = v.first),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    tooltip: 'いまの位置を追う',
+                    isSelected: _follow,
+                    icon: const Icon(Icons.my_location),
+                    onPressed: () {
+                      setState(() => _follow = !_follow);
+                      final p = _position;
+                      if (_follow && p != null && _ready) {
+                        _controller.move(p, _controller.camera.zoom);
+                      }
+                    },
+                  ),
+                  IconButton(
+                    tooltip: '歩いた範囲を表示',
+                    icon: const Icon(Icons.zoom_out_map),
+                    onPressed: () {
+                      setState(() => _follow = false);
+                      if (_ready) _fitTrack();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  void _label(Canvas canvas, Offset at, String text, Color color) {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(color: color, fontSize: 12),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: 200);
-    tp.paint(canvas, at);
+  static CircleMarker _dot(LatLng p, Color c, {double radius = 7}) =>
+      CircleMarker(
+        point: p,
+        radius: radius,
+        color: c,
+        borderColor: Colors.white,
+        borderStrokeWidth: 2,
+      );
+
+  /// 一辺 2×halfM メートルの正方形（B で撮った場所の印）。
+  static List<LatLng> _square(LatLng c, double halfM) {
+    final dLat = halfM / 111320;
+    final dLon = halfM / (111320 * math.cos(c.latitude * math.pi / 180));
+    return [
+      LatLng(c.latitude - dLat, c.longitude - dLon),
+      LatLng(c.latitude - dLat, c.longitude + dLon),
+      LatLng(c.latitude + dLat, c.longitude + dLon),
+      LatLng(c.latitude + dLat, c.longitude - dLon),
+    ];
   }
 
+  /// この時点までに話したランドマーク（A で話した、または B で一致して話した）。
+  static Set<String> _toldIds(Replay r, int fi) => {
+    for (final n in r.frames[fi].view.nearby)
+      if (n.told) n.id,
+    for (final d in r.decisions)
+      if (d.frameIndex <= fi &&
+          (d.decision.kind == 'speak' ||
+              d.decision.reason == 'answer:matched_landmark'))
+        ?d.decision.targetId,
+  };
+}
+
+class _Label extends StatelessWidget {
+  final String text;
+  final Color color;
+  const _Label(this.text, {required this.color});
   @override
-  bool shouldRepaint(_MapPainter old) =>
-      old.replay != replay ||
-      old.frameIndex != frameIndex ||
-      old.map != map ||
-      old.colors != colors;
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.centerLeft,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        text,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 12, color: color),
+      ),
+    ),
+  );
+}
+
+/// いまの位置（点）と視線の向き（矢印）。
+class _PositionMark extends StatelessWidget {
+  final double gazeAzDeg;
+  const _PositionMark({required this.gazeAzDeg});
+  @override
+  Widget build(BuildContext context) => Stack(
+    alignment: Alignment.center,
+    children: [
+      Transform.rotate(
+        angle: gazeAzDeg * math.pi / 180,
+        child: const Align(
+          alignment: Alignment.topCenter,
+          child: Icon(Icons.navigation, size: 28, color: _trackColor),
+        ),
+      ),
+      Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: _trackColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 3),
+        ),
+      ),
+    ],
+  );
 }
 
 /// 視線から見た角度を「右前方 30°」のような言い方にする（画面の表示用）。

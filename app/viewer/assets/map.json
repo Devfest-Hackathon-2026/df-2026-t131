@@ -17,28 +17,32 @@
       "name": "富山駅",
       "kind": "building",
       "lat": 36.701609,
-      "lon": 137.212874
+      "lon": 137.212874,
+      "radius_m": 80.0
     },
     {
       "id": "lm_0003",
       "name": "ブールバール",
       "kind": "street",
       "lat": 36.70513,
-      "lon": 137.215592
+      "lon": 137.215592,
+      "radius_m": 60.0
     },
     {
       "id": "lm_0004",
       "name": "富山県美術館",
       "kind": "building",
       "lat": 36.710852,
-      "lon": 137.210183
+      "lon": 137.210183,
+      "radius_m": 70.0
     },
     {
       "id": "lm_0005",
       "name": "オーバード・ホール",
       "kind": "building",
       "lat": 36.703519,
-      "lon": 137.213339
+      "lon": 137.213339,
+      "radius_m": 85.0
     },
     {
       "id": "lm_0006",
@@ -52,7 +56,8 @@
       "name": "YKK AP ARENA",
       "kind": "building",
       "lat": 36.70675,
-      "lon": 137.214056
+      "lon": 137.214056,
+      "radius_m": 100.0
     },
     {
       "id": "lm_0008",
@@ -67,14 +72,16 @@
       "name": "松川べり",
       "kind": "street",
       "lat": 36.694948,
-      "lon": 137.213856
+      "lon": 137.213856,
+      "radius_m": 60.0
     },
     {
       "id": "lm_0010",
       "name": "桜橋",
       "kind": "other",
       "lat": 36.695729,
-      "lon": 137.21603
+      "lon": 137.21603,
+      "radius_m": 30.0
     }
   ],
   "crossings": [
