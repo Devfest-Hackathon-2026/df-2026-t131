@@ -94,6 +94,20 @@ final class VisualError implements EngineEvent {
   });
 }
 
+/// 利用者が「調べて」と声で B の検索を頼んだ（音声認識はアプリが行う。音声も認識結果も渡さない）。
+///
+/// engine はこのときのセンサーの値で一度だけ撮影を試す。撮れなければ見送った理由を残し、あとで勝手に撮らない。
+final class SearchRequested implements EngineEvent {
+  @override
+  final int tMs;
+  @override
+  final String schemaVersion;
+  const SearchRequested({
+    required this.tMs,
+    this.schemaVersion = currentSchemaVersion,
+  });
+}
+
 final class AlertReceived implements EngineEvent {
   @override
   final int tMs;
@@ -222,6 +236,9 @@ EngineEvent eventFromJson(Map<String, dynamic> json) {
           values: ['timeout', 'network', 'server', 'face_blur_failed'],
         ),
       );
+    case 'search_request':
+      wireKeys(data, const [], const []);
+      return SearchRequested(tMs: t, schemaVersion: version);
     case 'alert':
       const alertKeys = ['alert_id', 'level', 'kind', 'area_name', 'text'];
       wireKeys(data, alertKeys, alertKeys);
@@ -270,6 +287,7 @@ Map<String, dynamic> eventToJson(EngineEvent event) {
       'visual_error',
       <String, dynamic>{'search_id': e.searchId, 'error': e.error},
     ),
+    SearchRequested() => ('search_request', <String, dynamic>{}),
     AlertReceived e => (
       'alert',
       <String, dynamic>{

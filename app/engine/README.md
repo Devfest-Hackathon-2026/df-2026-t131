@@ -31,7 +31,36 @@
 - 読み上げ中かどうかは、エンジンが出した `Speak` に対する `TtsFinished` と、センサーの `tts_speaking` の両方で見る。`TtsFinished` が届かなくても、見積もった読み上げ時間＋30秒で終わったとみなす
 - 割り込みで止めた話の `TtsFinished` は受け取って無視する（mobile は返す想定）
 
-**まだ入っていないもの**：B の計測・結果の採否、交通（`speak:transit_next`）・イベント（`speak:event_nearby`）の読み上げ。
+### B（視界の定期検索）の判断
+
+センサーごとに「撮るか」を決めて `CaptureAndSearch` を出し、`VisualResult`・`VisualError` を受けて「話すか」を決める。
+発火タイミングは11/5にメンバー2が決めた（伝言「B_発火タイミングの論点」。番号はその論点の番号）。数字はすべて `EngineConfig`。
+
+| 段階 | やっていること | 理由コード |
+| :-- | :-- | :-- |
+| 計測の間隔（1・2） | 最後に撮った時刻から60秒。最初の1枚は位置と向きが初めて取れてから60秒（タイルが未着でも撮る。候補は空）。止められて撮れなかったときは数え直さず、次の秒にまた試す | `search:interval_elapsed` |
+| 立ち止まり（6） | Activity が `still` になって5秒たち、前に撮ってから30秒以上なら前倒し。30秒たっていなければ待つ | `search:stopped_early`、`search_skip:interval_not_elapsed` |
+| 1件ずつ（5） | 結果か失敗が来るまで次を出さない。撮ってから15秒たっても来なければ諦め（`answer:error`）、あとから届いた結果は期限切れ | `answer:error`、`answer:expired` |
+| 「調べて」（共有/visual-search-spec.md 2章） | アプリが `SearchRequested`（歩行ログでは `search_request`）を送ると、計測間隔と同じ場所を見ずに、その場で一度だけ撮る。ほかの見送りの条件は自動と同じ。撮れなければ理由を毎回記録して終わり、あとで勝手に撮らない。結果待ちの間も見送る | `search:user_requested`、`search_skip:*` |
+| 上限 | 1回の歩行で30回まで | `search_skip:limit_reached` |
+| 文脈ゲート（3・4・11） | 音声出力なし・通話中・乗り物・早歩き・横断歩道の手前・読み上げ中・警報やBの答えが待っている・**前の話の終わり＋話題の間隔20秒−答えの見込み5秒より前**・**15秒以内にAが話し始めそう**、のどれかなら撮らない | `search_skip:gate_blocked` |
+| 画質（7） | `image_quality` が null、blur が0.5未満、brightness が0.2未満なら撮らない | `search_skip:low_quality` |
+| 同じ場所 | 前に撮った位置から20m以内かつ視線の差30°以内なら撮らない | `search_skip:same_place` |
+| 送るもの | 平滑化した位置のタイル、10°単位に丸めた視線、候補 ID（150m以内・視線の左右30°以内・近い順に10件・エリアは除く・**話したものも入れる**（8））、エリアの中なら `area` | — |
+| 答えの採否 | 鮮度期限15秒を過ぎた → `unknown` → 自信が足りない（候補と一致は0.6、候補外は0.7未満） → 送った候補にない ID → 話した対象、の順に確かめる。候補外の重複（9）は、固有名（`named: true`）ならエリアごと（外は全体）に名前で、一般名なら前に話した撮影場所から100m以内で同じ名前のときだけ | `answer:expired`、`answer:unknown`、`answer:low_confidence`、`answer:already_told` |
+| 話す（10・11） | 優先度6。警報・A が先で、同じ文脈ゲートを通ったら話す。「さっき{方向}に見えたのは{名前}です。{原稿の短い版／説明}」。方向は撮ったときの視線と、話し始めるときの進行方向（止まっていれば視線）の差。DB のランドマークなら A で話した扱いにする | `answer:matched_landmark`、`answer:unlisted_object`、`answer:named_object` |
+| A に譲る（共有/visual-search-spec.md 5章） | B を読み終えて話題の間隔20秒を空けると、その間に A が話したいはずのランドマーク（エリア）を、出る前に話し終えられなくなるなら B を捨てる | `answer:yield_to_narrative` |
+
+- 判断ログの kind は、撮る＝`search`、撮らない＝`search_skip`（理由が変わったときだけ記録。撮るたびに消す）、答え＝`answer`
+- 答えの判断ログには、応答の `sources` が空でなければそのまま付ける（schema 0.3 の任意項目）
+- `answer:*` の `target_id` は、ランドマークと一致したときはランドマークの ID、それ以外は検索の ID（`s_000001`）
+
+### 画面に出す値（`engine.view`）
+
+`EngineView`（読み取り専用。判断ログには入れない）：`tMs`、いまいるエリア `currentArea`（外なら null）、近くのランドマーク `nearby`（ID・名前・種類・距離・視線から見た方位 `relativeBearingDeg`（右が正）・話したか。近い順に10件）、B の次の計測までのミリ秒 `nextSearchInMs`（結果待ち・上限・センサー未着は null）、B を止めている理由 `searchSkipReason`（判断ログの reason と同じ値。止められていなければ null）、`searching`、`searchesLeft`、最後の判断 `lastDecision`。
+mobile のグラス視点の画面と viewer の再生画面の両方で、`handle()` のあとに読む。
+
+**まだ入っていないもの**：交通（`speak:transit_next`）・イベント（`speak:event_nearby`）の読み上げ。
 設定の初期値は `lib/src/constants.dart` の `EngineConfig` にまとめた（tasks/README.md 2.5 の値と、その下に engine の内部の仮の値）。JSONの形式の基準はschema 0.3（`currentSchemaVersion`）。0.2の見本も読める（版は `^\d+\.\d+$` の形だけを検査する）。
 
 ## member3・viewerから参照する
@@ -76,9 +105,9 @@ dart run bin/replay.dart ../../schema/examples/walk_short.jsonl
 dart run tool/roundtrip_examples.dart
 ```
 
-再生CLIは入力を記録順に流し、`LogDecision` だけを標準出力する。初版は指示を生成しないので出力は空になる。
+再生CLIは入力を記録順に流し、`LogDecision` だけを標準出力する。
 変換後の見本は `.dart_tool/contract-fixtures/` に生成され、Gitへは含めない。
-`timetable_sample.json`・`events_sample.json`・`fcm_alert_data.json` はengineがモデルを持たない見本なので、往復の対象外にしている（`tool/fixture_models.dart` の `examplesOutsideEngine`）。
+`timetable_sample.json`・`events_sample.json`・`fcm_alert_data.json`・`crossings_sample.json` はengineがモデルを持たない見本なので、往復の対象外にしている（`tool/fixture_models.dart` の `examplesOutsideEngine`）。
 `pubspec.lock` はチームの決まりに従ってコミットする。通常の依存ライブラリはなく、開発用の `test` だけを直接依存にしている。
 
 ## 判断ログのfixtures
@@ -103,11 +132,10 @@ python .github/scripts/check_forbidden.py
 
 ## 次の実装と連携時に確認すること
 
-- 次はBの計測判定・候補選択・結果の採否を実装する。
+- 次は交通・イベントの読み上げと、viewer（判断画面の Web 版）。
 - 原稿には方向の言葉を書かない決まり（`cloud/data/scripts/draft_scripts.py`）なので、方向はengineが付ける。`schema/examples` の見本の原稿には「右手の」と入っているが、見本の石碑は道の東（南へ歩くと左）にあるので、engineは「左前方に」と言う（見本だけの食い違い）。
 - TODO(質問): 読み上げの速さ（6字/秒）は仮の値。実機の `flutter_tts` の速さで測って直す（member3）。
-- TODO(質問): Bの `sources` を判断ログへ残す項目が `decision.schema.json` にない。member1に形式の追加を依頼する。現段階では検索応答の `sources` を保持する。
-- TODO(質問): グラス視点の画面へ渡すA候補一覧の公開方法をmember1・member3と確定する。現在のCommand・判断ログへ独自項目は追加していない。
-- TODO(質問): 割り込み後の `TtsFinished`、検索実行中の次回要求は、A/Bの状態管理を実装する段階でmember3と確定する。今回の空のEngineは読み上げ・検索を開始しない。自転車（ON_BICYCLE）はリーダーが `in_vehicle` に決定済み。
+- TODO(質問): 画質のしきい値（blur 0.5）で、屋外を歩いている最中に B が撮れるか。実機の値を member3 に確かめる。
+- TODO(質問): `CaptureAndSearch` を出した時刻と、mobile が実際にコマを取る時刻の差（最新の1コマなので同じとみなしている）。
 
 SDKと検証ライブラリは作業環境の外部ツールとして管理し、このパッケージには含めない。

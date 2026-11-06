@@ -1,4 +1,4 @@
-// schema 0.2の項目に対応する値オブジェクト。任意項目の省略とnullを区別する。
+// schema 0.3の項目に対応する値オブジェクト。任意項目の省略とnullを区別する。
 import 'constants.dart';
 import 'wire.dart';
 
@@ -1092,6 +1092,9 @@ final class Decision {
   final String? targetId;
   final String? text;
   final int? priority;
+
+  /// B の答えの裏付けに使った出典（任意。kind が answer のときだけ）。
+  final List<VisualSearchSource>? sources;
   Decision._({
     required this.schemaVersion,
     required this.tMs,
@@ -1100,6 +1103,7 @@ final class Decision {
     required this.targetId,
     required this.text,
     required this.priority,
+    required this.sources,
   });
   factory Decision({
     String schemaVersion = currentSchemaVersion,
@@ -1109,6 +1113,7 @@ final class Decision {
     required String? targetId,
     required String? text,
     required int? priority,
+    List<VisualSearchSource>? sources,
   }) => Decision.fromJson({
     "schema_version": schemaVersion,
     "t_ms": tMs,
@@ -1117,6 +1122,8 @@ final class Decision {
     "target_id": targetId,
     "text": text,
     "priority": priority,
+    if (sources != null)
+      "sources": sources.map((item) => item.toJson()).toList(),
   });
   factory Decision.fromJson(Map<String, dynamic> json) {
     wireKeys(
@@ -1138,6 +1145,7 @@ final class Decision {
         "target_id",
         "text",
         "priority",
+        "sources",
       ],
     );
     final result = Decision._(
@@ -1164,10 +1172,20 @@ final class Decision {
       priority: json["priority"] == null
           ? null
           : wireInt(json["priority"], "priority", min: 1, max: 6),
+      sources: json.containsKey("sources")
+          ? wireList(
+              json["sources"],
+              "sources",
+              (value) => VisualSearchSource.fromJson(wireMap(value, "sources")),
+            )
+          : null,
     );
     if (!reasonCodes.contains(result.reason) ||
         result.reason.split(':').first != result.kind) {
       throw FormatException('理由コードが一覧またはkindと一致しません');
+    }
+    if (result.sources != null && result.kind != 'answer') {
+      throw FormatException('sourcesはkindがanswerのときだけ付けられます');
     }
     return result;
   }
@@ -1179,5 +1197,7 @@ final class Decision {
     "target_id": targetId,
     "text": text,
     "priority": priority,
+    if (sources != null)
+      "sources": sources!.map((item) => item.toJson()).toList(),
   };
 }

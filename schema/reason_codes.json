@@ -21,6 +21,7 @@
     "skip:event_cancelled": "イベントが中止",
     "search:interval_elapsed": "B：計測間隔が経った",
     "search:stopped_early": "B：立ち止まったので前倒し",
+    "search:user_requested": "B：利用者が「調べて」と頼んだ",
     "search_skip:interval_not_elapsed": "B：計測間隔が経っていない",
     "search_skip:same_place": "B：前回と同じ場所・向き",
     "search_skip:gate_blocked": "B：文脈ゲートで止めた",
@@ -33,6 +34,7 @@
     "answer:low_confidence": "B：自信が低いので話さない",
     "answer:already_told": "B：話したことがある対象",
     "answer:expired": "B：鮮度期限を過ぎた",
+    "answer:yield_to_narrative": "B：話すと直後の A に間に合わないので見送った",
     "answer:error": "B：通信・サーバーのエラーで話さない",
     "fetch:prefetch_tiles": "先読みのためにタイルを要求"
   }

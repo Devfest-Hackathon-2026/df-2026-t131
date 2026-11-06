@@ -49,6 +49,29 @@ final class EngineConfig {
       directionSideDeg,
       directionRearDeg;
 
+  // ---- B の発火タイミング（伝言「B_発火タイミングの論点」で11/5に決めた。実機で調整する）----
+
+  /// B の答えが届くまでの見込み（撮影→送信→Gemini 2〜3秒→受信）。
+  /// 答えが届くころに話題の間隔が終わっているときだけ撮る（前の話の終わり＋話題の間隔−この値より前は撮らない）。
+  final int visualExpectedLatencyMs;
+
+  /// これ以内に A の話が始まりそうなら B を撮らない（A を優先し、B の答えが押し出されて捨てられるのを防ぐ）。
+  final int visualYieldToNarrativeMs;
+
+  /// 立ち止まってこれだけ経ったら、計測間隔を待たずに前倒しで撮る（search:stopped_early）。
+  final int stillEarlyMs;
+
+  /// 前倒しでも、前に撮ってからこれだけは空ける。
+  final int stillEarlyMinIntervalMs;
+
+  /// 候補外の対象（地図にないもの）の答えを話す自信の下限。
+  /// 根拠が地図にない分、候補と一致したとき（minConfidence）より高くする（11/6 に決定）。
+  final double unlistedMinConfidence;
+
+  /// 固有名でない対象（例：古い木造の蔵）は、前に話したときに撮った場所からこの距離以内で
+  /// 同じ名前のときだけ二度目とみなす。離れた場所の別の蔵はまた話せる（11/6 に決定）。
+  final double genericObjectDedupM;
+
   const EngineConfig({
     this.sensorIntervalMs = 1000,
     this.defaultRadiusM = 25,
@@ -82,6 +105,12 @@ final class EngineConfig {
     this.directionDiagonalDeg = 60,
     this.directionSideDeg = 120,
     this.directionRearDeg = 160,
+    this.visualExpectedLatencyMs = 5000,
+    this.visualYieldToNarrativeMs = 15000,
+    this.stillEarlyMs = 5000,
+    this.stillEarlyMinIntervalMs = 30000,
+    this.unlistedMinConfidence = 0.7,
+    this.genericObjectDedupM = 100,
   });
 }
 
@@ -107,6 +136,7 @@ const reasonCodes = <String>{
   'skip:event_cancelled',
   'search:interval_elapsed',
   'search:stopped_early',
+  'search:user_requested',
   'search_skip:interval_not_elapsed',
   'search_skip:same_place',
   'search_skip:gate_blocked',
@@ -119,6 +149,7 @@ const reasonCodes = <String>{
   'answer:low_confidence',
   'answer:already_told',
   'answer:expired',
+  'answer:yield_to_narrative',
   'answer:error',
   'fetch:prefetch_tiles',
 };
