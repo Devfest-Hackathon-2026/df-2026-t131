@@ -5,6 +5,8 @@ import 'package:mobile/info/info_kind.dart';
 import 'package:mobile/info/info_source.dart';
 import 'package:mobile/info/sources.dart';
 
+import 'support/alert_fixture.dart';
+
 class _Sink implements InfoSink {
   final got = <InfoItem>[];
   @override
@@ -52,12 +54,12 @@ void main() {
     );
   });
 
-  test('レベル3は割り込まない・模擬の警報は mock_ で始まり頭に断りが入る', () {
+  test('レベル3は割り込まない（サーバーの模擬の警報の形）', () {
     final m = mockAlertData(level: 3, nowMs: 5);
     final a = parseAlertData(m, receivedMs: 5)!;
     expect(a.interrupts, isFalse);
     expect(a.id, startsWith('mock_'));
-    expect(a.text, startsWith('これはデモ用の模擬の警報です。'));
+    expect(a.text, startsWith('これは訓練用の模擬の警報で、実際の警報ではありません。'));
   });
 
   group('まとめ役', () {

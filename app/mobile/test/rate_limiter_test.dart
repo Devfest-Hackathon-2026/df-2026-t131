@@ -6,6 +6,8 @@ import 'package:mobile/info/fcm_alerts.dart';
 import 'package:mobile/info/sources.dart';
 import 'package:mobile/net/rate_limiter.dart';
 
+import 'support/alert_fixture.dart';
+
 void main() {
   test('決まった時間に決まった回数まで・間隔も空ける', () {
     var now = 0;

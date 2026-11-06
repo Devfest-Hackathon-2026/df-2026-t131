@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -85,10 +86,25 @@ class ApiClient {
     baseUrl.endsWith('/') ? '$baseUrl${path.substring(1)}' : '$baseUrl$path',
   );
 
-  Future<ApiCheck> _get(String path, {bool auth = false}) async {
-    if (!hasUrl) return const ApiCheck(ok: false, label: 'URL 未設定');
+  Future<ApiCheck> _get(String path, {bool auth = false}) async =>
+      (await getJson(path, auth: auth)).check;
+
+  /// GET して、結果と JSON の中身（200 のときだけ）を返す。
+  Future<({ApiCheck check, Object? json})> getJson(
+    String path, {
+    bool auth = false,
+  }) async {
+    if (!hasUrl) {
+      return (check: const ApiCheck(ok: false, label: 'URL 未設定'), json: null);
+    }
+    if (auth && !hasToken) {
+      return (check: const ApiCheck(ok: false, label: 'トークン未設定'), json: null);
+    }
     if (!limiter.tryAcquire()) {
-      return const ApiCheck(ok: false, label: '呼びすぎ防止で待っています');
+      return (
+        check: const ApiCheck(ok: false, label: '呼びすぎ防止で待っています'),
+        json: null,
+      );
     }
     final start = _now();
     try {
@@ -97,26 +113,55 @@ class ApiClient {
           .timeout(timeout);
       final ms = _now() - start;
       final ok = res.statusCode == 200;
-      return ApiCheck(
-        ok: ok,
-        status: res.statusCode,
-        elapsedMs: ms,
-        label: ok
-            ? 'OK（${res.statusCode}・$ms ms）'
-            : switch (res.statusCode) {
-                401 => 'トークンが違います（401）',
-                429 => 'サーバーが混んでいます（429）',
-                _ => 'エラー（${res.statusCode}）',
-              },
+      Object? json;
+      if (ok) {
+        try {
+          json = jsonDecode(utf8.decode(res.bodyBytes));
+        } on FormatException {
+          return (
+            check: ApiCheck(
+              ok: false,
+              status: res.statusCode,
+              elapsedMs: ms,
+              label: '形が違います',
+            ),
+            json: null,
+          );
+        }
+      }
+      return (
+        check: ApiCheck(
+          ok: ok,
+          status: res.statusCode,
+          elapsedMs: ms,
+          label: ok
+              ? 'OK（${res.statusCode}・$ms ms）'
+              : switch (res.statusCode) {
+                  401 => 'トークンが違います（401）',
+                  429 => 'サーバーが混んでいます（429）',
+                  _ => 'エラー（${res.statusCode}）',
+                },
+        ),
+        json: json,
       );
     } on TimeoutException {
-      return ApiCheck(ok: false, label: '時間切れ（${timeout.inSeconds}秒）');
+      return (
+        check: ApiCheck(ok: false, label: '時間切れ（${timeout.inSeconds}秒）'),
+        json: null,
+      );
     } on SocketException {
-      return const ApiCheck(ok: false, label: 'つながりません（通信なし）');
+      return (
+        check: const ApiCheck(ok: false, label: 'つながりません（通信なし）'),
+        json: null,
+      );
     } on http.ClientException {
-      return const ApiCheck(ok: false, label: 'つながりません');
+      return (check: const ApiCheck(ok: false, label: 'つながりません'), json: null);
     }
   }
+
+  /// A の地図タイル1枚（`GET /v1/tiles/16/{x}/{y}`）。送るのはタイル番号だけ。
+  Future<({ApiCheck check, Object? json})> getTile(int x, int y) =>
+      getJson('/v1/tiles/16/$x/$y', auth: true);
 
   /// 生存確認。サーバーが動いていて、ここまで通信が届くか。
   Future<ApiCheck> health() => _get('/health');

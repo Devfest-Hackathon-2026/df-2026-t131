@@ -12,6 +12,8 @@ import 'package:mobile/info/info_source.dart';
 import 'package:mobile/info/pending_alerts.dart';
 import 'package:mobile/info/sources.dart';
 
+import 'support/alert_fixture.dart';
+
 class _Sink implements InfoSink {
   final got = <InfoItem>[];
   @override
@@ -128,7 +130,7 @@ void main() {
           'alert_id': 'mock_$updated',
           'level': '4',
           'kind': '大雨危険警報',
-          'text': 'これはデモ用の模擬の警報です。',
+          'text': 'これは訓練用の模擬の警報で、実際の警報ではありません。',
         },
       ],
     };

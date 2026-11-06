@@ -82,7 +82,7 @@ class PlannedSource implements InfoSource {
   Future<void> stop() async {}
 }
 
-/// 手で流せる入口（開発者モードの「模擬の警報」やテストで使う）。
+/// 手で流せる入口（テストで使う）。
 class ManualSource implements InfoSource {
   ManualSource(this.kind);
 

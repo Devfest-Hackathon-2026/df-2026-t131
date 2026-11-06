@@ -188,33 +188,39 @@ class _DevSettingsSectionState extends State<DevSettingsSection> {
               Icons.warning_amber_rounded,
               color: AppColors.danger,
             ),
-            title: const Text('模擬の警報を鳴らす'),
+            title: const Text('警報の順番と割り込みを確かめる'),
             subtitle: const Text(
-              '本物の FCM と同じ形の警報を、アプリの中で流します。'
-              'レベル4は今の読み上げに割り込み、音楽を一時停止します。レベル3は今の話が終わってから、'
-              '待っている案内より先に話します。記録中なら歩行ログに alert 行が残ります。'
-              '「案内を流す」で長めの案内（優先度5）を流してから押すと、順番を確かめられます。',
+              '警報はサーバーから届いたものだけを読みます（アプリの中で警報は作りません）。'
+              '模擬の警報は、サーバーの /mock-alert（メンバー1）から送ってもらいます。'
+              '先に「案内を流す」で長めの案内（優先度5）を流しておくと、'
+              'レベル4が割り込むか・レベル3が案内の後に話すかを確かめられます。',
             ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(72, 0, 16, 8),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                FilledButton.tonal(
-                  onPressed: () => widget.services.alerts.sendMock(level: 4),
-                  child: const Text('レベル4（割り込み）'),
-                ),
-                OutlinedButton(
-                  onPressed: () => widget.services.alerts.sendMock(level: 3),
-                  child: const Text('レベル3'),
-                ),
-                OutlinedButton(
-                  onPressed: widget.services.speakDevLandmark,
-                  child: const Text('案内を流す（優先度5）'),
-                ),
-              ],
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton(
+                onPressed: widget.services.speakDevLandmark,
+                child: const Text('案内を流す（優先度5）'),
+              ),
             ),
+          ),
+          Builder(
+            builder: (context) {
+              final t = widget.services.tiles;
+              return ListTile(
+                leading: const Icon(Icons.grid_view),
+                title: const Text('地図タイル（A）'),
+                subtitle: Text(
+                  '持っている ${t.tiles.length} 枚（うち空 ${t.empty} 枚）・'
+                  '取得 ${t.fetched}・端末から ${t.fromCache}・失敗 ${t.failed}\n'
+                  '前回：${t.lastResult}\n'
+                  '送るのはタイル番号だけ。空のタイル（範囲の外）も覚えて、同じタイルは問い合わせ直しません。押すと数を更新します。',
+                ),
+                onTap: () => setState(() {}),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.cloud_download_outlined),

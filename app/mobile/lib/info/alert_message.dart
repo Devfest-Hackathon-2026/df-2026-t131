@@ -82,19 +82,3 @@ const legacyAlertTopic = 'alert_16201';
 
 /// 購読するトピック。
 const alertTopics = [demoAlertTopic, legacyAlertTopic];
-
-/// デモ用の模擬の警報（cloud/alert-job の `/mock-alert` と同じ決まり：
-/// 文の頭に「これはデモ用の模擬の警報です。」、alert_id は `mock_` で始まる）。
-Map<String, String> mockAlertData({required int level, required int nowMs}) => {
-  'schema_version': '0.3',
-  'type': 'alert',
-  'alert_id': 'mock_app_$nowMs',
-  'level': '$level',
-  'kind': level >= 4 ? '大雨危険警報' : '大雨警報',
-  'area_code': demoAlertArea,
-  'area_name': '富山市',
-  'text':
-      'これはデモ用の模擬の警報です。富山市に'
-      '${level >= 4 ? 'レベル4の大雨危険警報' : 'レベル3の大雨警報'}が発表されました。'
-      '安全な場所で、最新の情報を確認してください。',
-};

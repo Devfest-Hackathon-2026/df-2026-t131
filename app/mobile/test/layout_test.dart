@@ -21,6 +21,8 @@ import 'package:mobile/ui/layout.dart';
 import 'package:mobile/ui/start_screen.dart';
 import 'package:mobile/ui/style.dart';
 
+import 'support/alert_fixture.dart';
+
 class _Cam implements CameraSource {
   @override
   CameraController? get controller => null;

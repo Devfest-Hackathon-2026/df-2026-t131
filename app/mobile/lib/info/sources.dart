@@ -8,7 +8,8 @@ import 'info_source.dart';
 /// 気象警報の入口。FCM のトピック [demoAlertTopic] で届く data を [parseAlertData] で直して流す。
 ///
 /// FCM の受信は `FcmAlerts`（fcm_alerts.dart）が行い、届いた data を [receive] に渡す。
-/// google-services.json が無いときは、開発者モードの「模擬の警報」だけで動く。
+/// 警報の文はサーバー（cloud/alert-job）がテンプレートで作った全文をそのまま読む。アプリで文を作らない。
+/// アプリの中で警報を作る口は無い。デモの模擬の警報も、サーバーの `/mock-alert` から送る。
 class AlertSource implements InfoSource {
   AlertSource({required this.now, RateLimiter? limiter})
     : limiter =
@@ -41,7 +42,7 @@ class AlertSource implements InfoSource {
 
   static const todo =
       'FCM の受信（firebase_messaging）と google-services.json を入れる。'
-      '今は開発者モードの「模擬の警報」で読み上げと割り込みを確かめられます。';
+      '確かめるときは、サーバーの /mock-alert（メンバー1）から模擬の警報を送ってもらう。';
 
   @override
   Stream<InfoItem> get items => _c.stream;
@@ -58,10 +59,6 @@ class AlertSource implements InfoSource {
     _c.add(item);
     return true;
   }
-
-  /// デモ用の模擬の警報を流す（開発者モード）。
-  void sendMock({int level = 4}) =>
-      receive(mockAlertData(level: level, nowMs: now()));
 
   @override
   Future<void> start() async {}

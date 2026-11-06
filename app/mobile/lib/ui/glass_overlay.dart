@@ -58,6 +58,17 @@ class GlassOverlay {
     lastSearch: lastSearch,
   );
 
+  /// A の候補だけを入れ替えたもの。
+  GlassOverlay withCandidates(List<CandidateMark> list) => GlassOverlay(
+    candidates: list,
+    decision: decision,
+    reason: reason,
+    subtitle: subtitle,
+    areaName: areaName,
+    nextSearchIn: nextSearchIn,
+    lastSearch: lastSearch,
+  );
+
   static const empty = GlassOverlay();
 }
 

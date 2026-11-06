@@ -19,6 +19,7 @@ import '../info/info_kind.dart';
 import '../info/info_source.dart';
 import '../info/sources.dart';
 import '../net/api_client.dart';
+import '../net/tile_fetcher.dart';
 import '../config.dart';
 import '../logging/walk_log_store.dart';
 import '../sources/activity_source.dart';
@@ -45,6 +46,7 @@ class AppServices {
     this.fakeGps,
     this.useFcm = false,
     this.heardStore,
+    this.tileCache,
     ApiClient? api,
     AppSettings initialSettings = const AppSettings(),
   }) : api =
@@ -100,6 +102,7 @@ class AppServices {
       baseUrl: AppConfig.alertsBaseUrl,
       onData: alerts.receive,
     );
+    tiles = TileFetcher(api: this.api, cache: tileCache);
     // 歩き始めに警報の一覧を取りに行き、歩いている間は15分ごとに取り直す（FCM の取りこぼしの保険）
     session.addListener(_onSessionChanged);
   }
@@ -160,6 +163,10 @@ class AppServices {
       speaker: speaker,
       fakeGps: fakeGps,
       useFcm: true,
+      tileCache: TileCache(
+        () async =>
+            Directory('${(await getApplicationSupportDirectory()).path}/tiles'),
+      ),
       heardStore: HeardStore(
         () async => File(
           '${(await getApplicationSupportDirectory()).path}/heard_alerts.json',
@@ -248,6 +255,57 @@ class AppServices {
     }
   }
 
+  /// A の地図タイルを取りに行く部品と、端末に残す所（テストでは残さない）。
+  late final TileFetcher tiles;
+  final TileCache? tileCache;
+  StreamSubscription<Object?>? _tileSub;
+
+  /// 画面に出す A の候補の範囲と件数。
+  static const candidateRadiusM = 500.0;
+  static const maxCandidates = 5;
+
+  /// 位置が届くたびに、要るタイルを頼み、画面の A の候補を更新する。
+  /// TODO(engine)：engine をつないだら、タイルは engine の `FetchTiles` で頼み、
+  /// 届いたタイルを `TilesLoaded` で engine へ渡す。候補も engine の判断から出す。
+  void _onSnapshot(SensorSnapshot s) {
+    final loc = s.location;
+    tiles.request(
+      tilesAhead(
+        lat: loc.lat,
+        lon: loc.lon,
+        speedMps: loc.speedMps,
+        courseDeg: loc.courseDeg,
+      ),
+    );
+    final near = <CandidateMark>[];
+    for (final t in tiles.tiles) {
+      for (final lm in t.landmarks) {
+        final d = haversineM(loc.lat, loc.lon, lm.lat, lm.lon);
+        if (d > candidateRadiusM || near.any((c) => c.name == lm.name)) {
+          continue;
+        }
+        near.add(
+          CandidateMark(
+            name: lm.name,
+            bearingDeg: bearingBetween(loc.lat, loc.lon, lm.lat, lm.lon),
+            distanceM: d,
+          ),
+        );
+      }
+    }
+    near.sort((a, b) => a.distanceM.compareTo(b.distanceM));
+    final list = near.take(maxCandidates).toList();
+    final cur = overlay.value.candidates;
+    final same =
+        cur.length == list.length &&
+        [
+          for (var i = 0; i < list.length; i++)
+            cur[i].name == list[i].name &&
+                (cur[i].distanceM - list[i].distanceM).abs() < 10,
+        ].every((b) => b);
+    if (!same) overlay.value = overlay.value.withCandidates(list);
+  }
+
   /// 聞いた警報の ID を起動し直しても覚えておく所（テストでは null）。
   final HeardStore? heardStore;
 
@@ -267,6 +325,7 @@ class AppServices {
     settings.value = await settingsStore.load();
     await speaker.useVoice(settings.value.voice);
     ticker.start();
+    _tileSub = ticker.snapshots.listen(_onSnapshot);
     await info.start();
     if (useFcm) {
       // 起動を待たせないよう、裏でつなぐ。つながらなくてもアプリは動く
@@ -329,6 +388,8 @@ class AppServices {
 
   Future<void> dispose() async {
     await _finishedSub?.cancel();
+    await _tileSub?.cancel();
+    await tiles.dispose();
     _lifecycle?.dispose();
     _alertListTimer?.cancel();
     session.removeListener(_onSessionChanged);
