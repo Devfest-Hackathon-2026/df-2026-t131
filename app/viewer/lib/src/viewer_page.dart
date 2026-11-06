@@ -437,6 +437,8 @@ class _StatePanel extends StatelessWidget {
             ],
             Text('エリア：${v.currentArea?.name ?? '（エリアの外）'}'),
             Text('町丁目：${v.currentTown?.name ?? '（わからない）'}'),
+            if (v.noCameraZone case final z?)
+              Text('カメラで調べない区域：${z.name}（B は撮らない）'),
           ]),
           section('B（景色を調べる）', [
             Text(

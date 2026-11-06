@@ -9,6 +9,12 @@ import '../tool/fixture_models.dart';
 Map<String, dynamic> copyJson(Map<String, dynamic> value) =>
     jsonDecode(jsonEncode(value)) as Map<String, dynamic>;
 
+/// 区域のデータの1件（zone_entry）から、タイルに入る形（zone）を取り出す。
+Map<String, dynamic> zoneOf(Map<String, dynamic> entry) => {
+  for (final k in ['id', 'name', 'lat', 'lon', 'radius_m', 'reason'])
+    k: entry[k],
+};
+
 void main() {
   final examples = Directory.fromUri(
     findRepositoryRoot().uri.resolve('schema/examples/'),
@@ -201,6 +207,27 @@ void main() {
     expect(oldTile.towns, isEmpty);
     // 無かったものは書き出しでも足さない（歩行ログの往復で中身が変わらない）
     expect(oldTile.toJson().containsKey('towns'), isFalse);
+  });
+
+  test('タイルのカメラで調べない区域（zones）を読み、無い古いタイルも読める', () {
+    // 見本はデータの1件の形（schema_version・note・source つき）。タイルに入る形はその項目を除いたもの
+    final zoneJson = zoneOf(readExample('zones/zn_0901.json'));
+    final json = readExample('tile_response.json')..['zones'] = [zoneJson];
+    final tile = TileResponse.fromJson(json);
+    expect(tile.zones.single.id, zoneJson['id']);
+    expect(tile.toJson()['zones'], [zoneJson]);
+
+    final old = TileResponse.fromJson(readExample('tile_response.json'));
+    expect(old.zones, isEmpty);
+    expect(old.toJson().containsKey('zones'), isFalse);
+  });
+
+  test('区域の ID の形が違う・理由が一覧に無い区域を拒否する', () {
+    for (final (key, value) in [('id', 'zone_1'), ('reason', 'other')]) {
+      final zoneJson = zoneOf(readExample('zones/zn_0901.json'))..[key] = value;
+      final json = readExample('tile_response.json')..['zones'] = [zoneJson];
+      expect(() => TileResponse.fromJson(json), throwsFormatException);
+    }
   });
 
   test('町丁目コードが12桁でない町丁目を拒否する', () {

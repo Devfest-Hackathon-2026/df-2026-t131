@@ -51,6 +51,7 @@
 | 話す（10・11） | 優先度6。警報・A が先で、同じ文脈ゲートを通ったら話す。「さっき{方向}に見えたのは{名前}です。{説明}」。方向は撮ったときの視線と、話し始めるときの進行方向（止まっていれば視線）の差。B で話しても A で話した扱いにはしない | `answer:unlisted_object`、`answer:named_object` |
 | どの部分か（part） | 応答の `part`（whole・window・entrance など。呼び方は `visualPartLabels`）。`matched`＋`whole`（ランドマーク全体）は B では話さない（全体の紹介は A。11/6 夜決定）。`matched`＋部分は登録したランドマークの特徴：自信0.7以上で、そのランドマークの紹介（A）が済んでいれば「さっき{方向}に見えたのは{名前}の{部分}です。{説明}」。済んでいなければ見送る。エリアの中で撮った候補外の対象も、エリアの紹介（A）が済んでから話す。重複は（場所, part）で見る。場所はランドマーク ID、なければ固有名はエリア＋名前、一般名は名前＋撮影場所100m。`other` は話さない（紹介が済んだ場所の、見分けられない部分のため） | `answer:whole_left_to_narrative`、`answer:feature_before_intro`、`answer:landmark_feature`、`answer:already_told` |
 | A に譲る（共有/visual-search-spec.md 5章） | B を読み終えて話題の間隔20秒を空けると、その間に A が話したいはずのランドマーク（エリア）を、出る前に話し終えられなくなるなら B を捨てる | `answer:yield_to_narrative` |
+| カメラで調べない区域（CLAUDE.md 6章、11/7） | タイルの `zones`（円）。平滑化した位置が半径以内で入り、半径＋15m（`zoneExitMarginM`）より外で出る（その間は前のまま）。中では自動で撮らず、「調べて」は撮らずに「ここはカメラで調べない区域なので、調べられません。」と断る（出たあとに勝手に撮らない）。入る前に撮った答えが中で届いたら捨てる。入った・出たは決まった文で知らせる（優先度2、警報の次・A より先、割り込まない）。「入った」を話す前に出たら両方話さない。出てから60秒（`zoneAnnounceCooldownMs`）以内にまた入ったら知らせない。A は続ける | `speak:no_camera_zone_entered`、`speak:no_camera_zone_exited`、`search_skip:no_camera_zone`、`answer:in_no_camera_zone` |
 
 - 判断ログの kind は、撮る＝`search`、撮らない＝`search_skip`（理由が変わったときだけ記録。撮るたびに消す）、答え＝`answer`
 - 答えの判断ログには、応答の `sources` が空でなければそのまま付ける（schema 0.3 の任意項目）
@@ -58,7 +59,7 @@
 
 ### 画面に出す値（`engine.view`）
 
-`EngineView`（読み取り専用。判断ログには入れない）：`tMs`、いまいるエリア `currentArea`（外なら null）、いまいる町丁目 `currentTown`（いちばん近い代表点。800m より遠ければ null）、近くのランドマーク `nearby`（ID・名前・種類・距離・視線から見た方位 `relativeBearingDeg`（右が正）・話したか。近い順に10件）、B の次の計測までのミリ秒 `nextSearchInMs`（結果待ち・上限・センサー未着は null）、B を止めている理由 `searchSkipReason`（判断ログの reason と同じ値。止められていなければ null）、`searching`、`searchesLeft`（上限なしなら null）、最後の判断 `lastDecision`。
+`EngineView`（読み取り専用。判断ログには入れない）：`tMs`、いまいるエリア `currentArea`（外なら null）、いまいる町丁目 `currentTown`（いちばん近い代表点。800m より遠ければ null）、いま中にいるカメラで調べない区域 `noCameraZone`（id・name。外なら null）、近くのランドマーク `nearby`（ID・名前・種類・距離・視線から見た方位 `relativeBearingDeg`（右が正）・話したか。近い順に10件）、B の次の計測までのミリ秒 `nextSearchInMs`（結果待ち・上限・センサー未着は null）、B を止めている理由 `searchSkipReason`（判断ログの reason と同じ値。止められていなければ null）、`searching`、`searchesLeft`（上限なしなら null）、最後の判断 `lastDecision`。
 mobile のグラス視点の画面と viewer の再生画面の両方で、`handle()` のあとに読む。
 
 **まだ入っていないもの**：交通（`speak:transit_next`）・イベント（`speak:event_nearby`）の読み上げ。

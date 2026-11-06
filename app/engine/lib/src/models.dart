@@ -710,6 +710,64 @@ final class Town {
   };
 }
 
+/// カメラで調べない区域（schema/zone.schema.json）。タイルの応答の zones に入る。
+final class Zone {
+  final String id;
+  final String name;
+  final double lat;
+  final double lon;
+  final double radiusM;
+  final String reason;
+  Zone._({
+    required this.id,
+    required this.name,
+    required this.lat,
+    required this.lon,
+    required this.radiusM,
+    required this.reason,
+  });
+  factory Zone({
+    required String id,
+    required String name,
+    required double lat,
+    required double lon,
+    required double radiusM,
+    required String reason,
+  }) => Zone.fromJson({
+    "id": id,
+    "name": name,
+    "lat": lat,
+    "lon": lon,
+    "radius_m": radiusM,
+    "reason": reason,
+  });
+  factory Zone.fromJson(Map<String, dynamic> json) {
+    const keys = ["id", "name", "lat", "lon", "radius_m", "reason"];
+    wireKeys(json, keys, keys);
+    final result = Zone._(
+      id: wireString(json["id"], "id", pattern: r'^zn_\d{4}$'),
+      name: wireString(json["name"], "name", minLength: 1),
+      lat: wireDouble(json["lat"], "lat", min: -90, max: 90),
+      lon: wireDouble(json["lon"], "lon", min: -180, max: 180),
+      radiusM: wireDouble(json["radius_m"], "radius_m", min: 5, max: 300),
+      reason: wireString(
+        json["reason"],
+        "reason",
+        values: ["demo", "facility_rule", "indoor"],
+      ),
+    );
+    return result;
+  }
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "name": name,
+    "lat": lat,
+    "lon": lon,
+    "radius_m": radiusM,
+    "reason": reason,
+  };
+}
+
 final class TileResponse {
   final String schemaVersion;
   final TileId tile;
@@ -721,6 +779,10 @@ final class TileResponse {
   /// このタイルの中に代表点がある町丁目。端末に残っている古いタイルには無いので、無ければ空。
   final List<Town> towns;
   final bool _hasTowns;
+
+  /// カメラで調べない区域。古いタイルには無いので、無ければ空。
+  final List<Zone> zones;
+  final bool _hasZones;
   TileResponse._({
     required this.schemaVersion,
     required this.tile,
@@ -730,7 +792,10 @@ final class TileResponse {
     required this.events,
     required this.towns,
     required bool hasTowns,
-  }) : _hasTowns = hasTowns;
+    required this.zones,
+    required bool hasZones,
+  }) : _hasTowns = hasTowns,
+       _hasZones = hasZones;
   factory TileResponse({
     String schemaVersion = currentSchemaVersion,
     required TileId tile,
@@ -739,6 +804,7 @@ final class TileResponse {
     required List<Crossing> crossings,
     required List<LocalEvent> events,
     List<Town>? towns,
+    List<Zone>? zones,
   }) => TileResponse.fromJson({
     "schema_version": schemaVersion,
     "tile": tile.toJson(),
@@ -747,6 +813,7 @@ final class TileResponse {
     "crossings": crossings.map((item) => item.toJson()).toList(),
     "events": events.map((item) => item.toJson()).toList(),
     if (towns != null) "towns": towns.map((item) => item.toJson()).toList(),
+    if (zones != null) "zones": zones.map((item) => item.toJson()).toList(),
   });
   factory TileResponse.fromJson(Map<String, dynamic> json) {
     wireKeys(
@@ -760,6 +827,7 @@ final class TileResponse {
         "crossings",
         "events",
         "towns",
+        "zones",
       ],
     );
     final result = TileResponse._(
@@ -797,6 +865,14 @@ final class TileResponse {
             )
           : const [],
       hasTowns: json.containsKey("towns"),
+      zones: json.containsKey("zones")
+          ? wireList(
+              json["zones"],
+              "zones",
+              (value) => Zone.fromJson(wireMap(value, "zones")),
+            )
+          : const [],
+      hasZones: json.containsKey("zones"),
     );
     return result;
   }
@@ -808,6 +884,7 @@ final class TileResponse {
     "crossings": crossings.map((item) => item.toJson()).toList(),
     "events": events.map((item) => item.toJson()).toList(),
     if (_hasTowns) "towns": towns.map((item) => item.toJson()).toList(),
+    if (_hasZones) "zones": zones.map((item) => item.toJson()).toList(),
   };
 }
 

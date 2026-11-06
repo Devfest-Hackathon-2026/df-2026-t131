@@ -1152,6 +1152,201 @@ void main() {
     });
   });
 
+  group('カメラで調べない区域', () {
+    // 南へ秒速1.3m。中心は100m南・半径20m：62秒ごろ（80m地点）に入り、104秒ごろ（135m地点）に出る
+    const entered = 'speak:no_camera_zone_entered';
+    const exited = 'speak:no_camera_zone_exited';
+    Map<int, List<EngineEvent>> zoneTiles({
+      List<Landmark> landmarks = const [],
+    }) => {
+      0: [
+        tiles(0, landmarks, zones: [zone('zn_0001', -100, 0)]),
+      ],
+    };
+    List<double> capturesBetween(Sim sim, double from, double to) => [
+      for (final s in sim.searchSecs)
+        if (s >= from && s <= to) s.toDouble(),
+    ];
+
+    test('① 外 → 中 → 外：入った・出たを1回ずつ話し、中では撮らない', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(80, quality: goodQuality, extra: zoneTiles());
+      expect(sim.engine.view.noCameraZone?.id, 'zn_0001');
+      expect(sim.engine.view.noCameraZone?.name, '見本の区域zn_0001');
+      sim.run(160, from: 81, quality: goodQuality);
+      expect(sim.engine.view.noCameraZone, isNull);
+
+      final inAt = sim.secOf(sim.withReason(entered).single.tMs);
+      final outAt = sim.secOf(sim.withReason(exited).single.tMs);
+      expect(inAt, inInclusiveRange(60, 65));
+      expect(outAt, inInclusiveRange(102, 108));
+      expect(
+        sim.withReason(entered).single.text,
+        'ここからは、カメラで調べない区域です。画像での案内を止めます。',
+      );
+      expect(
+        sim.withReason(exited).single.text,
+        'カメラで調べない区域を出ました。画像での案内を再開します。',
+      );
+      expect(capturesBetween(sim, inAt, outAt), isEmpty);
+      expect(sim.withReason('search_skip:no_camera_zone'), isNotEmpty);
+      // 出たあとの B は通常どおり
+      expect(sim.searchSecs.where((s) => s > outAt), isNotEmpty);
+    });
+
+    test('② 境目（半径〜半径＋15m）を行き来しても、知らせは増えない', () {
+      // 85m地点（中心から15m）で入り、そのあと72m地点（28m）と85m地点を10秒ごとに行き来する
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        160,
+        pose: (sec) {
+          if (sec < 66) return southWalk(sec);
+          final near = ((sec - 66) ~/ 10).isEven;
+          return (
+            north: near ? -72.0 : -85.0,
+            east: 0.0,
+            speed: 0.0,
+            course: 180.0,
+          );
+        },
+        quality: goodQuality,
+        extra: zoneTiles(),
+      );
+      expect(sim.withReason(entered), hasLength(1));
+      expect(sim.withReason(exited), isEmpty);
+      expect(sim.engine.view.noCameraZone?.id, 'zn_0001');
+    });
+
+    test('③ 中で「調べて」：撮らずに決まった文で断り、出たあとに勝手に撮らない', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        160,
+        quality: goodQuality,
+        extra: {
+          ...zoneTiles(),
+          80: [SearchRequested(tMs: ms(80))],
+        },
+      );
+      final d = sim
+          .withReason('search_skip:no_camera_zone')
+          .firstWhere((x) => x.text != null);
+      expect(sim.secOf(d.tMs), 80);
+      expect(d.kind, 'search_skip');
+      expect(d.text, 'ここはカメラで調べない区域なので、調べられません。');
+      expect(sim.withReason('search:user_requested'), isEmpty);
+      expect(sim.withReason('speak:search_ack'), isEmpty);
+    });
+
+    test('④ 入る直前に撮った答えが区域の中で届いたら、話さずに捨てる', () {
+      // 60秒（中心から22m、まだ外）に撮り、答えは63秒（中）に届く
+      final sim = Sim(
+        const EngineConfig(),
+        answers([unknownFor, unknownFor, (id) => unlistedFor(id)]),
+      );
+      sim.run(90, quality: goodQuality, extra: zoneTiles());
+      expect(sim.searchSecs.take(3), [20, 40, 60]);
+      final d = sim.withReason('answer:in_no_camera_zone').single;
+      expect(sim.secOf(d.tMs), 63);
+      expect(sim.withReason('answer:unlisted_object'), isEmpty);
+    });
+
+    test('⑤ 「入った」を話す前に出たら、入った・出たの両方を話さない', () {
+      // 半径5mの区域を通り抜ける間（約55〜80秒）、ずっと読み上げ中
+      final sim = Sim(const EngineConfig());
+      sim.run(
+        120,
+        ttsSpeaking: (sec) => sec >= 50 && sec <= 85,
+        extra: {
+          0: [
+            tiles(0, const [], zones: [zone('zn_0001', -78, 0, radiusM: 5)]),
+          ],
+        },
+      );
+      expect(sim.withReason(entered), isEmpty);
+      expect(sim.withReason(exited), isEmpty);
+      expect(sim.speaks, isEmpty);
+    });
+
+    test('⑥ 区域の中に A のランドマークがあっても、A は話す（知らせのあとに）', () {
+      // 半径60mの区域（31秒ごろ入る）の奥にあるランドマークを、区域の中で話す
+      final lm = landmark('lm_0001', -110, 0);
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        120,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [lm], zones: [zone('zn_0001', -100, 0, radiusM: 60)]),
+          ],
+        },
+      );
+      final reasons = [
+        for (final d in sim.decisions)
+          if (d.text != null) d.reason,
+      ];
+      expect(reasons, containsAllInOrder([entered, 'speak:closest_approach']));
+      expect(sim.engine.toldIds, contains('lm_0001'));
+    });
+
+    test('⑦ zones の無い古いタイル：区域なしとして動く', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        120,
+        quality: goodQuality,
+        extra: {
+          0: [tiles(0, const [])],
+        },
+      );
+      expect(sim.engine.view.noCameraZone, isNull);
+      expect(sim.withReason('search_skip:no_camera_zone'), isEmpty);
+      expect(sim.searchSecs, containsAll([60, 80, 100]));
+    });
+
+    test('⑧ 同じログなら同じ結果', () {
+      List<Map<String, dynamic>> runOnce() {
+        final sim = Sim(const EngineConfig(), answer((id) => unlistedFor(id)));
+        sim.run(
+          160,
+          quality: goodQuality,
+          extra: {
+            ...zoneTiles(),
+            80: [SearchRequested(tMs: ms(80))],
+          },
+        );
+        return [for (final d in sim.decisions) d.toJson()];
+      }
+
+      expect(runOnce(), runOnce());
+    });
+
+    test('出てから60秒以内にまた入ったら、知らせは話さない（撮らないことは同じ）', () {
+      // 140m地点まで南へ歩いて（104秒ごろ出る）、引き返して北へ（123秒ごろまた入る）
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        200,
+        pose: (sec) {
+          const turn = 108;
+          if (sec <= turn) return southWalk(sec);
+          return (
+            north: -1.3 * turn + 1.3 * (sec - turn),
+            east: 0.0,
+            speed: 1.3,
+            course: 0.0,
+          );
+        },
+        quality: goodQuality,
+        extra: zoneTiles(),
+      );
+      expect(sim.withReason(entered), hasLength(1));
+      expect(sim.withReason(exited), hasLength(1));
+      final reentry = sim.decisions.where(
+        (d) =>
+            d.reason == 'search_skip:no_camera_zone' && sim.secOf(d.tMs) > 115,
+      );
+      expect(reentry, isNotEmpty);
+    });
+  });
+
   group('送るもの・画面に出す値', () {
     test('視線の方位は10°単位に丸めて送る', () {
       for (final (gaze, expected) in [(355.0, 0), (184.0, 180), (5.0, 10)]) {

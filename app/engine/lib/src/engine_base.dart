@@ -87,6 +87,21 @@ class Engine {
   String? _currentAreaId;
   final Map<String, Town> _towns = {};
 
+  // ---- カメラで調べない区域（CLAUDE.md 6章「B の仕様」、11/7 決定）----
+  final Map<String, Zone> _zones = {};
+
+  /// いま中にいる区域。入るのは半径以内、出るのは半径＋zoneExitMarginM より外（その間は前の状態のまま）。
+  final Set<String> _zonesInside = {};
+
+  /// 今回の滞在で「入った」を話した区域。話していなければ「出た」も話さない。
+  final Set<String> _zoneEntryAnnounced = {};
+
+  /// 区域ごとに最後に出た時刻。すぐまた入ったら知らせを話さない。
+  final Map<String, int> _zoneLastExitMs = {};
+
+  /// まだ話していない区域の知らせ（入った・出た）。警報の次、A より先に話す。
+  final List<_ZoneNotice> _zoneNotices = [];
+
   // ---- B：視界の定期検索 ----
   int _searchSeq = 0;
   int _searchCount = 0;
@@ -103,6 +118,7 @@ class Engine {
     if (base == null || restart == null) return base;
     return math.max(base, restart);
   }
+
   Vec2? _lastCapturePos;
   double? _lastCaptureGaze;
 
@@ -147,6 +163,24 @@ class Engine {
     return bestD > config.townMaxDistanceM ? null : best;
   }
 
+  /// いま中にいるカメラで調べない区域（中心がいちばん近いもの。同じなら ID の小さい方）。外なら null。
+  NoCameraZone? get noCameraZone {
+    if (_zonesInside.isEmpty) return null;
+    Zone? best;
+    var bestD = double.infinity;
+    for (final id in _zonesInside) {
+      final z = _zones[id]!;
+      final d = (_local(z.lat, z.lon) - _position).length;
+      if (d < bestD || (d == bestD && z.id.compareTo(best!.id) < 0)) {
+        best = z;
+        bestD = d;
+      }
+    }
+    return NoCameraZone(id: best!.id, name: best.name);
+  }
+
+  bool get _inNoCameraZone => _zonesInside.isNotEmpty;
+
   /// 話した対象（ランドマーク・エリア）の ID の一覧。読み取り専用。
   Set<String> get toldIds => Set.unmodifiable(_told);
 
@@ -159,6 +193,7 @@ class Engine {
         nearby: const [],
         currentArea: null,
         currentTown: null,
+        noCameraZone: null,
         nextSearchInMs: null,
         searchSkipReason: null,
         searching: false,
@@ -193,6 +228,7 @@ class Engine {
       nearby: nearby.take(config.candidateLimit).toList(),
       currentArea: currentArea,
       currentTown: currentTown,
+      noCameraZone: noCameraZone,
       nextSearchInMs:
           ref == null || _inflight != null || (left != null && left <= 0)
           ? null
@@ -250,6 +286,7 @@ class Engine {
     }
     _prefetch(s.tMs, out);
     _updateArea();
+    _updateZones(s.tMs);
     _tryNext(s.tMs, out);
     _maybeSearch(s, out);
   }
@@ -336,6 +373,46 @@ class Engine {
     }
     for (final t in e.tile.towns) {
       _towns[t.id] = t;
+    }
+    for (final z in e.tile.zones) {
+      _zones[z.id] = z; // 区域は円がかかるタイルすべてに入るので、ID で重複を除く
+    }
+  }
+
+  /// カメラで調べない区域に入った・出たを決め、知らせを積む。位置は平滑化したもの。
+  void _updateZones(int t) {
+    final ids = _zones.keys.toList()..sort();
+    for (final id in ids) {
+      final z = _zones[id]!;
+      final d = (_local(z.lat, z.lon) - _position).length;
+      final inside = _zonesInside.contains(id);
+      if (!inside && d <= z.radiusM) {
+        _zonesInside.add(id);
+        if (_zoneNotices.any((n) => n.zoneId == id && !n.entered)) {
+          // 「出た」を話す前にまた入った：「出た」を取り消す（「入った」は話してある）
+          _zoneNotices.removeWhere((n) => n.zoneId == id);
+          _zoneEntryAnnounced.add(id);
+          continue;
+        }
+        final exitAt = _zoneLastExitMs[id];
+        if (exitAt != null && t - exitAt < config.zoneAnnounceCooldownMs) {
+          continue; // すぐまた入った：知らせは話さない（撮らないことは同じ）
+        }
+        _zoneNotices.add(_ZoneNotice(zoneId: id, entered: true));
+      } else if (inside && d > z.radiusM + config.zoneExitMarginM) {
+        _zonesInside.remove(id);
+        _zoneLastExitMs[id] = t;
+        if (_zoneNotices.any((n) => n.zoneId == id && n.entered)) {
+          // 「入った」を話す前に出た：入った・出たの両方を話さない
+          _zoneNotices.removeWhere((n) => n.zoneId == id);
+        } else if (_zoneEntryAnnounced.remove(id)) {
+          _zoneNotices.add(_ZoneNotice(zoneId: id, entered: false));
+        }
+        if (!_inNoCameraZone &&
+            _lastSearchSkip == 'search_skip:no_camera_zone') {
+          _lastSearchSkip = null;
+        }
+      }
     }
   }
 
@@ -522,6 +599,29 @@ class Engine {
         priority: 1,
         interrupt: false,
         pauseMusic: true,
+        narrative: false,
+      );
+      return;
+    }
+
+    // カメラで調べない区域の知らせ：警報の次、A より先。割り込まず、話し終えるのを待つ。
+    if (_zoneNotices.isNotEmpty) {
+      if (_audioBlock(s) != null || busy) return;
+      final n = _zoneNotices.removeAt(0);
+      if (n.entered) _zoneEntryAnnounced.add(n.zoneId);
+      _speak(
+        out,
+        t: t,
+        reason: n.entered
+            ? 'speak:no_camera_zone_entered'
+            : 'speak:no_camera_zone_exited',
+        targetId: n.zoneId,
+        text: n.entered
+            ? 'ここからは、カメラで調べない区域です。画像での案内を止めます。'
+            : 'カメラで調べない区域を出ました。画像での案内を再開します。',
+        priority: 2,
+        interrupt: false,
+        pauseMusic: false,
         narrative: false,
       );
       return;
@@ -786,6 +886,10 @@ class Engine {
   void _maybeSearch(SensorFrame s, List<Command> out) {
     final t = s.tMs;
     if (_inflight != null) return; // 1件ずつ（結果か失敗、または諦めるまで次を出さない）
+    if (_inNoCameraZone) {
+      _searchSkipOnce(out, t, 'search_skip:no_camera_zone');
+      return;
+    }
 
     // 計測の間隔（既定20秒）は最後に撮った時刻から。最初の1枚は位置と向きが初めて取れてから（論点1・2）。
     final ref = _searchRefMs;
@@ -835,6 +939,10 @@ class Engine {
   /// 撮れなければ理由を残して依頼を終える（渡ったあとなどに勝手に撮らない）。
   void _onSearchRequested(SearchRequested e, List<Command> out) {
     final s = _sensor;
+    if (s != null && _inNoCameraZone) {
+      _refuseInNoCameraZone(s, e.tMs, out);
+      return;
+    }
     final String? skip;
     if (s == null) {
       skip = 'search_skip:gate_blocked'; // 位置や向きがまだ取れていない
@@ -859,6 +967,31 @@ class Engine {
       text: '検索します。',
       priority: 2,
       interrupt: _engineSpeaking(e.tMs) || s.ttsSpeaking,
+      pauseMusic: false,
+      narrative: false,
+      chime: false,
+    );
+  }
+
+  /// カメラで調べない区域の中で「調べて」と頼まれた：撮らずに決まった文で断り、依頼を終える
+  /// （出たあとに勝手に撮らない）。返事は「検索します」と同じく話している途中の A・B を止める。
+  /// 音声を出せない・警報を読み上げ中なら、理由だけ記録する。
+  void _refuseInNoCameraZone(SensorFrame s, int t, List<Command> out) {
+    const reason = 'search_skip:no_camera_zone';
+    _lastSearchSkip = reason;
+    if (_audioBlock(s) != null || _alertSpeaking(t)) {
+      _log(out, t, 'search_skip', reason, null, priority: 6);
+      return;
+    }
+    _speak(
+      out,
+      t: t,
+      kind: 'search_skip',
+      reason: reason,
+      targetId: noCameraZone!.id,
+      text: 'ここはカメラで調べない区域なので、調べられません。',
+      priority: 2,
+      interrupt: _engineSpeaking(t) || s.ttsSpeaking,
       pauseMusic: false,
       narrative: false,
       chime: false,
@@ -996,6 +1129,11 @@ class Engine {
     }
     _inflight = null;
     final t = e.tMs;
+    if (_inNoCameraZone) {
+      // 区域に入る前に撮った答えが、区域の中で届いた：話さずに捨てる
+      _logAnswer(out, t, 'answer:in_no_camera_zone', search.id, r);
+      return;
+    }
     if (t - search.capturedMs > config.visualFreshnessMs) {
       _logAnswer(out, t, 'answer:expired', search.id, r);
       return;
@@ -1148,6 +1286,18 @@ class Engine {
     final answer = _pendingAnswer;
     if (answer == null) return;
     _pendingAnswer = null;
+    if (_inNoCameraZone) {
+      // 待っている間に区域に入った：話さずに捨てる
+      _log(
+        out,
+        t,
+        'answer',
+        'answer:in_no_camera_zone',
+        answer.targetId,
+        priority: 6,
+      );
+      return;
+    }
     final requested = answer.search.requested;
     // 論点10：過去形・方向つき。方向は撮ったときの視線と、いまの進行方向の差。
     final direction = directionWord(
@@ -1269,6 +1419,9 @@ final class EngineView {
   /// いまいる町丁目（いちばん近い代表点）。わからなければ null。
   final Town? currentTown;
 
+  /// いま中にいるカメラで調べない区域。外なら null。中にいる間は B を撮らない。
+  final NoCameraZone? noCameraZone;
+
   /// B の次の計測までのミリ秒。0 なら計測できる状態待ち（ゲート・画質など）。
   /// 結果待ち・上限到達・センサー未着のときは null。
   final int? nextSearchInMs;
@@ -1291,6 +1444,7 @@ final class EngineView {
     required List<NearbyLandmark> nearby,
     required this.currentArea,
     required this.currentTown,
+    required this.noCameraZone,
     required this.nextSearchInMs,
     required this.searchSkipReason,
     required this.searching,
@@ -1306,6 +1460,19 @@ double townDistanceM(double lat1, double lon1, double lat2, double lon2) {
   final dx =
       (lon2 - lon1) * mPerDegLat * math.cos((lat1 + lat2) / 2 * math.pi / 180);
   return math.sqrt(dx * dx + dy * dy);
+}
+
+/// 画面に出すカメラで調べない区域。
+final class NoCameraZone {
+  final String id, name;
+  const NoCameraZone({required this.id, required this.name});
+}
+
+/// まだ話していない区域の知らせ。entered が true なら「入った」、false なら「出た」。
+final class _ZoneNotice {
+  final String zoneId;
+  final bool entered;
+  const _ZoneNotice({required this.zoneId, required this.entered});
 }
 
 /// 画面に出す近くのランドマーク。

@@ -33,3 +33,4 @@
 - タイルの応答の町丁目（`towns`、メンバー1の m1/tile-towns）に対応：`Town`、`TileResponse.towns`（無い古いタイルは空として読み、書き出しでも足さない）。
 - 立ち止まりの前倒しの「前に撮ってから」を30秒から10秒に下げた（間隔20秒より長く、前倒しにならなかったため）。
 - 今の町丁目 `Engine.currentTown`・`EngineView.currentTown` を追加：持っているタイルの町丁目のうち、いちばん近い代表点（距離が同じなら ID の小さい方）。`townMaxDistanceM`（800m）より遠ければ null。決め方は cloud/data/scripts/town_lookup.py と同じ。
+- カメラで調べない区域（メンバー1の決定・11/7）：`Zone`・`TileResponse.zones`（無い古いタイルも読める）。区域の中では B を撮らず、「調べて」は決まった文で断り、入る前に撮った答えは捨てる。入った・出たを決まった文で知らせる。`EngineView.noCameraZone`、定数 `zoneExitMarginM`（15m）・`zoneAnnounceCooldownMs`（60秒）、理由コード4つを追加。

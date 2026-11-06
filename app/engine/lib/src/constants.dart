@@ -95,6 +95,13 @@ final class EngineConfig {
   /// cloud/data/scripts/town_lookup.py の MAX_TOWN_DISTANCE_M と同じ値にする。
   final double townMaxDistanceM;
 
+  /// カメラで調べない区域を「出た」とみなすのは、半径にこれを足した距離より遠くなったとき（m）。
+  /// 境目でぶれて入った・出たを繰り返さないため。cloud/data/scripts/build_sqlite.py の ZONE_EXIT_MARGIN_M と同じ値。
+  final double zoneExitMarginM;
+
+  /// 同じ区域を出てからこれより早くまた入ったら、入った・出たの知らせを話さない（撮らないことは同じ）。
+  final int zoneAnnounceCooldownMs;
+
   const EngineConfig({
     this.sensorIntervalMs = 1000,
     this.defaultRadiusM = 25,
@@ -138,6 +145,8 @@ final class EngineConfig {
     this.longVersionStillMs = 5000,
     this.revisitMarginM = 10,
     this.townMaxDistanceM = 800,
+    this.zoneExitMarginM = 15,
+    this.zoneAnnounceCooldownMs = 60000,
   });
 }
 
@@ -163,6 +172,8 @@ final visualParts = visualPartLabels.keys.toList(growable: false);
 const reasonCodes = <String>{
   'speak:closest_approach',
   'speak:area_entered',
+  'speak:no_camera_zone_entered',
+  'speak:no_camera_zone_exited',
   'speak:long_version_still',
   'speak:alert_interrupt',
   'speak:alert',
@@ -187,6 +198,7 @@ const reasonCodes = <String>{
   'search_skip:gate_blocked',
   'search_skip:low_quality',
   'search_skip:limit_reached',
+  'search_skip:no_camera_zone',
   'answer:matched_landmark',
   'answer:landmark_feature',
   'answer:unlisted_object',
@@ -198,6 +210,7 @@ const reasonCodes = <String>{
   'answer:yield_to_narrative',
   'answer:whole_left_to_narrative',
   'answer:feature_before_intro',
+  'answer:in_no_camera_zone',
   'answer:error',
   'speak:search_ack',
   'skip:awaiting_search',

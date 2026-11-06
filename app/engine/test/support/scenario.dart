@@ -40,6 +40,7 @@ TilesLoaded tiles(
   List<Landmark> landmarks, {
   List<Crossing> crossings = const [],
   List<Town>? towns,
+  List<Zone>? zones,
 }) => TilesLoaded(
   tMs: ms(sec),
   tile: TileResponse(
@@ -49,7 +50,18 @@ TilesLoaded tiles(
     crossings: crossings,
     events: const [],
     towns: towns,
+    zones: zones,
   ),
+);
+
+/// 原点から north・east（m）の位置を中心にした、カメラで調べない区域。
+Zone zone(String id, double north, double east, {double radiusM = 20}) => Zone(
+  id: id,
+  name: '見本の区域$id',
+  lat: latAt(north),
+  lon: lonAt(east),
+  radiusM: radiusM,
+  reason: 'demo',
 );
 
 /// 原点から north・east（m）の位置に代表点がある町丁目。
