@@ -8,2193 +8,7005 @@
   "crossings": [
     {
       "id": "cr_0001",
+      "lat": 36.7001889,
+      "lon": 137.2065531,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0002",
+      "lat": 36.6890489,
+      "lon": 137.212233,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0003",
+      "lat": 36.6835199,
+      "lon": 137.2117169,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0004",
       "lat": 36.6991854,
       "lon": 137.2094847,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0002",
+      "id": "cr_0005",
       "lat": 36.698645,
       "lon": 137.211004,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0003",
+      "id": "cr_0006",
       "lat": 36.6979654,
       "lon": 137.2131705,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0004",
+      "id": "cr_0007",
+      "lat": 36.7028096,
+      "lon": 137.1995506,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0008",
+      "lat": 36.7123726,
+      "lon": 137.2012975,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0009",
+      "lat": 36.70954,
+      "lon": 137.2005802,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0010",
+      "lat": 36.7051093,
+      "lon": 137.1981748,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0011",
+      "lat": 36.7036395,
+      "lon": 137.1973874,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0012",
+      "lat": 36.6924582,
+      "lon": 137.203984,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0013",
+      "lat": 36.6668043,
+      "lon": 137.210054,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0014",
+      "lat": 36.6642568,
+      "lon": 137.2017348,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0015",
+      "lat": 36.6897683,
+      "lon": 137.2034275,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0016",
+      "lat": 36.6890355,
+      "lon": 137.2123922,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0017",
+      "lat": 36.6767134,
+      "lon": 137.2108524,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0018",
+      "lat": 36.6741725,
+      "lon": 137.2017244,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0019",
+      "lat": 36.6627626,
+      "lon": 137.2007479,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0020",
+      "lat": 36.6699639,
+      "lon": 137.2015873,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0021",
+      "lat": 36.6699539,
+      "lon": 137.2068478,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0022",
+      "lat": 36.676965,
+      "lon": 137.2018162,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0023",
+      "lat": 36.6838219,
+      "lon": 137.2080785,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0024",
+      "lat": 36.6618978,
+      "lon": 137.2138441,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0025",
+      "lat": 36.6900494,
+      "lon": 137.2089102,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0026",
+      "lat": 36.6891697,
+      "lon": 137.2088958,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0027",
+      "lat": 36.6890293,
+      "lon": 137.2088729,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0028",
+      "lat": 36.6620508,
+      "lon": 137.2097719,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0029",
+      "lat": 36.6833639,
+      "lon": 137.2189526,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0030",
+      "lat": 36.6835757,
+      "lon": 137.2106466,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0031",
+      "lat": 36.6866871,
+      "lon": 137.208511,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0032",
+      "lat": 36.6874388,
+      "lon": 137.2027964,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0033",
+      "lat": 36.6868462,
+      "lon": 137.2073012,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0034",
+      "lat": 36.6712959,
+      "lon": 137.2104299,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0035",
+      "lat": 36.6699603,
+      "lon": 137.2103299,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0036",
+      "lat": 36.6862341,
+      "lon": 137.2119529,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0037",
+      "lat": 36.6790062,
+      "lon": 137.214331,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0038",
+      "lat": 36.6789945,
+      "lon": 137.2111097,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0039",
+      "lat": 36.6795804,
+      "lon": 137.1991659,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0040",
+      "lat": 36.6668696,
+      "lon": 137.2066066,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0041",
+      "lat": 36.678965,
+      "lon": 137.2175293,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0042",
+      "lat": 36.6832955,
+      "lon": 137.215862,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0043",
       "lat": 36.6963644,
       "lon": 137.2130369,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0005",
+      "id": "cr_0044",
+      "lat": 36.69846,
+      "lon": 137.2054356,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0045",
+      "lat": 36.7000596,
+      "lon": 137.2064622,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0046",
+      "lat": 36.6959586,
+      "lon": 137.1942259,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0047",
       "lat": 36.6920947,
       "lon": 137.2088694,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0006",
+      "id": "cr_0048",
+      "lat": 36.6958047,
+      "lon": 137.1940874,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0049",
+      "lat": 36.6987663,
+      "lon": 137.1909058,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0050",
+      "lat": 36.698816,
+      "lon": 137.190979,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0051",
+      "lat": 36.6926079,
+      "lon": 137.2040347,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0052",
+      "lat": 36.6842264,
+      "lon": 137.1860774,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0053",
+      "lat": 36.6815767,
+      "lon": 137.1860525,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0054",
+      "lat": 36.6669684,
+      "lon": 137.2125852,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0055",
+      "lat": 36.6687274,
+      "lon": 137.2102164,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0056",
       "lat": 36.69197,
       "lon": 137.2114285,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0007",
+      "id": "cr_0057",
+      "lat": 36.6863542,
+      "lon": 137.2110403,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0058",
+      "lat": 36.6770075,
+      "lon": 137.2017156,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0059",
+      "lat": 36.6713448,
+      "lon": 137.2103546,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0060",
+      "lat": 36.6806838,
+      "lon": 137.201827,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0061",
+      "lat": 36.6833285,
+      "lon": 137.2018984,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0062",
+      "lat": 36.6888116,
+      "lon": 137.2156989,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0063",
+      "lat": 36.6887967,
+      "lon": 137.2187042,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0064",
+      "lat": 36.6814852,
+      "lon": 137.1860512,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0065",
+      "lat": 36.6817246,
+      "lon": 137.1843679,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0066",
       "lat": 36.7045661,
       "lon": 137.2093051,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0008",
+      "id": "cr_0067",
       "lat": 36.704326,
       "lon": 137.2091845,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0009",
+      "id": "cr_0068",
       "lat": 36.7051453,
       "lon": 137.2134761,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0010",
+      "id": "cr_0069",
+      "lat": 36.6672408,
+      "lon": 137.2176943,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0070",
+      "lat": 36.6668964,
+      "lon": 137.2125018,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0071",
+      "lat": 36.666789,
+      "lon": 137.2065986,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0072",
+      "lat": 36.6669408,
+      "lon": 137.2014888,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0073",
       "lat": 36.7041548,
       "lon": 137.2150283,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0011",
+      "id": "cr_0074",
       "lat": 36.7026309,
       "lon": 137.21414,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0012",
+      "id": "cr_0075",
       "lat": 36.6987982,
       "lon": 137.2160436,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0013",
+      "id": "cr_0076",
       "lat": 36.6985655,
       "lon": 137.2112351,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0014",
+      "id": "cr_0077",
       "lat": 36.6944746,
       "lon": 137.2093588,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0015",
+      "id": "cr_0078",
       "lat": 36.6923302,
       "lon": 137.2090144,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0016",
+      "id": "cr_0079",
       "lat": 36.6986032,
       "lon": 137.2111149,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0017",
+      "id": "cr_0080",
       "lat": 36.6923351,
       "lon": 137.2088659,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0018",
+      "id": "cr_0081",
       "lat": 36.6944738,
       "lon": 137.2092339,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0019",
+      "id": "cr_0082",
+      "lat": 36.6789579,
+      "lon": 137.2176854,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0083",
+      "lat": 36.6832881,
+      "lon": 137.2159856,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0084",
+      "lat": 36.6860662,
+      "lon": 137.2158471,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0085",
       "lat": 36.6958122,
       "lon": 137.2160619,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0020",
+      "id": "cr_0086",
+      "lat": 36.6630648,
+      "lon": 137.2097999,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0087",
       "lat": 36.6945098,
       "lon": 137.2129713,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0021",
+      "id": "cr_0088",
+      "lat": 36.6862112,
+      "lon": 137.2121269,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0089",
       "lat": 36.6979227,
       "lon": 137.2133036,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0022",
+      "id": "cr_0090",
       "lat": 36.691882,
       "lon": 137.2127081,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0023",
+      "id": "cr_0091",
+      "lat": 36.6741356,
+      "lon": 137.2106251,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0092",
       "lat": 36.6964023,
       "lon": 137.2131635,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0024",
+      "id": "cr_0093",
       "lat": 36.6948689,
       "lon": 137.2130094,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0025",
+      "id": "cr_0094",
+      "lat": 36.6835095,
+      "lon": 137.2118352,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0095",
       "lat": 36.7058378,
       "lon": 137.2160189,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0026",
+      "id": "cr_0096",
       "lat": 36.7080826,
       "lon": 137.2166497,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0027",
+      "id": "cr_0097",
+      "lat": 36.6833313,
+      "lon": 137.2019999,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0098",
+      "lat": 36.6794322,
+      "lon": 137.2018889,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0099",
+      "lat": 36.6893586,
+      "lon": 137.2067518,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0100",
+      "lat": 36.6741408,
+      "lon": 137.2071229,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0101",
+      "lat": 36.6768023,
+      "lon": 137.2073225,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0102",
+      "lat": 36.6860598,
+      "lon": 137.2157246,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0103",
+      "lat": 36.7006143,
+      "lon": 137.1890979,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0104",
+      "lat": 36.7016733,
+      "lon": 137.1880268,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0105",
+      "lat": 36.7071044,
+      "lon": 137.178233,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0106",
+      "lat": 36.7089275,
+      "lon": 137.1745564,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0107",
+      "lat": 36.7101565,
+      "lon": 137.171234,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0108",
+      "lat": 36.7108243,
+      "lon": 137.1693015,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0109",
+      "lat": 36.6621539,
+      "lon": 137.173534,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0110",
+      "lat": 36.6644989,
+      "lon": 137.1712676,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0111",
+      "lat": 36.6646328,
+      "lon": 137.17763,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0112",
+      "lat": 36.665865,
+      "lon": 137.1699363,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0113",
+      "lat": 36.6663831,
+      "lon": 137.1807384,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0114",
+      "lat": 36.6670064,
+      "lon": 137.1828406,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0115",
+      "lat": 36.6681528,
+      "lon": 137.1733245,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0116",
+      "lat": 36.6694371,
+      "lon": 137.1748891,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0117",
+      "lat": 36.6705613,
+      "lon": 137.1728019,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0118",
+      "lat": 36.6724031,
+      "lon": 137.1785495,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0119",
+      "lat": 36.6757328,
+      "lon": 137.1858319,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0120",
+      "lat": 36.6757757,
+      "lon": 137.1859352,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0121",
+      "lat": 36.6772989,
+      "lon": 137.1896496,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0122",
+      "lat": 36.6771778,
+      "lon": 137.1723522,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0123",
+      "lat": 36.6785403,
+      "lon": 137.1859889,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0124",
+      "lat": 36.6792174,
+      "lon": 137.1922249,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0125",
+      "lat": 36.6797867,
+      "lon": 137.186002,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0126",
+      "lat": 36.6798422,
+      "lon": 137.1858891,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0127",
+      "lat": 36.680489,
+      "lon": 137.1926769,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0128",
+      "lat": 36.6930768,
+      "lon": 137.1899103,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0129",
+      "lat": 36.6947402,
+      "lon": 137.1924563,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0130",
+      "lat": 36.6952902,
+      "lon": 137.173578,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0131",
+      "lat": 36.6951956,
+      "lon": 137.1728209,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0132",
+      "lat": 36.6965553,
+      "lon": 137.1813636,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0133",
+      "lat": 36.6969683,
+      "lon": 137.1929124,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0134",
+      "lat": 36.6971594,
+      "lon": 137.1696233,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0135",
+      "lat": 36.7089029,
+      "lon": 137.1743506,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0136",
+      "lat": 36.7009114,
+      "lon": 137.1962943,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0137",
+      "lat": 36.7026773,
+      "lon": 137.189719,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0138",
+      "lat": 36.7047062,
+      "lon": 137.1947172,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0139",
+      "lat": 36.7050446,
+      "lon": 137.1938453,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0140",
+      "lat": 36.7053685,
+      "lon": 137.1984239,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0141",
+      "lat": 36.7055005,
+      "lon": 137.1981476,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0142",
+      "lat": 36.7070035,
+      "lon": 137.1903261,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0143",
+      "lat": 36.7098508,
+      "lon": 137.1994499,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0144",
+      "lat": 36.7117264,
+      "lon": 137.1989153,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0145",
+      "lat": 36.708984,
+      "lon": 137.1744062,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0146",
+      "lat": 36.7089882,
+      "lon": 137.1745943,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0147",
+      "lat": 36.6931388,
+      "lon": 137.1898437,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0148",
+      "lat": 36.6947998,
+      "lon": 137.1923689,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0149",
+      "lat": 36.6957573,
+      "lon": 137.1938542,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0150",
+      "lat": 36.7097116,
+      "lon": 137.2005141,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0151",
+      "lat": 36.71238,
+      "lon": 137.2011813,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0152",
       "lat": 36.7035012,
       "lon": 137.216916,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0028",
+      "id": "cr_0153",
       "lat": 36.706711,
       "lon": 137.2163506,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0029",
+      "id": "cr_0154",
       "lat": 36.7068306,
       "lon": 137.216202,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0030",
+      "id": "cr_0155",
       "lat": 36.7069218,
       "lon": 137.2102965,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0031",
+      "id": "cr_0156",
       "lat": 36.7078268,
       "lon": 137.2106452,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0032",
+      "id": "cr_0157",
       "lat": 36.7122494,
       "lon": 137.2115792,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0033",
+      "id": "cr_0158",
+      "lat": 36.7127822,
+      "lon": 137.2191224,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0159",
       "lat": 36.6920191,
       "lon": 137.2184841,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0034",
+      "id": "cr_0160",
       "lat": 36.6938397,
       "lon": 137.2183673,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0035",
+      "id": "cr_0161",
+      "lat": 36.6969671,
+      "lon": 137.218846,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0162",
       "lat": 36.6970066,
       "lon": 137.2179202,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0036",
+      "id": "cr_0163",
+      "lat": 36.6815769,
+      "lon": 137.2162515,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0164",
+      "lat": 36.6860363,
+      "lon": 137.2152133,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0165",
+      "lat": 36.687422,
+      "lon": 137.2122213,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0166",
+      "lat": 36.6880745,
+      "lon": 137.2122827,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0167",
+      "lat": 36.6897702,
+      "lon": 137.2124704,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0168",
+      "lat": 36.6897816,
+      "lon": 137.2123181,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0169",
       "lat": 36.6918052,
       "lon": 137.2148264,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0037",
+      "id": "cr_0170",
       "lat": 36.6918411,
       "lon": 137.2138576,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0038",
+      "id": "cr_0171",
       "lat": 36.6958379,
       "lon": 137.2097511,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0039",
+      "id": "cr_0172",
       "lat": 36.6975141,
       "lon": 137.2146321,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0040",
+      "id": "cr_0173",
       "lat": 36.6975862,
       "lon": 137.2146388,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0041",
+      "id": "cr_0174",
+      "lat": 36.69781,
+      "lon": 137.2193329,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0175",
+      "lat": 36.6980958,
+      "lon": 137.2186035,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0176",
       "lat": 36.6983854,
       "lon": 137.2118301,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0042",
+      "id": "cr_0177",
       "lat": 36.6988811,
       "lon": 137.2132396,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0043",
+      "id": "cr_0178",
       "lat": 36.6994763,
       "lon": 137.2117988,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0044",
+      "id": "cr_0179",
+      "lat": 36.6667145,
+      "lon": 137.2100496,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0180",
+      "lat": 36.6673157,
+      "lon": 137.2177463,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0181",
+      "lat": 36.6741839,
+      "lon": 137.2142011,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0182",
+      "lat": 36.6874368,
+      "lon": 137.2120666,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0183",
+      "lat": 36.6880963,
+      "lon": 137.2121452,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0184",
+      "lat": 36.6921369,
+      "lon": 137.2072651,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0185",
+      "lat": 36.6922058,
+      "lon": 137.207279,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0186",
+      "lat": 36.6923344,
+      "lon": 137.2053132,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0187",
+      "lat": 36.6923005,
+      "lon": 137.2072937,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0188",
+      "lat": 36.6924369,
+      "lon": 137.2053203,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0189",
+      "lat": 36.6944662,
+      "lon": 137.2076641,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0190",
       "lat": 36.6957878,
       "lon": 137.2079899,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0045",
+      "id": "cr_0191",
       "lat": 36.6991049,
       "lon": 137.209421,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0046",
+      "id": "cr_0192",
       "lat": 36.6995093,
       "lon": 137.2116899,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0047",
+      "id": "cr_0193",
       "lat": 36.7008527,
       "lon": 137.2117403,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0048",
+      "id": "cr_0194",
       "lat": 36.7023368,
       "lon": 137.2080305,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0049",
+      "id": "cr_0195",
       "lat": 36.7006263,
       "lon": 137.2124331,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0050",
+      "id": "cr_0196",
       "lat": 36.69908,
       "lon": 137.213072,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0051",
+      "id": "cr_0197",
       "lat": 36.6990865,
       "lon": 137.2132084,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0052",
+      "id": "cr_0198",
       "lat": 36.7004833,
       "lon": 137.2124086,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0053",
+      "id": "cr_0199",
       "lat": 36.7005245,
       "lon": 137.2123204,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0054",
+      "id": "cr_0200",
       "lat": 36.6958572,
       "lon": 137.2099009,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0055",
+      "id": "cr_0201",
+      "lat": 36.7002557,
+      "lon": 137.2068925,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0202",
       "lat": 36.6990157,
       "lon": 137.2133479,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0056",
+      "id": "cr_0203",
       "lat": 36.6918067,
       "lon": 137.2113148,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0057",
+      "id": "cr_0204",
       "lat": 36.6973662,
       "lon": 137.2153723,
       "kind": "crossing"
     },
     {
-      "id": "cr_0058",
+      "id": "cr_0205",
+      "lat": 36.688963,
+      "lon": 137.2146727,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0206",
       "lat": 36.691897,
       "lon": 137.2114816,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0059",
+      "id": "cr_0207",
       "lat": 36.6919072,
       "lon": 137.2112212,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0060",
+      "id": "cr_0208",
       "lat": 36.6920913,
       "lon": 137.2089764,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0061",
+      "id": "cr_0209",
       "lat": 36.6921906,
       "lon": 137.2088729,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0062",
+      "id": "cr_0210",
+      "lat": 36.6887125,
+      "lon": 137.2157068,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0211",
+      "lat": 36.6887144,
+      "lon": 137.2155789,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0212",
+      "lat": 36.6887539,
+      "lon": 137.2158539,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0213",
+      "lat": 36.6887836,
+      "lon": 137.2145952,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0214",
+      "lat": 36.6888124,
+      "lon": 137.2155838,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0215",
+      "lat": 36.6888384,
+      "lon": 137.2137645,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0216",
+      "lat": 36.6889176,
+      "lon": 137.2123729,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0217",
+      "lat": 36.6889252,
+      "lon": 137.2122206,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0218",
+      "lat": 36.6889319,
+      "lon": 137.2137714,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0219",
       "lat": 36.6948288,
       "lon": 137.2128612,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0063",
+      "id": "cr_0220",
+      "lat": 36.6981276,
+      "lon": 137.1792134,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0221",
       "lat": 36.694513,
       "lon": 137.2128425,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0064",
+      "id": "cr_0222",
       "lat": 36.6921869,
       "lon": 137.209,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0065",
+      "id": "cr_0223",
       "lat": 36.6918907,
       "lon": 137.2125649,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0066",
+      "id": "cr_0224",
+      "lat": 36.6960264,
+      "lon": 137.2048842,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0225",
+      "lat": 36.6968923,
+      "lon": 137.1927789,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0226",
+      "lat": 36.6889389,
+      "lon": 137.2136806,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0227",
+      "lat": 36.6670221,
+      "lon": 137.1857321,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0228",
+      "lat": 36.6620502,
+      "lon": 137.2099897,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0229",
+      "lat": 36.6748377,
+      "lon": 137.1718832,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0230",
+      "lat": 36.6792552,
+      "lon": 137.2075026,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0231",
+      "lat": 36.6907847,
+      "lon": 137.1863634,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0232",
+      "lat": 36.6745859,
+      "lon": 137.1830667,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0233",
+      "lat": 36.6833803,
+      "lon": 137.2118131,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0234",
+      "lat": 36.6843417,
+      "lon": 137.2020458,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0235",
+      "lat": 36.6672168,
+      "lon": 137.1857942,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0236",
+      "lat": 36.6980206,
+      "lon": 137.2185556,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0237",
+      "lat": 36.6977267,
+      "lon": 137.2192821,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0238",
       "lat": 36.7052366,
       "lon": 137.2153292,
       "kind": "crossing"
     },
     {
-      "id": "cr_0067",
+      "id": "cr_0239",
       "lat": 36.7042196,
       "lon": 137.2147315,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0068",
+      "id": "cr_0240",
       "lat": 36.7027357,
       "lon": 137.2138534,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0069",
+      "id": "cr_0241",
+      "lat": 36.7001648,
+      "lon": 137.2069046,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0242",
       "lat": 36.6992434,
       "lon": 137.2095238,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0070",
+      "id": "cr_0243",
+      "lat": 36.6923467,
+      "lon": 137.2073018,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0244",
+      "lat": 36.6955849,
+      "lon": 137.1948786,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0245",
+      "lat": 36.7006365,
+      "lon": 137.1892016,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0246",
+      "lat": 36.6968628,
+      "lon": 137.1927325,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0247",
+      "lat": 36.7005928,
+      "lon": 137.1890005,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0248",
+      "lat": 36.69454,
+      "lon": 137.1964993,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0249",
+      "lat": 36.6920044,
+      "lon": 137.2039656,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0250",
+      "lat": 36.6903051,
+      "lon": 137.2034408,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0251",
+      "lat": 36.6912833,
+      "lon": 137.2036331,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0252",
+      "lat": 36.6920186,
+      "lon": 137.2037736,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0253",
       "lat": 36.691894,
       "lon": 137.2105935,
       "kind": "crossing"
     },
     {
-      "id": "cr_0071",
+      "id": "cr_0254",
       "lat": 36.6919722,
       "lon": 137.2097541,
       "kind": "crossing"
     },
     {
-      "id": "cr_0072",
+      "id": "cr_0255",
+      "lat": 36.6912646,
+      "lon": 137.2113486,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0256",
+      "lat": 36.6886843,
+      "lon": 137.2146082,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0257",
+      "lat": 36.6887475,
+      "lon": 137.213758,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0258",
+      "lat": 36.6887982,
+      "lon": 137.2130856,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0259",
+      "lat": 36.6880627,
+      "lon": 137.2123881,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0260",
+      "lat": 36.6881124,
+      "lon": 137.2120452,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0261",
+      "lat": 36.6889196,
+      "lon": 137.2114039,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0262",
+      "lat": 36.6886159,
+      "lon": 137.2171494,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0263",
+      "lat": 36.6901452,
+      "lon": 137.2125862,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0264",
       "lat": 36.6913889,
       "lon": 137.2127463,
       "kind": "crossing"
     },
     {
-      "id": "cr_0073",
+      "id": "cr_0265",
       "lat": 36.6917533,
       "lon": 137.213851,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0074",
+      "id": "cr_0266",
       "lat": 36.6917109,
       "lon": 137.2148232,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0075",
+      "id": "cr_0267",
+      "lat": 36.6912565,
+      "lon": 137.2156661,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0268",
+      "lat": 36.6908178,
+      "lon": 137.2156408,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0269",
       "lat": 36.691898,
       "lon": 137.2148301,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0076",
+      "id": "cr_0270",
       "lat": 36.6919325,
       "lon": 137.2138661,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0077",
+      "id": "cr_0271",
       "lat": 36.695315,
       "lon": 137.2145716,
       "kind": "crossing"
     },
     {
-      "id": "cr_0078",
+      "id": "cr_0272",
       "lat": 36.6958411,
       "lon": 137.2158736,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0079",
+      "id": "cr_0273",
       "lat": 36.6954597,
       "lon": 137.2158748,
       "kind": "crossing"
     },
     {
-      "id": "cr_0080",
+      "id": "cr_0274",
       "lat": 36.6974346,
       "lon": 137.2145996,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0081",
+      "id": "cr_0275",
       "lat": 36.6991779,
       "lon": 137.2133253,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0082",
+      "id": "cr_0276",
       "lat": 36.6996892,
       "lon": 137.2142044,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0083",
+      "id": "cr_0277",
+      "lat": 36.689043,
+      "lon": 137.2113837,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0278",
+      "lat": 36.6906973,
+      "lon": 137.1864434,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0279",
+      "lat": 36.6890539,
+      "lon": 137.2111727,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0280",
       "lat": 36.6913129,
       "lon": 137.2123938,
       "kind": "crossing"
     },
     {
-      "id": "cr_0084",
+      "id": "cr_0281",
+      "lat": 36.6912999,
+      "lon": 137.2115752,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0282",
       "lat": 36.6978633,
       "lon": 137.2134826,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0085",
+      "id": "cr_0283",
       "lat": 36.6964404,
       "lon": 137.2132886,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0086",
+      "id": "cr_0284",
       "lat": 36.6945328,
       "lon": 137.2130759,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0087",
+      "id": "cr_0285",
       "lat": 36.6940169,
       "lon": 137.2130201,
       "kind": "crossing"
     },
     {
-      "id": "cr_0088",
+      "id": "cr_0286",
       "lat": 36.693646,
       "lon": 137.2129873,
       "kind": "crossing"
     },
     {
-      "id": "cr_0089",
+      "id": "cr_0287",
       "lat": 36.6931244,
       "lon": 137.21293,
       "kind": "crossing"
     },
     {
-      "id": "cr_0090",
+      "id": "cr_0288",
       "lat": 36.6928186,
       "lon": 137.2128996,
       "kind": "crossing"
     },
     {
-      "id": "cr_0091",
+      "id": "cr_0289",
       "lat": 36.6924089,
       "lon": 137.2128641,
       "kind": "crossing"
     },
     {
-      "id": "cr_0092",
+      "id": "cr_0290",
+      "lat": 36.6826726,
+      "lon": 137.1744385,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0291",
+      "lat": 36.6805998,
+      "lon": 137.1927317,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0292",
+      "lat": 36.6817903,
+      "lon": 137.1843649,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0293",
+      "lat": 36.6806623,
+      "lon": 137.1927626,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0294",
+      "lat": 36.6930389,
+      "lon": 137.1899624,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0295",
+      "lat": 36.6842482,
+      "lon": 137.1858776,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0296",
+      "lat": 36.6672145,
+      "lon": 137.185689,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0297",
+      "lat": 36.6785403,
+      "lon": 137.1858778,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0298",
+      "lat": 36.6815012,
+      "lon": 137.1859362,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0299",
+      "lat": 36.6815931,
+      "lon": 137.1859347,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0300",
+      "lat": 36.6842362,
+      "lon": 137.1859892,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0301",
+      "lat": 36.6668758,
+      "lon": 137.2014924,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0302",
+      "lat": 36.6671078,
+      "lon": 137.1857969,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0303",
+      "lat": 36.6671072,
+      "lon": 137.1856978,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0304",
+      "lat": 36.6669536,
+      "lon": 137.1828588,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0305",
+      "lat": 36.6663169,
+      "lon": 137.1807917,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0306",
+      "lat": 36.6645639,
+      "lon": 137.1776433,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0307",
+      "lat": 36.6886493,
+      "lon": 137.21871,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0308",
+      "lat": 36.6789994,
+      "lon": 137.2110258,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0309",
+      "lat": 36.6767109,
+      "lon": 137.2109397,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0310",
+      "lat": 36.6741383,
+      "lon": 137.2107419,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0311",
+      "lat": 36.6712241,
+      "lon": 137.210533,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0312",
+      "lat": 36.6699605,
+      "lon": 137.2104402,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0313",
+      "lat": 36.6687191,
+      "lon": 137.2103311,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0314",
+      "lat": 36.6667977,
+      "lon": 137.2101699,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0315",
+      "lat": 36.6667086,
+      "lon": 137.2101653,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0316",
+      "lat": 36.6620505,
+      "lon": 137.2098824,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0317",
+      "lat": 36.7046403,
+      "lon": 137.194678,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0318",
+      "lat": 36.7029208,
+      "lon": 137.1989119,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0319",
+      "lat": 36.6789016,
+      "lon": 137.1731096,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0320",
+      "lat": 36.6771558,
+      "lon": 137.1724282,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0321",
+      "lat": 36.677221,
+      "lon": 137.1721967,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0322",
+      "lat": 36.6670613,
+      "lon": 137.1828247,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0323",
+      "lat": 36.6664258,
+      "lon": 137.1806999,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0324",
+      "lat": 36.664696,
+      "lon": 137.1776121,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0325",
+      "lat": 36.6659355,
+      "lon": 137.1700433,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0326",
+      "lat": 36.6680687,
+      "lon": 137.1732302,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0327",
+      "lat": 36.6657668,
+      "lon": 137.1697886,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0328",
+      "lat": 36.6620965,
+      "lon": 137.1735947,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0329",
+      "lat": 36.664474,
+      "lon": 137.1776727,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0330",
+      "lat": 36.6661854,
+      "lon": 137.1809048,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0331",
+      "lat": 36.6668913,
+      "lon": 137.1828759,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0332",
+      "lat": 36.6670054,
+      "lon": 137.212619,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0333",
+      "lat": 36.6671506,
+      "lon": 137.2147213,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0334",
+      "lat": 36.6673554,
+      "lon": 137.2177682,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0335",
+      "lat": 36.6668325,
+      "lon": 137.212436,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0336",
+      "lat": 36.6874451,
+      "lon": 137.2119774,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0337",
+      "lat": 36.6865761,
+      "lon": 137.2119034,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0338",
+      "lat": 36.6862454,
+      "lon": 137.2118618,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0339",
+      "lat": 36.6856068,
+      "lon": 137.2118032,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0340",
+      "lat": 36.6852574,
+      "lon": 137.2117641,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0341",
+      "lat": 36.6846286,
+      "lon": 137.211706,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0342",
+      "lat": 36.6874125,
+      "lon": 137.2123297,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0343",
+      "lat": 36.6861982,
+      "lon": 137.2122154,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0344",
+      "lat": 36.6848,
+      "lon": 137.2120665,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0345",
+      "lat": 36.6827489,
+      "lon": 137.2117858,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0346",
+      "lat": 36.682671,
+      "lon": 137.2117658,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0347",
+      "lat": 36.6815717,
+      "lon": 137.2114355,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0348",
+      "lat": 36.6836623,
+      "lon": 137.2106575,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0349",
+      "lat": 36.6866719,
+      "lon": 137.2086227,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0350",
+      "lat": 36.689003,
+      "lon": 137.2097704,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0351",
+      "lat": 36.6889707,
+      "lon": 137.2103493,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0352",
+      "lat": 36.6834975,
+      "lon": 137.2106377,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0353",
       "lat": 36.6991763,
       "lon": 137.2161525,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0093",
+      "id": "cr_0354",
       "lat": 36.6978701,
       "lon": 137.2137267,
       "kind": "crossing"
     },
     {
-      "id": "cr_0094",
+      "id": "cr_0355",
       "lat": 36.6920987,
       "lon": 137.2184803,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0095",
+      "id": "cr_0356",
       "lat": 36.6919122,
       "lon": 137.2184944,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0096",
+      "id": "cr_0357",
       "lat": 36.6959153,
       "lon": 137.2161248,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0097",
+      "id": "cr_0358",
       "lat": 36.6980261,
       "lon": 137.2129733,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0098",
+      "id": "cr_0359",
       "lat": 36.6963307,
       "lon": 137.2129239,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0099",
+      "id": "cr_0360",
       "lat": 36.694807,
       "lon": 137.2127624,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0100",
+      "id": "cr_0361",
       "lat": 36.6957754,
       "lon": 137.2159576,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0101",
+      "id": "cr_0362",
+      "lat": 36.6892095,
+      "lon": 137.2105767,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0363",
+      "lat": 36.6892599,
+      "lon": 137.2098152,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0364",
+      "lat": 36.6900391,
+      "lon": 137.2090232,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0365",
       "lat": 36.7029011,
       "lon": 137.218371,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0102",
+      "id": "cr_0366",
       "lat": 36.7016493,
       "lon": 137.217604,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0103",
+      "id": "cr_0367",
       "lat": 36.7003676,
       "lon": 137.2132589,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0104",
+      "id": "cr_0368",
       "lat": 36.7020029,
       "lon": 137.2090603,
       "kind": "crossing"
     },
     {
-      "id": "cr_0105",
+      "id": "cr_0369",
       "lat": 36.6987984,
       "lon": 137.2161767,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0106",
+      "id": "cr_0370",
+      "lat": 36.6842108,
+      "lon": 137.1862188,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0371",
       "lat": 36.7091197,
       "lon": 137.2107756,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0107",
+      "id": "cr_0372",
+      "lat": 36.6790661,
+      "lon": 137.2145063,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0373",
+      "lat": 36.6790679,
+      "lon": 137.2144117,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0374",
+      "lat": 36.6788599,
+      "lon": 137.2143257,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0375",
+      "lat": 36.6971316,
+      "lon": 137.2051003,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0376",
+      "lat": 36.6989717,
+      "lon": 137.1821001,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0377",
       "lat": 36.7015937,
       "lon": 137.2100932,
       "kind": "crossing"
     },
     {
-      "id": "cr_0108",
+      "id": "cr_0378",
       "lat": 36.7121987,
       "lon": 137.2116803,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0109",
+      "id": "cr_0379",
       "lat": 36.7111607,
       "lon": 137.2110512,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0110",
+      "id": "cr_0380",
       "lat": 36.7034209,
       "lon": 137.2121544,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0111",
+      "id": "cr_0381",
       "lat": 36.7033025,
       "lon": 137.2120903,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0112",
+      "id": "cr_0382",
       "lat": 36.7047191,
       "lon": 137.2150279,
       "kind": "crossing"
     },
     {
-      "id": "cr_0113",
+      "id": "cr_0383",
+      "lat": 36.6825906,
+      "lon": 137.1745011,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0384",
       "lat": 36.7006903,
       "lon": 137.2122754,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0114",
+      "id": "cr_0385",
       "lat": 36.7003861,
       "lon": 137.2130354,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0115",
+      "id": "cr_0386",
       "lat": 36.7005826,
       "lon": 137.2122054,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0116",
+      "id": "cr_0387",
       "lat": 36.697785,
       "lon": 137.213168,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0117",
+      "id": "cr_0388",
       "lat": 36.6977441,
       "lon": 137.2132957,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0118",
+      "id": "cr_0389",
       "lat": 36.6981474,
       "lon": 137.2131613,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0119",
+      "id": "cr_0390",
       "lat": 36.6981139,
       "lon": 137.2132983,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0120",
+      "id": "cr_0391",
+      "lat": 36.6904815,
+      "lon": 137.2156238,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0392",
       "lat": 36.6985413,
       "lon": 137.2113474,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0121",
+      "id": "cr_0393",
       "lat": 36.6984006,
       "lon": 137.2117797,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0122",
+      "id": "cr_0394",
       "lat": 36.698359,
       "lon": 137.211915,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0123",
+      "id": "cr_0395",
       "lat": 36.6992159,
       "lon": 137.2093822,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0124",
+      "id": "cr_0396",
       "lat": 36.6991538,
       "lon": 137.2095652,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0125",
+      "id": "cr_0397",
+      "lat": 36.7002431,
+      "lon": 137.2063991,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0398",
+      "lat": 36.7000786,
+      "lon": 137.2068797,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0399",
       "lat": 36.7003923,
       "lon": 137.209128,
       "kind": "crossing"
     },
     {
-      "id": "cr_0126",
+      "id": "cr_0400",
       "lat": 36.7003015,
       "lon": 137.2091625,
       "kind": "crossing"
     },
     {
-      "id": "cr_0127",
+      "id": "cr_0401",
       "lat": 36.7003488,
       "lon": 137.2091456,
       "kind": "crossing"
     },
     {
-      "id": "cr_0128",
+      "id": "cr_0402",
       "lat": 36.6988772,
       "lon": 137.2130884,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0129",
+      "id": "cr_0403",
       "lat": 36.6992655,
       "lon": 137.2131915,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0130",
+      "id": "cr_0404",
       "lat": 36.7009132,
       "lon": 137.211596,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0131",
+      "id": "cr_0405",
       "lat": 36.7007099,
       "lon": 137.2116609,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0132",
+      "id": "cr_0406",
       "lat": 36.7002506,
       "lon": 137.2129428,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0133",
+      "id": "cr_0407",
       "lat": 36.700192,
       "lon": 137.2134871,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0134",
+      "id": "cr_0408",
       "lat": 36.7000727,
       "lon": 137.213404,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0135",
+      "id": "cr_0409",
       "lat": 36.6998723,
       "lon": 137.2142326,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0136",
+      "id": "cr_0410",
       "lat": 36.6997936,
       "lon": 137.2144104,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0137",
+      "id": "cr_0411",
       "lat": 36.6997618,
       "lon": 137.2141629,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0138",
+      "id": "cr_0412",
       "lat": 36.6996877,
       "lon": 137.2143472,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0139",
+      "id": "cr_0413",
       "lat": 36.6991774,
       "lon": 137.2159523,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0140",
+      "id": "cr_0414",
       "lat": 36.6990634,
       "lon": 137.2158871,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0141",
+      "id": "cr_0415",
       "lat": 36.6989805,
       "lon": 137.2163466,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0142",
+      "id": "cr_0416",
       "lat": 36.6988793,
       "lon": 137.2163031,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0143",
+      "id": "cr_0417",
+      "lat": 36.6891855,
+      "lon": 137.2113763,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0418",
+      "lat": 36.6891943,
+      "lon": 137.2112838,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0419",
+      "lat": 36.6912054,
+      "lon": 137.2114217,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0420",
+      "lat": 36.6912126,
+      "lon": 137.2115064,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0421",
       "lat": 36.6913728,
       "lon": 137.211491,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0144",
+      "id": "cr_0422",
+      "lat": 36.6900612,
+      "lon": 137.2087829,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0423",
+      "lat": 36.674165,
+      "lon": 137.2019035,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0424",
+      "lat": 36.684323,
+      "lon": 137.201934,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0425",
+      "lat": 36.688868,
+      "lon": 137.2171301,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0426",
+      "lat": 36.6889176,
+      "lon": 137.2186969,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0427",
       "lat": 36.6954099,
       "lon": 137.2145167,
       "kind": "crossing"
     },
     {
-      "id": "cr_0145",
+      "id": "cr_0428",
       "lat": 36.7090975,
       "lon": 137.2106284,
       "kind": "crossing"
     },
     {
-      "id": "cr_0146",
+      "id": "cr_0429",
       "lat": 36.7078555,
       "lon": 137.2105309,
       "kind": "crossing"
     },
     {
-      "id": "cr_0147",
+      "id": "cr_0430",
+      "lat": 36.6741725,
+      "lon": 137.2015725,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0431",
+      "lat": 36.676717,
+      "lon": 137.2107223,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0432",
+      "lat": 36.6630622,
+      "lon": 137.2099199,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0433",
       "lat": 36.696796,
       "lon": 137.2129738,
       "kind": "crossing"
     },
     {
-      "id": "cr_0148",
+      "id": "cr_0434",
+      "lat": 36.6671084,
+      "lon": 137.1859428,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0435",
+      "lat": 36.6672172,
+      "lon": 137.1859431,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0436",
+      "lat": 36.6672056,
+      "lon": 137.1855589,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0437",
+      "lat": 36.6671024,
+      "lon": 137.1855645,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0438",
+      "lat": 36.6673748,
+      "lon": 137.1857922,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0439",
+      "lat": 36.667375,
+      "lon": 137.1856905,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0440",
       "lat": 36.7058446,
       "lon": 137.2141821,
       "kind": "crossing"
     },
     {
-      "id": "cr_0149",
+      "id": "cr_0441",
       "lat": 36.7058536,
       "lon": 137.2145385,
       "kind": "crossing"
     },
     {
-      "id": "cr_0150",
+      "id": "cr_0442",
       "lat": 36.7058171,
       "lon": 137.2146719,
       "kind": "crossing"
     },
     {
-      "id": "cr_0151",
+      "id": "cr_0443",
       "lat": 36.7058675,
       "lon": 137.2147452,
       "kind": "crossing"
     },
     {
-      "id": "cr_0152",
+      "id": "cr_0444",
       "lat": 36.7064703,
       "lon": 137.2136788,
       "kind": "crossing"
     },
     {
-      "id": "cr_0153",
+      "id": "cr_0445",
       "lat": 36.7065772,
       "lon": 137.2135796,
       "kind": "crossing"
     },
     {
-      "id": "cr_0154",
+      "id": "cr_0446",
       "lat": 36.7062034,
       "lon": 137.2139302,
       "kind": "crossing"
     },
     {
-      "id": "cr_0155",
+      "id": "cr_0447",
       "lat": 36.7056267,
       "lon": 137.2137775,
       "kind": "crossing"
     },
     {
-      "id": "cr_0156",
+      "id": "cr_0448",
       "lat": 36.7054972,
       "lon": 137.2139136,
       "kind": "crossing"
     },
     {
-      "id": "cr_0157",
+      "id": "cr_0449",
       "lat": 36.705278,
       "lon": 137.2135743,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0158",
+      "id": "cr_0450",
       "lat": 36.7053076,
       "lon": 137.213347,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0159",
+      "id": "cr_0451",
       "lat": 36.7068785,
       "lon": 137.2104648,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0160",
+      "id": "cr_0452",
       "lat": 36.7070778,
       "lon": 137.2103273,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0161",
+      "id": "cr_0453",
       "lat": 36.7069712,
       "lon": 137.210127,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0162",
+      "id": "cr_0454",
       "lat": 36.7081386,
       "lon": 137.2165873,
       "kind": "crossing"
     },
     {
-      "id": "cr_0163",
+      "id": "cr_0455",
       "lat": 36.7081499,
       "lon": 137.2166867,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0164",
+      "id": "cr_0456",
       "lat": 36.7080356,
       "lon": 137.2166955,
       "kind": "crossing"
     },
     {
-      "id": "cr_0165",
+      "id": "cr_0457",
       "lat": 36.708004,
       "lon": 137.2166114,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0166",
+      "id": "cr_0458",
       "lat": 36.7121186,
       "lon": 137.2118851,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0167",
+      "id": "cr_0459",
       "lat": 36.712087,
       "lon": 137.2116185,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0168",
+      "id": "cr_0460",
       "lat": 36.7113822,
       "lon": 137.2133263,
       "kind": "crossing"
     },
     {
-      "id": "cr_0169",
+      "id": "cr_0461",
       "lat": 36.71135,
       "lon": 137.2134999,
       "kind": "crossing"
     },
     {
-      "id": "cr_0170",
+      "id": "cr_0462",
       "lat": 36.7111956,
       "lon": 137.2135492,
       "kind": "crossing"
     },
     {
-      "id": "cr_0171",
+      "id": "cr_0463",
       "lat": 36.7106257,
       "lon": 137.2141936,
       "kind": "crossing"
     },
     {
-      "id": "cr_0172",
+      "id": "cr_0464",
       "lat": 36.7097559,
       "lon": 137.2140542,
       "kind": "crossing"
     },
     {
-      "id": "cr_0173",
+      "id": "cr_0465",
       "lat": 36.7091266,
       "lon": 137.2140743,
       "kind": "crossing"
     },
     {
-      "id": "cr_0174",
+      "id": "cr_0466",
       "lat": 36.7082711,
       "lon": 137.2147991,
       "kind": "crossing"
     },
     {
-      "id": "cr_0175",
+      "id": "cr_0467",
       "lat": 36.7069677,
       "lon": 137.2160884,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0176",
+      "id": "cr_0468",
       "lat": 36.7066646,
       "lon": 137.2161643,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0177",
+      "id": "cr_0469",
       "lat": 36.7021304,
       "lon": 137.2153795,
       "kind": "crossing"
     },
     {
-      "id": "cr_0178",
+      "id": "cr_0470",
       "lat": 36.7029635,
       "lon": 137.2184548,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0179",
+      "id": "cr_0471",
       "lat": 36.7029808,
       "lon": 137.2183282,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0180",
+      "id": "cr_0472",
       "lat": 36.7035635,
       "lon": 137.2167835,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0181",
+      "id": "cr_0473",
       "lat": 36.7040896,
       "lon": 137.2152252,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0182",
+      "id": "cr_0474",
       "lat": 36.704242,
       "lon": 137.2150785,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0183",
+      "id": "cr_0475",
+      "lat": 36.7017345,
+      "lon": 137.1852907,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0476",
+      "lat": 36.7023757,
+      "lon": 137.1850175,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0477",
+      "lat": 36.6893414,
+      "lon": 137.2068799,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0478",
+      "lat": 36.6892483,
+      "lon": 137.207664,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0479",
+      "lat": 36.6891816,
+      "lon": 137.2087143,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0480",
+      "lat": 36.6893273,
+      "lon": 137.2088968,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0481",
+      "lat": 36.6891625,
+      "lon": 137.2090795,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0482",
+      "lat": 36.6895861,
+      "lon": 137.2049059,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0483",
+      "lat": 36.6897484,
+      "lon": 137.2035935,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0484",
+      "lat": 36.6897869,
+      "lon": 137.2032598,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0485",
+      "lat": 36.6899087,
+      "lon": 137.2034594,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0486",
+      "lat": 36.6896251,
+      "lon": 137.2033877,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0487",
+      "lat": 36.6890583,
+      "lon": 137.2120408,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0488",
+      "lat": 36.6889387,
+      "lon": 137.21203,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0489",
+      "lat": 36.6890842,
+      "lon": 137.2115101,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0490",
+      "lat": 36.688976,
+      "lon": 137.2115038,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0491",
+      "lat": 36.6892033,
+      "lon": 137.2122509,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0492",
+      "lat": 36.6891918,
+      "lon": 137.2124088,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0493",
+      "lat": 36.6890218,
+      "lon": 137.2125621,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0494",
+      "lat": 36.6889074,
+      "lon": 137.2125512,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0495",
+      "lat": 36.6887797,
+      "lon": 137.2122074,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0496",
+      "lat": 36.6887708,
+      "lon": 137.2123572,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0497",
+      "lat": 36.6932294,
+      "lon": 137.2016639,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0498",
+      "lat": 36.6947555,
+      "lon": 137.1966335,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0499",
+      "lat": 36.6924856,
+      "lon": 137.2037894,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0500",
+      "lat": 36.692636,
+      "lon": 137.2038398,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0501",
+      "lat": 36.6924355,
+      "lon": 137.2041458,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0502",
+      "lat": 36.6925845,
+      "lon": 137.2041964,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0503",
+      "lat": 36.6927678,
+      "lon": 137.2040888,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0504",
+      "lat": 36.6923336,
+      "lon": 137.2039418,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0505",
       "lat": 36.7041052,
       "lon": 137.2150027,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0184",
+      "id": "cr_0506",
       "lat": 36.7034193,
       "lon": 137.2169038,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0185",
+      "id": "cr_0507",
       "lat": 36.7016228,
       "lon": 137.217678,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0186",
+      "id": "cr_0508",
       "lat": 36.7017198,
       "lon": 137.2177404,
       "kind": "crossing"
     },
     {
-      "id": "cr_0187",
+      "id": "cr_0509",
       "lat": 36.7027996,
       "lon": 137.2183088,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0188",
+      "id": "cr_0510",
       "lat": 36.7027683,
       "lon": 137.2184118,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0189",
+      "id": "cr_0511",
       "lat": 36.7028776,
       "lon": 137.2184745,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0190",
+      "id": "cr_0512",
       "lat": 36.7029284,
       "lon": 137.2182995,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0191",
+      "id": "cr_0513",
+      "lat": 36.7029762,
+      "lon": 137.2186173,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0514",
+      "lat": 36.7028652,
+      "lon": 137.2186214,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0515",
+      "lat": 36.6668758,
+      "lon": 137.2012993,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0516",
+      "lat": 36.6669418,
+      "lon": 137.2013042,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0517",
+      "lat": 36.6670813,
+      "lon": 137.2014934,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0518",
+      "lat": 36.6668703,
+      "lon": 137.2016861,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0519",
+      "lat": 36.6669374,
+      "lon": 137.2016874,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0520",
+      "lat": 36.6667322,
+      "lon": 137.2015018,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0521",
+      "lat": 36.6794435,
+      "lon": 137.2016742,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0522",
+      "lat": 36.679594,
+      "lon": 137.2018936,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0523",
+      "lat": 36.679302,
+      "lon": 137.2018851,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0524",
+      "lat": 36.6794241,
+      "lon": 137.2020874,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0525",
+      "lat": 36.6769782,
+      "lon": 137.2030826,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0526",
+      "lat": 36.6769608,
+      "lon": 137.2019569,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0527",
+      "lat": 36.6770988,
+      "lon": 137.2018198,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0528",
+      "lat": 36.6768693,
+      "lon": 137.2018123,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0529",
+      "lat": 36.6826492,
+      "lon": 137.1741875,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0530",
+      "lat": 36.6825682,
+      "lon": 137.1741954,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0531",
+      "lat": 36.6824631,
+      "lon": 137.1745028,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0532",
+      "lat": 36.6826858,
+      "lon": 137.1746414,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0533",
+      "lat": 36.6826078,
+      "lon": 137.1746525,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0534",
+      "lat": 36.6711004,
+      "lon": 137.1726123,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0535",
+      "lat": 36.670438,
+      "lon": 137.1728273,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0536",
+      "lat": 36.6705541,
+      "lon": 137.172619,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0537",
+      "lat": 36.6706832,
+      "lon": 137.172775,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0538",
+      "lat": 36.671003,
+      "lon": 137.1727903,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0539",
+      "lat": 36.6747419,
+      "lon": 137.1719006,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0540",
+      "lat": 36.6748773,
+      "lon": 137.1717162,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0541",
+      "lat": 36.6749423,
+      "lon": 137.1718949,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0542",
+      "lat": 36.6748037,
+      "lon": 137.1720369,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0543",
+      "lat": 36.6753274,
+      "lon": 137.1699379,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0544",
+      "lat": 36.6803979,
+      "lon": 137.1926318,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0545",
+      "lat": 36.6805131,
+      "lon": 137.1925297,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0546",
+      "lat": 36.6806092,
+      "lon": 137.1925711,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0547",
+      "lat": 36.7081226,
+      "lon": 137.1999653,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0548",
+      "lat": 36.7079149,
+      "lon": 137.1994586,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0549",
+      "lat": 36.7078025,
+      "lon": 137.1997811,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0550",
+      "lat": 36.7094044,
+      "lon": 137.2005178,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0551",
+      "lat": 36.7095038,
+      "lon": 137.200716,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0552",
+      "lat": 36.7096133,
+      "lon": 137.200315,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0553",
+      "lat": 36.7096919,
+      "lon": 137.2006231,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0554",
       "lat": 36.6995778,
       "lon": 137.2117329,
       "kind": "crossing"
     },
     {
-      "id": "cr_0192",
+      "id": "cr_0555",
       "lat": 36.6995323,
       "lon": 137.2118353,
       "kind": "crossing"
     },
     {
-      "id": "cr_0193",
+      "id": "cr_0556",
       "lat": 36.7003871,
       "lon": 137.2122418,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0194",
+      "id": "cr_0557",
       "lat": 36.7003471,
       "lon": 137.2123447,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0195",
+      "id": "cr_0558",
       "lat": 36.7033749,
       "lon": 137.2147514,
       "kind": "crossing"
     },
     {
-      "id": "cr_0196",
+      "id": "cr_0559",
       "lat": 36.7015975,
       "lon": 137.2177785,
       "kind": "crossing"
     },
     {
-      "id": "cr_0197",
+      "id": "cr_0560",
+      "lat": 36.7028553,
+      "lon": 137.2192476,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0561",
       "lat": 36.7025687,
       "lon": 137.2140572,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0198",
+      "id": "cr_0562",
       "lat": 36.7025399,
       "lon": 137.214138,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0199",
+      "id": "cr_0563",
       "lat": 36.7025671,
       "lon": 137.2142942,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0200",
+      "id": "cr_0564",
       "lat": 36.7040227,
       "lon": 137.2149548,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0201",
+      "id": "cr_0565",
       "lat": 36.7040383,
       "lon": 137.2151973,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0202",
+      "id": "cr_0566",
       "lat": 36.7027293,
       "lon": 137.2141986,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0203",
+      "id": "cr_0567",
       "lat": 36.7034658,
       "lon": 137.2167597,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0204",
+      "id": "cr_0568",
       "lat": 36.7020233,
       "lon": 137.2113468,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0205",
+      "id": "cr_0569",
       "lat": 36.7016564,
       "lon": 137.2121401,
       "kind": "crossing"
     },
     {
-      "id": "cr_0206",
+      "id": "cr_0570",
       "lat": 36.70038,
       "lon": 137.2114327,
       "kind": "crossing"
     },
     {
-      "id": "cr_0207",
+      "id": "cr_0571",
+      "lat": 36.6801634,
+      "lon": 137.2018141,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0572",
+      "lat": 36.6793576,
+      "lon": 137.2058658,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0573",
+      "lat": 36.6794036,
+      "lon": 137.2075043,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0574",
+      "lat": 36.6792576,
+      "lon": 137.2073168,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0575",
+      "lat": 36.6791113,
+      "lon": 137.2074927,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0576",
+      "lat": 36.6792529,
+      "lon": 137.2076851,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0577",
+      "lat": 36.6833365,
+      "lon": 137.2020951,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0578",
+      "lat": 36.6798521,
+      "lon": 137.1979962,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0579",
+      "lat": 36.6795026,
+      "lon": 137.1991465,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0580",
+      "lat": 36.678816,
+      "lon": 137.2184841,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0581",
+      "lat": 36.673545,
+      "lon": 137.2186019,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0582",
+      "lat": 36.6959258,
+      "lon": 137.2022935,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0583",
+      "lat": 36.6972926,
+      "lon": 137.2026213,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0584",
+      "lat": 36.6996716,
+      "lon": 137.2061031,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0585",
+      "lat": 36.694939,
+      "lon": 137.20457,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0586",
+      "lat": 36.6971515,
+      "lon": 137.2050064,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0587",
+      "lat": 36.6975637,
+      "lon": 137.2050872,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0588",
+      "lat": 36.697873,
+      "lon": 137.2051478,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0589",
+      "lat": 36.6984888,
+      "lon": 137.2053504,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0590",
+      "lat": 36.6989553,
+      "lon": 137.205602,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0591",
+      "lat": 36.6991596,
+      "lon": 137.2057449,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0592",
+      "lat": 36.6971056,
+      "lon": 137.2051847,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0593",
+      "lat": 36.6991408,
+      "lon": 137.2059357,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0594",
+      "lat": 36.6977432,
+      "lon": 137.2053157,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0595",
+      "lat": 36.6984375,
+      "lon": 137.2055181,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0596",
+      "lat": 36.6987741,
+      "lon": 137.2056972,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0597",
+      "lat": 36.6996797,
+      "lon": 137.2063137,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0598",
+      "lat": 36.6960083,
+      "lon": 137.204991,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0599",
+      "lat": 36.6943834,
+      "lon": 137.2052931,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0600",
       "lat": 36.7011954,
       "lon": 137.2108693,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0208",
+      "id": "cr_0601",
       "lat": 36.7003272,
       "lon": 137.213356,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0209",
+      "id": "cr_0602",
       "lat": 36.7000402,
       "lon": 137.2131639,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0210",
+      "id": "cr_0603",
       "lat": 36.7000856,
       "lon": 137.2130461,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0211",
+      "id": "cr_0604",
       "lat": 36.7001604,
       "lon": 137.2130876,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0212",
+      "id": "cr_0605",
       "lat": 36.700175,
       "lon": 137.2131399,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0213",
+      "id": "cr_0606",
       "lat": 36.700231,
       "lon": 137.2132937,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0214",
+      "id": "cr_0607",
       "lat": 36.7002512,
       "lon": 137.2133526,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0215",
+      "id": "cr_0608",
       "lat": 36.7001264,
       "lon": 137.2132139,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0216",
+      "id": "cr_0609",
       "lat": 36.7001469,
       "lon": 137.2132105,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0217",
+      "id": "cr_0610",
       "lat": 36.7003108,
       "lon": 137.2131868,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0218",
+      "id": "cr_0611",
       "lat": 36.7003298,
       "lon": 137.213184,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0219",
+      "id": "cr_0612",
       "lat": 36.6972457,
       "lon": 137.2160335,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0220",
+      "id": "cr_0613",
       "lat": 36.6972411,
       "lon": 137.2161624,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0221",
+      "id": "cr_0614",
       "lat": 36.6970605,
       "lon": 137.2162937,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0222",
+      "id": "cr_0615",
       "lat": 36.6969426,
       "lon": 137.2161311,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0223",
+      "id": "cr_0616",
       "lat": 36.6969455,
       "lon": 137.2160083,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0224",
+      "id": "cr_0617",
       "lat": 36.6971269,
       "lon": 137.2158898,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0225",
+      "id": "cr_0618",
       "lat": 36.6960615,
       "lon": 137.2159768,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0226",
+      "id": "cr_0619",
       "lat": 36.6960622,
       "lon": 137.2160782,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0227",
+      "id": "cr_0620",
       "lat": 36.6917901,
       "lon": 137.2160235,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0228",
+      "id": "cr_0621",
       "lat": 36.6915974,
       "lon": 137.2157476,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0229",
+      "id": "cr_0622",
       "lat": 36.6915946,
       "lon": 137.2158463,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0230",
+      "id": "cr_0623",
       "lat": 36.6917716,
       "lon": 137.2155878,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0231",
+      "id": "cr_0624",
       "lat": 36.6919687,
       "lon": 137.2157698,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0232",
+      "id": "cr_0625",
       "lat": 36.6919691,
       "lon": 137.2158728,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0233",
+      "id": "cr_0626",
+      "lat": 36.6887311,
+      "lon": 137.2153417,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0627",
+      "lat": 36.6888254,
+      "lon": 137.2153483,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0628",
+      "lat": 36.6889663,
+      "lon": 137.2155945,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0629",
+      "lat": 36.6889594,
+      "lon": 137.2157004,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0630",
+      "lat": 36.6885587,
+      "lon": 137.2155898,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0631",
+      "lat": 36.6885621,
+      "lon": 137.2157118,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0632",
+      "lat": 36.6860688,
+      "lon": 137.2159289,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0633",
+      "lat": 36.6861724,
+      "lon": 137.2157203,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0634",
+      "lat": 36.6861757,
+      "lon": 137.2158396,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0635",
+      "lat": 36.6860562,
+      "lon": 137.2156462,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0636",
+      "lat": 36.6859519,
+      "lon": 137.215728,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0637",
+      "lat": 36.6859542,
+      "lon": 137.2158527,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0638",
+      "lat": 36.683426,
+      "lon": 137.2158493,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0639",
+      "lat": 36.6834218,
+      "lon": 137.2159682,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0640",
+      "lat": 36.68328,
+      "lon": 137.2161285,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0641",
+      "lat": 36.6830829,
+      "lon": 137.2159154,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0642",
+      "lat": 36.6831002,
+      "lon": 137.2160284,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0643",
+      "lat": 36.6833016,
+      "lon": 137.2157428,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0644",
+      "lat": 36.6791466,
+      "lon": 137.2175785,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0645",
+      "lat": 36.6791157,
+      "lon": 137.2174558,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0646",
+      "lat": 36.6789514,
+      "lon": 137.2177924,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0647",
+      "lat": 36.6787517,
+      "lon": 137.2176343,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0648",
+      "lat": 36.6787887,
+      "lon": 137.2177733,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0649",
+      "lat": 36.6789689,
+      "lon": 137.2173918,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0650",
+      "lat": 36.6752337,
+      "lon": 137.2194571,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0651",
+      "lat": 36.6751076,
+      "lon": 137.2194247,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0652",
       "lat": 36.6921092,
       "lon": 137.2086108,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0234",
+      "id": "cr_0653",
       "lat": 36.6922027,
       "lon": 137.2086153,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0235",
+      "id": "cr_0654",
       "lat": 36.6920856,
       "lon": 137.2091379,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0236",
+      "id": "cr_0655",
       "lat": 36.6921814,
       "lon": 137.2091427,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0237",
+      "id": "cr_0656",
       "lat": 36.6919257,
       "lon": 137.208921,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0238",
+      "id": "cr_0657",
       "lat": 36.691803,
       "lon": 137.2114172,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0239",
+      "id": "cr_0658",
       "lat": 36.6919853,
       "lon": 137.2112296,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0240",
+      "id": "cr_0659",
       "lat": 36.691895,
       "lon": 137.2115105,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0241",
+      "id": "cr_0660",
       "lat": 36.6919661,
       "lon": 137.2115133,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0242",
+      "id": "cr_0661",
       "lat": 36.6919277,
       "lon": 137.2123496,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0243",
+      "id": "cr_0662",
       "lat": 36.6918603,
       "lon": 137.2123473,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0244",
+      "id": "cr_0663",
       "lat": 36.6920591,
       "lon": 137.2125815,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0245",
+      "id": "cr_0664",
       "lat": 36.6920551,
       "lon": 137.2127254,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0246",
+      "id": "cr_0665",
       "lat": 36.6918753,
       "lon": 137.2128971,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0247",
+      "id": "cr_0666",
       "lat": 36.6917154,
       "lon": 137.2125435,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0248",
+      "id": "cr_0667",
       "lat": 36.691708,
       "lon": 137.2126875,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0249",
+      "id": "cr_0668",
       "lat": 36.6918368,
       "lon": 137.2139727,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0250",
+      "id": "cr_0669",
       "lat": 36.6918088,
       "lon": 137.2147282,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0251",
+      "id": "cr_0670",
       "lat": 36.6917997,
       "lon": 137.2149502,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0252",
+      "id": "cr_0671",
+      "lat": 36.6920294,
+      "lon": 137.2186258,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0672",
       "lat": 36.6920072,
       "lon": 137.2183682,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0253",
+      "id": "cr_0673",
       "lat": 36.6994459,
       "lon": 137.2118791,
       "kind": "crossing"
     },
     {
-      "id": "cr_0254",
+      "id": "cr_0674",
       "lat": 36.698746,
       "lon": 137.2112101,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0255",
+      "id": "cr_0675",
       "lat": 36.6987054,
       "lon": 137.2113233,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0256",
+      "id": "cr_0676",
       "lat": 36.6985032,
       "lon": 137.211052,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0257",
+      "id": "cr_0677",
       "lat": 36.698461,
       "lon": 137.2111671,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0258",
+      "id": "cr_0678",
       "lat": 36.6967393,
       "lon": 137.2101096,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0259",
+      "id": "cr_0679",
       "lat": 36.6967093,
       "lon": 137.210236,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0260",
+      "id": "cr_0680",
       "lat": 36.6967204,
       "lon": 137.2101895,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0261",
+      "id": "cr_0681",
       "lat": 36.695865,
       "lon": 137.2100035,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0262",
+      "id": "cr_0682",
       "lat": 36.695989,
       "lon": 137.2098119,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0263",
+      "id": "cr_0683",
       "lat": 36.6959587,
       "lon": 137.2099403,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0264",
+      "id": "cr_0684",
       "lat": 36.6958363,
       "lon": 137.2096851,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0265",
+      "id": "cr_0685",
       "lat": 36.6957756,
       "lon": 137.2097251,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0266",
+      "id": "cr_0686",
       "lat": 36.6957884,
       "lon": 137.2098755,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0267",
+      "id": "cr_0687",
       "lat": 36.6945812,
       "lon": 137.2092801,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0268",
+      "id": "cr_0688",
       "lat": 36.6945676,
       "lon": 137.2093982,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0269",
+      "id": "cr_0689",
       "lat": 36.6944733,
       "lon": 137.2094682,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0270",
+      "id": "cr_0690",
       "lat": 36.6944057,
       "lon": 137.2092096,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0271",
+      "id": "cr_0691",
       "lat": 36.694397,
       "lon": 137.2093316,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0272",
+      "id": "cr_0692",
       "lat": 36.6944732,
       "lon": 137.209164,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0273",
+      "id": "cr_0693",
+      "lat": 36.7095692,
+      "lon": 137.2004744,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0694",
+      "lat": 36.709442,
+      "lon": 137.2004138,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0695",
+      "lat": 36.7036718,
+      "lon": 137.1972859,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0696",
+      "lat": 36.7051489,
+      "lon": 137.1980759,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0697",
+      "lat": 36.7009118,
+      "lon": 137.1961886,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0698",
+      "lat": 36.696015,
+      "lon": 137.1941336,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0699",
+      "lat": 36.6958697,
+      "lon": 137.193999,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0700",
       "lat": 36.7004737,
       "lon": 137.2104092,
       "kind": "crossing"
     },
     {
-      "id": "cr_0274",
+      "id": "cr_0701",
       "lat": 36.7003753,
       "lon": 137.2104188,
       "kind": "crossing"
     },
     {
-      "id": "cr_0275",
+      "id": "cr_0702",
+      "lat": 36.6686873,
+      "lon": 137.2103804,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0703",
+      "lat": 36.6711929,
+      "lon": 137.2105732,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0704",
+      "lat": 36.6954999,
+      "lon": 137.1735085,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0705",
+      "lat": 36.6980496,
+      "lon": 137.1792821,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0706",
+      "lat": 36.698916,
+      "lon": 137.1820858,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0707",
+      "lat": 36.6989794,
+      "lon": 137.1840206,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0708",
+      "lat": 36.6965835,
+      "lon": 137.1753058,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0709",
+      "lat": 36.6971277,
+      "lon": 137.1763773,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0710",
+      "lat": 36.6980565,
+      "lon": 137.1788216,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0711",
+      "lat": 36.6988077,
+      "lon": 137.1812488,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0712",
+      "lat": 36.7004098,
+      "lon": 137.1861489,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0713",
+      "lat": 36.7017501,
+      "lon": 137.1852278,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0714",
+      "lat": 36.6966923,
+      "lon": 137.1804785,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0715",
+      "lat": 36.6966359,
+      "lon": 137.1806814,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0716",
+      "lat": 36.6946888,
+      "lon": 137.189366,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0717",
+      "lat": 36.6981798,
+      "lon": 137.1793708,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0718",
+      "lat": 36.6980929,
+      "lon": 137.1790966,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0719",
+      "lat": 36.6989441,
+      "lon": 137.1819921,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0720",
+      "lat": 36.6989791,
+      "lon": 137.1821396,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0721",
+      "lat": 36.6989691,
+      "lon": 137.1830258,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0722",
+      "lat": 36.701765,
+      "lon": 137.1881825,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0723",
+      "lat": 36.7017803,
+      "lon": 137.1879128,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0724",
+      "lat": 36.7015856,
+      "lon": 137.1878944,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0725",
+      "lat": 36.7007131,
+      "lon": 137.1889979,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0726",
+      "lat": 36.7005202,
+      "lon": 137.1891941,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0727",
+      "lat": 36.6969448,
+      "lon": 137.1927264,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0728",
+      "lat": 36.6970244,
+      "lon": 137.1928485,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0729",
+      "lat": 36.6961074,
+      "lon": 137.1942068,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0730",
+      "lat": 36.696058,
+      "lon": 137.1943076,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0731",
+      "lat": 36.6960081,
+      "lon": 137.1938111,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0732",
+      "lat": 36.6961292,
+      "lon": 137.1939535,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0733",
+      "lat": 36.695696,
+      "lon": 137.1939208,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0734",
+      "lat": 36.695723,
+      "lon": 137.1942041,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0735",
+      "lat": 36.6958625,
+      "lon": 137.1943529,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0736",
+      "lat": 36.6947787,
+      "lon": 137.1923365,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0737",
+      "lat": 36.6947158,
+      "lon": 137.192419,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0738",
+      "lat": 36.6932025,
+      "lon": 137.1899394,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0739",
+      "lat": 36.6931379,
+      "lon": 137.1900008,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0740",
+      "lat": 36.6930298,
+      "lon": 137.1898371,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0741",
+      "lat": 36.6930939,
+      "lon": 137.1897735,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0742",
+      "lat": 36.6931872,
+      "lon": 137.1897887,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0743",
+      "lat": 36.6891238,
+      "lon": 137.1692747,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0744",
+      "lat": 36.6822299,
+      "lon": 137.1799201,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0745",
+      "lat": 36.6823011,
+      "lon": 137.179933,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0746",
+      "lat": 36.6817354,
+      "lon": 137.1842726,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0747",
+      "lat": 36.6818001,
+      "lon": 137.1842817,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0748",
+      "lat": 36.6817123,
+      "lon": 137.1844554,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0749",
+      "lat": 36.681777,
+      "lon": 137.1844686,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0750",
+      "lat": 36.6817032,
+      "lon": 137.185937,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0751",
+      "lat": 36.6816897,
+      "lon": 137.1860536,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0752",
+      "lat": 36.6814652,
+      "lon": 137.1861982,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0753",
+      "lat": 36.6815514,
+      "lon": 137.1862176,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0754",
+      "lat": 36.6813729,
+      "lon": 137.1859326,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0755",
+      "lat": 36.681356,
+      "lon": 137.1860475,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0756",
+      "lat": 36.6815297,
+      "lon": 137.1857476,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0757",
+      "lat": 36.6816151,
+      "lon": 137.1857562,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0758",
+      "lat": 36.6843366,
+      "lon": 137.1859901,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0759",
+      "lat": 36.6843304,
+      "lon": 137.1860794,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0760",
+      "lat": 36.6841331,
+      "lon": 137.1859871,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0761",
+      "lat": 36.6841236,
+      "lon": 137.1860764,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0762",
+      "lat": 36.6908639,
+      "lon": 137.1862946,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0763",
+      "lat": 36.6909324,
+      "lon": 137.1865086,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0764",
+      "lat": 36.6908757,
+      "lon": 137.1865904,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0765",
+      "lat": 36.6906035,
+      "lon": 137.1862426,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0766",
+      "lat": 36.6905668,
+      "lon": 137.1863466,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0767",
+      "lat": 36.6906468,
+      "lon": 137.1864823,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0768",
+      "lat": 36.6919102,
+      "lon": 137.1852949,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0769",
+      "lat": 36.7029303,
+      "lon": 137.19961,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0770",
+      "lat": 36.7049828,
+      "lon": 137.1981871,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0771",
+      "lat": 36.7060525,
+      "lon": 137.1987966,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0772",
+      "lat": 36.7028475,
+      "lon": 137.1994422,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0773",
       "lat": 36.7003233,
       "lon": 137.2103279,
       "kind": "crossing"
     },
     {
-      "id": "cr_0276",
+      "id": "cr_0774",
       "lat": 36.7011546,
       "lon": 137.2107089,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0277",
+      "id": "cr_0775",
       "lat": 36.7018624,
       "lon": 137.2089552,
       "kind": "crossing"
     },
     {
-      "id": "cr_0278",
+      "id": "cr_0776",
       "lat": 36.7014465,
       "lon": 137.2099834,
       "kind": "crossing"
     },
     {
-      "id": "cr_0279",
+      "id": "cr_0777",
       "lat": 36.7013228,
       "lon": 137.2109428,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0280",
+      "id": "cr_0778",
+      "lat": 36.7011972,
+      "lon": 137.2072676,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0779",
       "lat": 36.702285,
       "lon": 137.2081618,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0281",
+      "id": "cr_0780",
       "lat": 36.7022025,
       "lon": 137.207942,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0282",
+      "id": "cr_0781",
       "lat": 36.7023724,
       "lon": 137.2079297,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0283",
+      "id": "cr_0782",
       "lat": 36.7024351,
       "lon": 137.2081004,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0284",
+      "id": "cr_0783",
       "lat": 36.7012625,
       "lon": 137.2106894,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0285",
+      "id": "cr_0784",
+      "lat": 36.7030426,
+      "lon": 137.1988869,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0785",
+      "lat": 36.7038003,
+      "lon": 137.1973549,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0786",
+      "lat": 36.7037677,
+      "lon": 137.1974589,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0787",
+      "lat": 36.70358,
+      "lon": 137.1975322,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0788",
+      "lat": 36.6985432,
+      "lon": 137.2054823,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0789",
+      "lat": 36.6960884,
+      "lon": 137.2048961,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0790",
+      "lat": 36.6959523,
+      "lon": 137.2048714,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0791",
+      "lat": 36.7037275,
+      "lon": 137.1971391,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0792",
+      "lat": 36.7035212,
+      "lon": 137.1972272,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0793",
+      "lat": 36.7034862,
+      "lon": 137.1973287,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0794",
+      "lat": 36.7046781,
+      "lon": 137.194789,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0795",
+      "lat": 36.7047527,
+      "lon": 137.1945972,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0796",
+      "lat": 36.7050098,
+      "lon": 137.1939337,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0797",
+      "lat": 36.7051379,
+      "lon": 137.1936804,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0798",
+      "lat": 36.705006,
+      "lon": 137.1937699,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0799",
+      "lat": 36.7036052,
+      "lon": 137.1912675,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0800",
+      "lat": 36.7027581,
+      "lon": 137.1898499,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0801",
+      "lat": 36.6922144,
+      "lon": 137.2071669,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0802",
+      "lat": 36.6923078,
+      "lon": 137.2071739,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0803",
+      "lat": 36.6921979,
+      "lon": 137.2073884,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0804",
+      "lat": 36.6922929,
+      "lon": 137.207392,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0805",
       "lat": 36.691357,
       "lon": 137.2113989,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0286",
+      "id": "cr_0806",
       "lat": 36.6974839,
       "lon": 137.2147267,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0287",
+      "id": "cr_0807",
       "lat": 36.6975512,
       "lon": 137.2145102,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0288",
+      "id": "cr_0808",
       "lat": 36.6993332,
       "lon": 137.2129372,
       "kind": "crossing"
     },
     {
-      "id": "cr_0289",
+      "id": "cr_0809",
+      "lat": 36.6944093,
+      "lon": 137.2076511,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0810",
+      "lat": 36.6947543,
+      "lon": 137.2047408,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0811",
+      "lat": 36.6945293,
+      "lon": 137.2076786,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0812",
+      "lat": 36.6945429,
+      "lon": 137.2061464,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0813",
       "lat": 36.6944625,
       "lon": 137.2077617,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0290",
+      "id": "cr_0814",
+      "lat": 36.694475,
+      "lon": 137.2075797,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0815",
+      "lat": 36.6934885,
+      "lon": 137.2044762,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0816",
+      "lat": 36.6935522,
+      "lon": 137.2045011,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0817",
+      "lat": 36.6937571,
+      "lon": 137.2043355,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0818",
+      "lat": 36.6939253,
+      "lon": 137.2043689,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0819",
+      "lat": 36.6933801,
+      "lon": 137.2042464,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0820",
+      "lat": 36.696863,
+      "lon": 137.1804566,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0821",
+      "lat": 36.6972861,
+      "lon": 137.1800293,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0822",
+      "lat": 36.7027454,
+      "lon": 137.1867295,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0823",
+      "lat": 36.7073119,
+      "lon": 137.1779399,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0824",
+      "lat": 36.7071605,
+      "lon": 137.1782299,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0825",
+      "lat": 36.7070479,
+      "lon": 137.1782047,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0826",
+      "lat": 36.707064,
+      "lon": 137.178312,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0827",
+      "lat": 36.7071641,
+      "lon": 137.1781009,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0828",
+      "lat": 36.708888,
+      "lon": 137.1746522,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0829",
+      "lat": 36.7090259,
+      "lon": 137.1743039,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0830",
+      "lat": 36.7101824,
+      "lon": 137.1711613,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0831",
+      "lat": 36.7101257,
+      "lon": 137.1713189,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0832",
+      "lat": 36.7108559,
+      "lon": 137.1692168,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0833",
+      "lat": 36.6901204,
+      "lon": 137.2089088,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0834",
+      "lat": 36.6899785,
+      "lon": 137.2089089,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0835",
+      "lat": 36.6874238,
+      "lon": 137.2029106,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0836",
+      "lat": 36.6886181,
+      "lon": 137.2032268,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0837",
+      "lat": 36.6892409,
+      "lon": 137.2033991,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0838",
+      "lat": 36.6866985,
+      "lon": 137.2084181,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0839",
+      "lat": 36.6863984,
+      "lon": 137.2110459,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0840",
+      "lat": 36.6862914,
+      "lon": 137.211028,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0841",
+      "lat": 36.6868929,
+      "lon": 137.207311,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0842",
+      "lat": 36.6867935,
+      "lon": 137.2072904,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0843",
+      "lat": 36.6867801,
+      "lon": 137.2085257,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0844",
+      "lat": 36.6865953,
+      "lon": 137.208499,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0845",
+      "lat": 36.6863626,
+      "lon": 137.2109767,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0846",
+      "lat": 36.6863448,
+      "lon": 137.2111086,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0847",
+      "lat": 36.6868561,
+      "lon": 137.2072262,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0848",
+      "lat": 36.6868357,
+      "lon": 137.2073808,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0849",
+      "lat": 36.6870496,
+      "lon": 137.2057537,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0850",
+      "lat": 36.6835852,
+      "lon": 137.2105575,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0851",
+      "lat": 36.6835714,
+      "lon": 137.2107295,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0852",
+      "lat": 36.6838356,
+      "lon": 137.2079126,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0853",
+      "lat": 36.6837966,
+      "lon": 137.2083543,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0854",
+      "lat": 36.6840163,
+      "lon": 137.2081051,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0855",
+      "lat": 36.6836836,
+      "lon": 137.2080598,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0856",
+      "lat": 36.6842304,
+      "lon": 137.2025211,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0857",
+      "lat": 36.6700487,
+      "lon": 137.2068527,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0858",
+      "lat": 36.6699542,
+      "lon": 137.2067093,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0859",
+      "lat": 36.6699536,
+      "lon": 137.2069633,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0860",
+      "lat": 36.6698688,
+      "lon": 137.2068406,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0861",
+      "lat": 36.6723064,
+      "lon": 137.2069958,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0862",
+      "lat": 36.6836541,
+      "lon": 137.211724,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0863",
+      "lat": 36.6836434,
+      "lon": 137.2118568,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0864",
+      "lat": 36.6835291,
+      "lon": 137.2115397,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0865",
+      "lat": 36.6835013,
+      "lon": 137.2119641,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0866",
+      "lat": 36.6833871,
+      "lon": 137.211716,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0867",
+      "lat": 36.686351,
+      "lon": 137.2119653,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0868",
+      "lat": 36.686342,
+      "lon": 137.2121397,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0869",
+      "lat": 36.6860998,
+      "lon": 137.2119406,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0870",
+      "lat": 36.6860909,
+      "lon": 137.2121142,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0871",
+      "lat": 36.6860249,
+      "lon": 137.2135809,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0872",
+      "lat": 36.6859667,
+      "lon": 137.2136314,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0873",
+      "lat": 36.6860833,
+      "lon": 137.2152024,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0874",
+      "lat": 36.6859746,
+      "lon": 137.2152265,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0875",
+      "lat": 36.6860312,
+      "lon": 137.2151451,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0876",
+      "lat": 36.6887507,
+      "lon": 137.217194,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0877",
       "lat": 36.7067557,
       "lon": 137.2102336,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0291",
+      "id": "cr_0878",
       "lat": 36.705049,
       "lon": 137.2133862,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0292",
+      "id": "cr_0879",
       "lat": 36.7049912,
       "lon": 137.2136076,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0293",
+      "id": "cr_0880",
       "lat": 36.7046986,
       "lon": 137.2093574,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0294",
+      "id": "cr_0881",
       "lat": 36.7045266,
       "lon": 137.2094266,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0295",
+      "id": "cr_0882",
       "lat": 36.7044107,
       "lon": 137.2092315,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0296",
+      "id": "cr_0883",
       "lat": 36.7045655,
       "lon": 137.2091924,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0297",
+      "id": "cr_0884",
       "lat": 36.7043433,
       "lon": 137.2092877,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0298",
+      "id": "cr_0885",
       "lat": 36.6965092,
       "lon": 137.2130496,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0299",
+      "id": "cr_0886",
       "lat": 36.6965068,
       "lon": 137.2131755,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0300",
+      "id": "cr_0887",
       "lat": 36.6962348,
       "lon": 137.2130225,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0301",
+      "id": "cr_0888",
       "lat": 36.6962288,
       "lon": 137.213147,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0302",
+      "id": "cr_0889",
       "lat": 36.6949256,
       "lon": 137.2128725,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0303",
+      "id": "cr_0890",
       "lat": 36.6949747,
       "lon": 137.2130207,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0304",
+      "id": "cr_0891",
       "lat": 36.6949016,
       "lon": 137.2131199,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0305",
+      "id": "cr_0892",
       "lat": 36.6944416,
       "lon": 137.2128337,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0306",
+      "id": "cr_0893",
       "lat": 36.6944334,
       "lon": 137.2129636,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0307",
+      "id": "cr_0894",
+      "lat": 36.7073879,
+      "lon": 137.1781431,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0895",
+      "lat": 36.7123757,
+      "lon": 137.2013812,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0896",
+      "lat": 36.7123836,
+      "lon": 137.2011304,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0897",
+      "lat": 36.7079653,
+      "lon": 137.1785681,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0898",
+      "lat": 36.7099882,
+      "lon": 137.1994111,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0899",
+      "lat": 36.7097412,
+      "lon": 137.1994808,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0900",
+      "lat": 36.7098264,
+      "lon": 137.1995421,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0901",
+      "lat": 36.709876,
+      "lon": 137.1993589,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0902",
+      "lat": 36.7085281,
+      "lon": 137.1998269,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0903",
+      "lat": 36.7124724,
+      "lon": 137.2012058,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0904",
+      "lat": 36.7124585,
+      "lon": 137.2013184,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0905",
+      "lat": 36.712317,
+      "lon": 137.201166,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0906",
+      "lat": 36.7122971,
+      "lon": 137.2012794,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0907",
+      "lat": 36.6669357,
+      "lon": 137.1827768,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0908",
+      "lat": 36.6669923,
+      "lon": 137.1827619,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0909",
+      "lat": 36.6670164,
+      "lon": 137.1829437,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0910",
+      "lat": 36.6669623,
+      "lon": 137.182956,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0911",
+      "lat": 36.6657631,
+      "lon": 137.1700356,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0912",
+      "lat": 36.6659601,
+      "lon": 137.1698413,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0913",
+      "lat": 36.6802798,
+      "lon": 137.173433,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0914",
+      "lat": 36.6772377,
+      "lon": 137.1723742,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0915",
+      "lat": 36.6834437,
+      "lon": 137.2189488,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0916",
+      "lat": 36.683283,
+      "lon": 137.2189484,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0917",
+      "lat": 36.683306,
+      "lon": 137.2175821,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0918",
+      "lat": 36.6833602,
+      "lon": 137.218865,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0919",
+      "lat": 36.6833683,
+      "lon": 137.2190335,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0920",
+      "lat": 36.6741408,
+      "lon": 137.2109033,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0921",
+      "lat": 36.6741369,
+      "lon": 137.2105102,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0922",
+      "lat": 36.6742891,
+      "lon": 137.2106404,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0923",
+      "lat": 36.6742848,
+      "lon": 137.2107515,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0924",
+      "lat": 36.6742376,
+      "lon": 137.2071302,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0925",
+      "lat": 36.6741413,
+      "lon": 137.2070191,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0926",
+      "lat": 36.6741445,
+      "lon": 137.2072651,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0927",
+      "lat": 36.6740589,
+      "lon": 137.207118,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0928",
+      "lat": 36.6686145,
+      "lon": 137.2102101,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0929",
+      "lat": 36.6686111,
+      "lon": 137.2103219,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0930",
+      "lat": 36.670066,
+      "lon": 137.2103367,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0931",
+      "lat": 36.6700605,
+      "lon": 137.2104465,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0932",
+      "lat": 36.6699583,
+      "lon": 137.2101161,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0933",
+      "lat": 36.6698109,
+      "lon": 137.2103161,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0934",
+      "lat": 36.6698056,
+      "lon": 137.2104266,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0935",
+      "lat": 36.6713888,
+      "lon": 137.2104362,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0936",
+      "lat": 36.6713825,
+      "lon": 137.2105418,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0937",
+      "lat": 36.6711484,
+      "lon": 137.2104172,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0938",
+      "lat": 36.671131,
+      "lon": 137.2105254,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0939",
+      "lat": 36.674064,
+      "lon": 137.2114042,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0940",
+      "lat": 36.6742871,
+      "lon": 137.2142036,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0941",
+      "lat": 36.6741822,
+      "lon": 137.2140876,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0942",
+      "lat": 36.6740887,
+      "lon": 137.2141977,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0943",
+      "lat": 36.674186,
+      "lon": 137.2143299,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0944",
+      "lat": 36.6790054,
+      "lon": 137.2144796,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0945",
+      "lat": 36.6672275,
+      "lon": 137.2146898,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0946",
+      "lat": 36.669333,
+      "lon": 137.2171599,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0947",
+      "lat": 36.6727054,
+      "lon": 137.2192703,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0948",
+      "lat": 36.6726575,
+      "lon": 137.2192349,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0949",
+      "lat": 36.6726883,
+      "lon": 137.2193533,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0950",
+      "lat": 36.6726252,
+      "lon": 137.2193184,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0951",
+      "lat": 36.6748152,
+      "lon": 137.2181202,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0952",
+      "lat": 36.6747198,
+      "lon": 137.2181784,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0953",
+      "lat": 36.6747492,
+      "lon": 137.2180924,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0954",
+      "lat": 36.6746386,
+      "lon": 137.2173935,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0955",
+      "lat": 36.674449,
+      "lon": 137.2171025,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0956",
+      "lat": 36.6743346,
+      "lon": 137.2166481,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0957",
+      "lat": 36.6790207,
+      "lon": 137.2108194,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0958",
+      "lat": 36.6791398,
+      "lon": 137.2110055,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0959",
+      "lat": 36.6791377,
+      "lon": 137.2110935,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0960",
+      "lat": 36.6789947,
+      "lon": 137.2112768,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0961",
+      "lat": 36.68157,
+      "lon": 137.2112688,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0962",
+      "lat": 36.681545,
+      "lon": 137.2113607,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0963",
+      "lat": 36.6874887,
+      "lon": 137.2120728,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0964",
+      "lat": 36.6874791,
+      "lon": 137.2122267,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0965",
+      "lat": 36.6873196,
+      "lon": 137.212056,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0966",
+      "lat": 36.6873124,
+      "lon": 137.2122132,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0967",
+      "lat": 36.6881974,
+      "lon": 137.2121544,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0968",
+      "lat": 36.6881912,
+      "lon": 137.2122952,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0969",
+      "lat": 36.6879937,
+      "lon": 137.212133,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0970",
+      "lat": 36.6879845,
+      "lon": 137.2122743,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0971",
+      "lat": 36.6887749,
+      "lon": 137.2147188,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0972",
+      "lat": 36.6888682,
+      "lon": 137.2147271,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0973",
+      "lat": 36.6887897,
+      "lon": 137.2145027,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0974",
+      "lat": 36.6888822,
+      "lon": 137.2145102,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0975",
+      "lat": 36.6888438,
+      "lon": 137.2136718,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0976",
+      "lat": 36.6888318,
+      "lon": 137.2138648,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0977",
+      "lat": 36.688925,
+      "lon": 137.213872,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0978",
+      "lat": 36.6887945,
+      "lon": 137.2186321,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0979",
+      "lat": 36.6887991,
+      "lon": 137.2187844,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0980",
+      "lat": 36.6742805,
+      "lon": 137.2017279,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0981",
+      "lat": 36.6740424,
+      "lon": 137.2017202,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0982",
+      "lat": 36.6911407,
+      "lon": 137.2038008,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0983",
+      "lat": 36.691209,
+      "lon": 137.2037212,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0984",
+      "lat": 36.6905567,
+      "lon": 137.2036928,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0985",
+      "lat": 36.6892705,
+      "lon": 137.2031892,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0986",
+      "lat": 36.6886455,
+      "lon": 137.2030205,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_0987",
+      "lat": 36.6874522,
+      "lon": 137.2026945,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0988",
+      "lat": 36.6875621,
+      "lon": 137.2028285,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0989",
+      "lat": 36.6873162,
+      "lon": 137.2027637,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0990",
+      "lat": 36.6855879,
+      "lon": 137.2023176,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0991",
+      "lat": 36.6842997,
+      "lon": 137.2026898,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0992",
+      "lat": 36.6841495,
+      "lon": 137.2020306,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0993",
+      "lat": 36.6834087,
+      "lon": 137.2020027,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0994",
+      "lat": 36.6832643,
+      "lon": 137.2019982,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0995",
+      "lat": 36.6813104,
+      "lon": 137.2019436,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0996",
+      "lat": 36.6767069,
+      "lon": 137.2110846,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0997",
+      "lat": 36.6765507,
+      "lon": 137.2108404,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0998",
+      "lat": 36.6765473,
+      "lon": 137.2109251,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_0999",
+      "lat": 36.6632333,
+      "lon": 137.2098053,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1000",
+      "lat": 36.6632311,
+      "lon": 137.2099262,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1001",
+      "lat": 36.6630832,
+      "lon": 137.2096825,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1002",
+      "lat": 36.6629244,
+      "lon": 137.209796,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1003",
+      "lat": 36.6629234,
+      "lon": 137.2099148,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1004",
+      "lat": 36.6669472,
+      "lon": 137.2066117,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1005",
+      "lat": 36.666789,
+      "lon": 137.2064382,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1006",
+      "lat": 36.666872,
+      "lon": 137.2064419,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1007",
+      "lat": 36.6667843,
+      "lon": 137.206776,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1008",
+      "lat": 36.6668656,
+      "lon": 137.2067781,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1009",
+      "lat": 36.6667072,
+      "lon": 137.2065872,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1010",
+      "lat": 36.6668255,
+      "lon": 137.2039194,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1011",
+      "lat": 36.6669032,
+      "lon": 137.2039209,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1012",
+      "lat": 36.7076384,
+      "lon": 137.1698281,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1013",
+      "lat": 36.7070469,
+      "lon": 137.1902577,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1014",
+      "lat": 36.7069735,
+      "lon": 137.1903791,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1015",
+      "lat": 36.7070671,
+      "lon": 137.1903622,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1016",
+      "lat": 36.7051973,
+      "lon": 137.1980182,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1017",
+      "lat": 36.7064058,
+      "lon": 137.1986667,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1018",
+      "lat": 36.7049833,
+      "lon": 137.1979987,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1019",
+      "lat": 36.7049478,
+      "lon": 137.1980962,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1020",
+      "lat": 36.6993886,
+      "lon": 137.1831292,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1021",
+      "lat": 36.6951694,
+      "lon": 137.1958124,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1022",
+      "lat": 36.6816228,
+      "lon": 137.2188295,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1023",
+      "lat": 36.68153,
+      "lon": 137.2189054,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1024",
+      "lat": 36.6815435,
+      "lon": 137.2187462,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1025",
+      "lat": 36.6816958,
+      "lon": 137.2164723,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1026",
+      "lat": 36.6815393,
+      "lon": 137.2163251,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1027",
+      "lat": 36.6815556,
+      "lon": 137.2164418,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1028",
+      "lat": 36.6643507,
+      "lon": 137.2017254,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1029",
+      "lat": 36.6642243,
+      "lon": 137.2016602,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1030",
+      "lat": 36.6641238,
+      "lon": 137.2017519,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1031",
+      "lat": 36.6667284,
+      "lon": 137.2098988,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1032",
+      "lat": 36.6668085,
+      "lon": 137.2099038,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1033",
+      "lat": 36.6667183,
+      "lon": 137.2102957,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1034",
+      "lat": 36.6668009,
+      "lon": 137.2103157,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1035",
+      "lat": 36.6665921,
+      "lon": 137.2100399,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1036",
+      "lat": 36.6665862,
+      "lon": 137.2101565,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1037",
+      "lat": 36.666885,
+      "lon": 137.2123986,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1038",
+      "lat": 36.6669539,
+      "lon": 137.2124605,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1039",
+      "lat": 36.6669043,
+      "lon": 137.2126231,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1040",
+      "lat": 36.6669758,
+      "lon": 137.2126927,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1041",
+      "lat": 36.667035,
+      "lon": 137.2145759,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1042",
+      "lat": 36.6670927,
+      "lon": 137.2145694,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1043",
+      "lat": 36.6671762,
+      "lon": 137.2176624,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1044",
+      "lat": 36.6672257,
+      "lon": 137.217527,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1045",
+      "lat": 36.6673017,
+      "lon": 137.2175197,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1046",
+      "lat": 36.6672525,
+      "lon": 137.2178907,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1047",
+      "lat": 36.6673261,
+      "lon": 137.2178833,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1048",
+      "lat": 36.6974493,
+      "lon": 137.194808,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1049",
+      "lat": 36.697426,
+      "lon": 137.1949104,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1050",
+      "lat": 36.7008222,
+      "lon": 137.1961529,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1051",
+      "lat": 36.7007956,
+      "lon": 137.1962499,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1052",
+      "lat": 36.7010284,
+      "lon": 137.196235,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1053",
+      "lat": 36.7010027,
+      "lon": 137.1963312,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1054",
       "lat": 36.7057802,
       "lon": 137.2161941,
       "kind": "crossing"
     },
     {
-      "id": "cr_0308",
+      "id": "cr_1055",
       "lat": 36.7048969,
       "lon": 137.2156491,
       "kind": "crossing"
     },
     {
-      "id": "cr_0309",
+      "id": "cr_1056",
       "lat": 36.7045738,
       "lon": 137.2154829,
       "kind": "crossing"
     },
     {
-      "id": "cr_0310",
+      "id": "cr_1057",
       "lat": 36.7057307,
       "lon": 137.215954,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0311",
+      "id": "cr_1058",
       "lat": 36.703489,
       "lon": 137.2119914,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0312",
+      "id": "cr_1059",
       "lat": 36.7035231,
       "lon": 137.2122106,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0313",
+      "id": "cr_1060",
       "lat": 36.7033463,
       "lon": 137.21234,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0314",
+      "id": "cr_1061",
       "lat": 36.7026246,
       "lon": 137.2118694,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0315",
+      "id": "cr_1062",
       "lat": 36.7020865,
       "lon": 137.2113836,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0316",
+      "id": "cr_1063",
       "lat": 36.7019121,
       "lon": 137.2112827,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0317",
+      "id": "cr_1064",
       "lat": 36.7019673,
       "lon": 137.2114894,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0318",
+      "id": "cr_1065",
+      "lat": 36.6667042,
+      "lon": 137.1963792,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1066",
+      "lat": 36.6667913,
+      "lon": 137.1962828,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1067",
+      "lat": 36.6670044,
+      "lon": 137.1963463,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1068",
+      "lat": 36.6621885,
+      "lon": 137.2097757,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1069",
+      "lat": 36.6621866,
+      "lon": 137.2098875,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1070",
+      "lat": 36.6619302,
+      "lon": 137.2097682,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1071",
+      "lat": 36.6619281,
+      "lon": 137.2098804,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1072",
+      "lat": 36.6670162,
+      "lon": 137.2176601,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1073",
+      "lat": 36.6659621,
+      "lon": 137.2165176,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1074",
+      "lat": 36.6654309,
+      "lon": 137.216109,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1075",
+      "lat": 36.6655775,
+      "lon": 137.2161612,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1076",
+      "lat": 36.6653838,
+      "lon": 137.2159763,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1077",
+      "lat": 36.6643555,
+      "lon": 137.2150146,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1078",
+      "lat": 36.6642608,
+      "lon": 137.2149327,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1079",
+      "lat": 36.6619037,
+      "lon": 137.2137459,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1080",
+      "lat": 36.6618922,
+      "lon": 137.2139468,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1081",
+      "lat": 36.6619875,
+      "lon": 137.2138606,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1082",
+      "lat": 36.6618221,
+      "lon": 137.2138358,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1083",
       "lat": 36.709688,
       "lon": 137.2174345,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0319",
+      "id": "cr_1084",
+      "lat": 36.7128116,
+      "lon": 137.2190568,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1085",
+      "lat": 36.712755,
+      "lon": 137.2191922,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1086",
+      "lat": 36.712742,
+      "lon": 137.2190938,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1087",
+      "lat": 36.7128416,
+      "lon": 137.2191668,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1088",
       "lat": 36.700372,
       "lon": 137.2133818,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0320",
+      "id": "cr_1089",
       "lat": 36.7000479,
       "lon": 137.2130285,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0321",
+      "id": "cr_1090",
       "lat": 36.7000519,
       "lon": 137.2134547,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0322",
+      "id": "cr_1091",
       "lat": 36.7004042,
       "lon": 137.212992,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0323",
+      "id": "cr_1092",
       "lat": 36.6991912,
       "lon": 137.2159173,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0324",
+      "id": "cr_1093",
       "lat": 36.6992201,
       "lon": 137.2161761,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0325",
+      "id": "cr_1094",
       "lat": 36.6988638,
       "lon": 137.2163434,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0326",
+      "id": "cr_1095",
       "lat": 36.6987647,
       "lon": 137.2160442,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0327",
+      "id": "cr_1096",
       "lat": 36.6996771,
       "lon": 137.2143734,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0328",
+      "id": "cr_1097",
       "lat": 36.6996713,
       "lon": 137.2141732,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0329",
+      "id": "cr_1098",
       "lat": 36.6998911,
       "lon": 137.214192,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0330",
+      "id": "cr_1099",
       "lat": 36.6999204,
       "lon": 137.2143386,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0331",
+      "id": "cr_1100",
       "lat": 36.6999371,
       "lon": 137.2143492,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0332",
+      "id": "cr_1101",
       "lat": 36.6973038,
       "lon": 137.2161648,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0333",
+      "id": "cr_1102",
       "lat": 36.6971365,
       "lon": 137.2158571,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0334",
+      "id": "cr_1103",
       "lat": 36.6970547,
       "lon": 137.2163691,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0335",
+      "id": "cr_1104",
       "lat": 36.6969128,
       "lon": 137.2160069,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0336",
+      "id": "cr_1105",
       "lat": 36.6960882,
       "lon": 137.2160798,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0337",
+      "id": "cr_1106",
       "lat": 36.6958262,
       "lon": 137.2158289,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0338",
+      "id": "cr_1107",
       "lat": 36.6957282,
       "lon": 137.2159551,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0339",
+      "id": "cr_1108",
       "lat": 36.6919993,
       "lon": 137.2158744,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0340",
+      "id": "cr_1109",
       "lat": 36.6915549,
       "lon": 137.2157446,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0341",
+      "id": "cr_1110",
       "lat": 36.6917735,
       "lon": 137.2155447,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0342",
+      "id": "cr_1111",
       "lat": 36.6917954,
       "lon": 137.2160818,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0343",
+      "id": "cr_1112",
+      "lat": 36.6940377,
+      "lon": 137.2047118,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1113",
+      "lat": 36.6977022,
+      "lon": 137.2193453,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1114",
+      "lat": 36.6977847,
+      "lon": 137.2193959,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1115",
+      "lat": 36.6979983,
+      "lon": 137.2186138,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1116",
+      "lat": 36.698074,
+      "lon": 137.2186587,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1117",
+      "lat": 36.697058,
+      "lon": 137.2188703,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1118",
+      "lat": 36.6968952,
+      "lon": 137.2188325,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1119",
+      "lat": 36.6969724,
+      "lon": 137.2187645,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1120",
+      "lat": 36.6969645,
+      "lon": 137.2189171,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1121",
       "lat": 36.6970984,
       "lon": 137.2179743,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0344",
+      "id": "cr_1122",
       "lat": 36.6969271,
       "lon": 137.2178604,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0345",
+      "id": "cr_1123",
       "lat": 36.6970026,
       "lon": 137.2179844,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0346",
+      "id": "cr_1124",
       "lat": 36.6970093,
       "lon": 137.2177232,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0347",
+      "id": "cr_1125",
       "lat": 36.6970798,
       "lon": 137.2184399,
       "kind": "crossing"
     },
     {
-      "id": "cr_0348",
+      "id": "cr_1126",
       "lat": 36.6969047,
       "lon": 137.2184039,
       "kind": "crossing"
     },
     {
-      "id": "cr_0349",
+      "id": "cr_1127",
       "lat": 36.691902,
       "lon": 137.211333,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0350",
+      "id": "cr_1128",
+      "lat": 36.6910841,
+      "lon": 137.2090318,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1129",
+      "lat": 36.6908653,
+      "lon": 137.2087957,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1130",
       "lat": 36.7020487,
       "lon": 137.2153899,
       "kind": "crossing"
     },
     {
-      "id": "cr_0351",
+      "id": "cr_1131",
       "lat": 36.701915,
       "lon": 137.2126213,
       "kind": "crossing"
     },
     {
-      "id": "cr_0352",
+      "id": "cr_1132",
       "lat": 36.7019678,
       "lon": 137.212489,
       "kind": "crossing"
     },
     {
-      "id": "cr_0353",
+      "id": "cr_1133",
       "lat": 36.6992621,
       "lon": 137.2130558,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0354",
+      "id": "cr_1134",
       "lat": 36.7034572,
       "lon": 137.2170206,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0355",
+      "id": "cr_1135",
       "lat": 36.7033872,
       "lon": 137.2170248,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0356",
+      "id": "cr_1136",
       "lat": 36.7054403,
       "lon": 137.2152187,
       "kind": "crossing"
     },
     {
-      "id": "cr_0357",
+      "id": "cr_1137",
       "lat": 36.7121623,
       "lon": 137.2117622,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0358",
+      "id": "cr_1138",
       "lat": 36.7111266,
       "lon": 137.2111314,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0359",
+      "id": "cr_1139",
       "lat": 36.7110472,
       "lon": 137.2110839,
       "kind": "crossing"
     },
     {
-      "id": "cr_0360",
+      "id": "cr_1140",
       "lat": 36.7120558,
       "lon": 137.2117068,
       "kind": "traffic_signals"
     },
     {
-      "id": "cr_0361",
+      "id": "cr_1141",
       "lat": 36.7077041,
       "lon": 137.2105931,
       "kind": "crossing"
     },
     {
-      "id": "cr_0362",
+      "id": "cr_1142",
       "lat": 36.7089832,
       "lon": 137.2107999,
       "kind": "crossing"
     },
     {
-      "id": "cr_0363",
+      "id": "cr_1143",
       "lat": 36.7092443,
       "lon": 137.2107019,
       "kind": "crossing"
     },
     {
-      "id": "cr_0364",
+      "id": "cr_1144",
       "lat": 36.7108887,
       "lon": 137.2111082,
       "kind": "crossing"
     },
     {
-      "id": "cr_0365",
+      "id": "cr_1145",
       "lat": 36.7110798,
       "lon": 137.2110019,
       "kind": "crossing"
+    },
+    {
+      "id": "cr_1146",
+      "lat": 36.6749604,
+      "lon": 137.1718225,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1147",
+      "lat": 36.6771996,
+      "lon": 137.172279,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1148",
+      "lat": 36.6772574,
+      "lon": 137.1723018,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1149",
+      "lat": 36.6824597,
+      "lon": 137.1744086,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1150",
+      "lat": 36.6825835,
+      "lon": 137.1744046,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1151",
+      "lat": 36.6683128,
+      "lon": 137.1732835,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1152",
+      "lat": 36.6682582,
+      "lon": 137.1734524,
+      "kind": "crossing"
+    },
+    {
+      "id": "cr_1153",
+      "lat": 36.6680725,
+      "lon": 137.1733424,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1154",
+      "lat": 36.6621685,
+      "lon": 137.1737137,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1155",
+      "lat": 36.6622282,
+      "lon": 137.1736589,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1156",
+      "lat": 36.6620261,
+      "lon": 137.1736628,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1157",
+      "lat": 36.6620766,
+      "lon": 137.1734085,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1158",
+      "lat": 36.6620181,
+      "lon": 137.1734597,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1159",
+      "lat": 36.6622209,
+      "lon": 137.1734707,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1160",
+      "lat": 36.664489,
+      "lon": 137.1775225,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1161",
+      "lat": 36.6645542,
+      "lon": 137.1775016,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1162",
+      "lat": 36.6646209,
+      "lon": 137.1777475,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1163",
+      "lat": 36.6646864,
+      "lon": 137.1777251,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1164",
+      "lat": 36.6662152,
+      "lon": 137.180612,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1165",
+      "lat": 36.6662841,
+      "lon": 137.1805603,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1166",
+      "lat": 36.6664248,
+      "lon": 137.1810263,
+      "kind": "traffic_signals"
+    },
+    {
+      "id": "cr_1167",
+      "lat": 36.6664983,
+      "lon": 137.1809781,
+      "kind": "traffic_signals"
     }
   ]
 }
