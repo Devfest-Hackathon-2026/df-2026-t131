@@ -4,7 +4,7 @@
     → cloud/data/build/preview.html（Git 管理外）をブラウザで開く
 
 読むのは manual/landmarks/*.json・manual/events.json・osm/crossings.json だけ（標準ライブラリだけで動く）。
-地図の背景は OpenStreetMap のタイル（表示にネット接続が要る）。
+地図の背景は地理院タイル（標準地図・航空写真。表示にネット接続が要る）。
 """
 import argparse
 import json
@@ -71,9 +71,15 @@ HTML = """<!doctype html>
 <script>
 const D = __DATA__;
 const map = L.map('map', { preferCanvas: true });
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+// 背景は地理院タイル（OSM のタイルは file:// から開くと Referer が無く「Access blocked」になるため）。
+// 点のデータ（横断歩道・信号の位置）は OpenStreetMap
+const gsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+  maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>'
 }).addTo(map);
+const photo = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+  maxZoom: 18, attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル</a>（全国最新写真）'
+});
+map.attributionControl.addAttribution('点のデータ &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 const crossings = L.layerGroup(D.crossings.map(([lat, lon, kind]) => L.circleMarker([lat, lon], {
@@ -99,7 +105,7 @@ const evLayer = L.layerGroup(D.events.map(ev => L.circleMarker([ev.lat, ev.lon],
   radius: 7, color: '#fff', weight: 2, fillColor: '#9467bd', fillOpacity: 1
 }).bindPopup(`<div class="popup"><b>${esc(ev.name)}</b><div class="meta">${esc(ev.id)}・${esc(ev.status)}</div></div>`))).addTo(map);
 
-L.control.layers(null, { 'ランドマーク': lmLayer, 'イベント': evLayer, '横断歩道・信号': crossings, '取得範囲': bbox },
+L.control.layers({ '地図': gsi, '航空写真': photo }, { 'ランドマーク': lmLayer, 'イベント': evLayer, '横断歩道・信号': crossings, '取得範囲': bbox },
   { collapsed: false, position: 'topright' }).addTo(map);
 const pts = D.landmarks.map(l => [l.lat, l.lon]);
 map.fitBounds(pts.length ? L.latLngBounds(pts).pad(0.15) : bbox.getBounds());
