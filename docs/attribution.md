@@ -37,6 +37,7 @@
 | 出典 | URL | ライセンス・条件 |
 | :-- | :-- | :-- |
 | 富山県美術館「ごあいさつ」 | https://tad-toyama.jp/about/greeting | 施設公式サイトの利用条件に従う（事実の参照のみ） |
+| 富山県美術館「建築・デザイン」（見た目の説明 `visual_hint` に使用） | https://tad-toyama.jp/about/design | 施設公式サイトの利用条件に従う（事実の参照のみ） |
 | OpenStreetMap（位置） | https://www.openstreetmap.org/way/522869869 | ODbL 1.0 |
 
 ### lm_0003 ブールバール
