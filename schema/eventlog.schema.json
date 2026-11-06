@@ -304,33 +304,6 @@
           }
         }
       }
-    },
-    {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema_version",
-        "t_ms",
-        "type",
-        "data"
-      ],
-      "properties": {
-        "schema_version": {
-          "$ref": "common.schema.json#/$defs/schema_version"
-        },
-        "t_ms": {
-          "$ref": "common.schema.json#/$defs/t_ms"
-        },
-        "type": {
-          "const": "search_request",
-          "description": "利用者が「調べて」と声で B の検索を頼んだ（t_ms は聞き取った時刻）。音声と認識結果は記録しない。アプリ自身の読み上げ音声では作らない"
-        },
-        "data": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {}
-        }
-      }
     }
   ]
 }

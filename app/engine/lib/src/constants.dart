@@ -136,7 +136,6 @@ const reasonCodes = <String>{
   'skip:event_cancelled',
   'search:interval_elapsed',
   'search:stopped_early',
-  'search:user_requested',
   'search_skip:interval_not_elapsed',
   'search_skip:same_place',
   'search_skip:gate_blocked',

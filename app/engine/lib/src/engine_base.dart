@@ -175,8 +175,6 @@ class Engine {
         _tryNext(event.tMs, out);
       case VisualError():
         _onVisualError(event, out);
-      case SearchRequested():
-        _onSearchRequested(event, out);
     }
     return out;
   }
@@ -700,29 +698,7 @@ class Engine {
     _capture(s, t, reason, out);
   }
 
-  /// 「調べて」と頼まれた：そのときの景色で一度だけ撮影を試す（仕様書 2章）。
-  ///
-  /// 計測間隔と「同じ場所」は見ない。ほかの見送りの条件は自動と同じ。
-  /// 撮れなければ理由を残して依頼を終える（渡ったあとなどに勝手に撮らない）。
-  void _onSearchRequested(SearchRequested e, List<Command> out) {
-    final s = _sensor;
-    final String? skip;
-    if (s == null) {
-      skip = 'search_skip:gate_blocked'; // 位置や向きがまだ取れていない
-    } else if (_inflight != null) {
-      skip = 'search_skip:gate_blocked'; // 前の検索が終わっていない
-    } else {
-      skip = _captureBlock(s, e.tMs);
-    }
-    if (skip != null) {
-      _lastSearchSkip = skip; // 画面で見送った理由を出す
-      _log(out, e.tMs, 'search_skip', skip, null, priority: 6);
-      return;
-    }
-    _capture(s!, e.tMs, 'search:user_requested', out);
-  }
-
-  /// 自動でも「調べて」でも共通の見送りの条件。null なら撮ってよい。
+  /// 撮影の見送りの条件（上限・文脈ゲート・画質）。null なら撮ってよい。
   String? _captureBlock(SensorFrame s, int t) {
     if (_searchCount >= config.maxSearchesPerWalk) {
       return 'search_skip:limit_reached';

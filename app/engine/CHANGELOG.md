@@ -22,7 +22,7 @@
 - 一致の答えは、その検索で送った候補の ID だけを受け付ける。見本の答え4種（`visual_search_response_*.json`）で判断を確かめるテストを追加。
 - 場面ごとのテスト（`test/engine_b_test.dart`）を追加。場面づくりの道具を `test/support/scenario.dart` に分けた。
 - 共有の仕様書（visual-search-spec.md）に合わせて直した：
-  - 「調べて」の入力イベント `SearchRequested`（歩行ログの `search_request`）と理由コード `search:user_requested` を追加（schema に追加。リーダーの確認待ち）。
-  - B を話すと直後の A に間に合わないときは B を捨てる（`answer:yield_to_narrative`。schema に追加。リーダーの確認待ち）。
+  - B を話すと直後の A に間に合わないときは B を捨てる（`answer:yield_to_narrative`。schema に追加、リーダー確認済み）。
   - 最初の1枚の基準を「タイルが初めて届いた時刻」から「位置と向きが初めて取れた時刻」に変えた。
   - `EngineView` に `currentArea`・`searchSkipReason` を追加し、`NearbyLandmark.relativeDeg` を `relativeBearingDeg` に改名（リーダーの案に合わせた）。
+- 「調べて」（声での検索の依頼）は、CLAUDE.md の「マイクは使わない」と食い違うのでデモのあとに決め直す。main からは外した。
