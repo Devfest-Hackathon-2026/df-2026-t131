@@ -357,7 +357,7 @@ class AppServices {
 
   /// 検索ボタン・「検索して」の声。計測中で画像検索がオンのときだけ engine に頼む。
   /// 撮るかどうか（読み上げ中・横断歩道の手前などで見送るか）は engine が決める。
-  bool requestSearch() {
+  bool requestSearch({bool byVoice = false}) {
     final r = _runner;
     if (r == null || !settings.value.visualSearchEnabled || _background) {
       return false;
@@ -369,7 +369,7 @@ class AppServices {
       return true; // 受け付け済みとして扱う（画面には何も足さない）
     }
     _lastSearchRequestMs = now;
-    r.requestSearch();
+    r.requestSearch(byVoice: byVoice);
     return true;
   }
 
@@ -490,7 +490,7 @@ class AppServices {
         if (!cooling) {
           _showSearch(const SearchProgress(SearchPhase.heard, requested: true));
         }
-        requestSearch();
+        requestSearch(byVoice: true);
       });
       unawaited(v.start());
     } else if (!want && _voiceSub != null) {

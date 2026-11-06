@@ -295,8 +295,38 @@ void main() {
     );
     // 送信には常にengineの版を入れる。見本の版との差（0.2→0.3の移行中）はここでは比べない。
     expect(
-      visualSearchRequestToJson(command, '/9j/4AAQSkZJRgABAQ=='),
+      visualSearchRequestToJson(
+        command,
+        '/9j/4AAQSkZJRgABAQ==',
+        context: SearchContext.fromJson(
+          Map<String, dynamic>.from(example['context'] as Map),
+        ),
+      ),
       equals({...example, 'schema_version': currentSchemaVersion}),
+    );
+  });
+
+  test('Bの送信JSONは context が無ければ context を付けない（古い API でも通る）', () {
+    final json = visualSearchRequestToJson(
+      CaptureAndSearch(
+        searchId: 's_000004',
+        tile: TileId(x: 57746, y: 25576),
+        gazeAzDeg10: 0,
+        candidateIds: const [],
+      ),
+      'AAAA',
+    );
+    expect(json.containsKey('context'), isFalse);
+  });
+
+  test('context のきっかけ・日時が決まりに合わなければ拒否する', () {
+    expect(
+      () => SearchContext.fromJson({'trigger': 'timer'}),
+      throwsFormatException,
+    );
+    expect(
+      () => SearchContext.fromJson({'captured_at': '2026-11-07T14:05:00Z'}),
+      throwsFormatException,
     );
   });
 

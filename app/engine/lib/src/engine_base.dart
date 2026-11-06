@@ -163,6 +163,25 @@ class Engine {
     return bestD > config.townMaxDistanceM ? null : best;
   }
 
+  /// いまその範囲（ジオフェンスの半径）の中にいるランドマーク（エリアを除く）。
+  /// 複数あればいちばん近いもの（同じなら ID の小さい方）。B の送信の `context.near_landmark`
+  /// （「〇〇付近で撮った」）に使う。範囲の外・位置がまだ無いときは null。
+  NearLandmarkRef? get nearLandmark {
+    if (_sensor == null) return null;
+    Landmark? best;
+    var bestD = double.infinity;
+    for (final lm in _landmarks.values) {
+      if (lm.kind == 'area') continue;
+      final d = (_local(lm.lat, lm.lon) - _position).length;
+      if (d > _radius(lm)) continue;
+      if (d < bestD || (d == bestD && lm.id.compareTo(best!.id) < 0)) {
+        best = lm;
+        bestD = d;
+      }
+    }
+    return best == null ? null : NearLandmarkRef(id: best.id, name: best.name);
+  }
+
   /// いま中にいるカメラで調べない区域（中心がいちばん近いもの。同じなら ID の小さい方）。外なら null。
   NoCameraZone? get noCameraZone {
     if (_zonesInside.isEmpty) return null;

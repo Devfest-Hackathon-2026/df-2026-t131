@@ -53,12 +53,14 @@ final class LogDecision implements Command {
 /// `VisualSearchRequest` の変換と同じものを通す。
 Map<String, dynamic> visualSearchRequestToJson(
   CaptureAndSearch command,
-  String imageJpegBase64,
-) => VisualSearchRequest(
+  String imageJpegBase64, {
+  SearchContext? context,
+}) => VisualSearchRequest(
   searchId: command.searchId,
   tile: command.tile,
   gazeAzDeg: command.gazeAzDeg10,
   candidateIds: command.candidateIds,
   imageJpegBase64: imageJpegBase64,
   area: command.area,
+  context: context,
 ).toJson();

@@ -1,0 +1,5 @@
+{
+  "API_MODE": "real",
+  "API_BASE_URL": "https://api-566419227445.asia-northeast1.run.app",
+  "APP_TOKEN": "ここに X-App-Token の値（メンバー1から受け取る。real.json にだけ書き、コミットしない）"
+}

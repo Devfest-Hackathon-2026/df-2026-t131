@@ -40,7 +40,8 @@ typedef JpegEncoder = Future<Uint8List> Function(SearchImageInput input);
 /// 撮影 → 顔を見つける（ML Kit・端末内）→ 縮小と顔のモザイク → JPEG → `POST /v1/visual-search`。
 /// - 顔を見つける処理が失敗したら、**送らない**（顔が写ったまま外に出さないため）
 /// - 画像はメモリの中だけで扱い、ファイル・ログに残さない。送ったら参照を捨てる
-/// - 送るのは engine が決めたタイル番号・10°単位の方位・候補 ID・エリアだけ（正確な座標は送らない）
+/// - 送るのは engine が決めたタイル番号・10°単位の方位・候補 ID・エリアと、撮影の手がかり
+///   （[eng.SearchContext]：町丁目名・付近のランドマーク名・日本時間の分まで・きっかけ）だけ（正確な座標は送らない）
 class VisualSearcher {
   VisualSearcher({
     required this.camera,
@@ -61,6 +62,7 @@ class VisualSearcher {
   Future<VisualOutcome> run(
     eng.CaptureAndSearch c, {
     void Function(SearchPhase phase)? onPhase,
+    eng.SearchContext? context,
   }) async {
     onPhase?.call(SearchPhase.capturing);
     final frame = await camera.captureFrame();
@@ -92,6 +94,7 @@ class VisualSearcher {
       candidateIds: c.candidateIds,
       imageJpegBase64: base64Encode(jpeg),
       area: c.area,
+      context: context,
     ).toJson();
     onPhase?.call(SearchPhase.sending);
     final res = await post(body);

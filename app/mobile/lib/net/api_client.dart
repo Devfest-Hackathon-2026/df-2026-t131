@@ -172,6 +172,12 @@ class ApiClient {
   ) async {
     if (!hasUrl || !hasToken) return (json: null, error: 'network');
     if (!limiter.tryAcquire()) return (json: null, error: 'server');
+    return _postVisualSearchOnce(body);
+  }
+
+  Future<({Object? json, String? error})> _postVisualSearchOnce(
+    Map<String, dynamic> body,
+  ) async {
     try {
       final res = await _client
           .post(
@@ -183,6 +189,11 @@ class ApiClient {
             body: jsonEncode(body),
           )
           .timeout(timeout);
+      // 撮影の手がかり（context。11/7 追加）を知らない古い API は 400 を返す。
+      // 一度だけ context を外して送り直す（API の出し直しより先にアプリを入れても B が止まらないように）
+      if (res.statusCode == 400 && body.containsKey('context')) {
+        return await _postVisualSearchOnce(Map.of(body)..remove('context'));
+      }
       if (res.statusCode != 200) return (json: null, error: 'server');
       try {
         return (json: jsonDecode(utf8.decode(res.bodyBytes)), error: null);

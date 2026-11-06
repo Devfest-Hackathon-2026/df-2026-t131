@@ -1140,6 +1140,75 @@ final class AreaContext {
   };
 }
 
+/// B の送信の `context`（撮影の手がかり。任意。11/7 追加）。正確な座標は入れない。
+///
+/// - [capturedAt]：撮影の日時（日本時間・分まで。例 `2026-11-07T14:05+09:00`）
+/// - [trigger]：撮ったきっかけ（[searchTriggers]）
+/// - [town]：おおまかな住所（町丁目名。市区町村名なし）
+/// - [nearLandmark]：ランドマーク（エリアを除く）の範囲の中で撮ったとき、そのランドマーク
+final class SearchContext {
+  final String? capturedAt;
+  final String? trigger;
+  final String? town;
+  final NearLandmarkRef? nearLandmark;
+  const SearchContext({
+    this.capturedAt,
+    this.trigger,
+    this.town,
+    this.nearLandmark,
+  });
+  factory SearchContext.fromJson(Map<String, dynamic> json) {
+    wireKeys(
+      json,
+      const [],
+      const ["captured_at", "trigger", "town", "near_landmark"],
+    );
+    return SearchContext(
+      capturedAt: json["captured_at"] == null
+          ? null
+          : wireString(
+              json["captured_at"],
+              "captured_at",
+              pattern: r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}\+09:00$',
+            ),
+      trigger: json["trigger"] == null
+          ? null
+          : wireString(json["trigger"], "trigger", values: searchTriggers),
+      town: json["town"] == null
+          ? null
+          : wireString(json["town"], "town", minLength: 1),
+      nearLandmark: json["near_landmark"] == null
+          ? null
+          : NearLandmarkRef.fromJson(
+              wireMap(json["near_landmark"], "near_landmark"),
+            ),
+    );
+  }
+  Map<String, dynamic> toJson() => {
+    if (capturedAt != null) "captured_at": capturedAt,
+    if (trigger != null) "trigger": trigger,
+    "town": town,
+    "near_landmark": nearLandmark?.toJson(),
+  };
+}
+
+/// B の撮影のきっかけ（schema の `context.trigger`）。
+const searchTriggers = ["auto", "stopped", "button", "voice"];
+
+/// `context.near_landmark`（ID と名前だけ）。
+final class NearLandmarkRef {
+  final String id, name;
+  const NearLandmarkRef({required this.id, required this.name});
+  factory NearLandmarkRef.fromJson(Map<String, dynamic> json) {
+    wireKeys(json, const ["id", "name"], const ["id", "name"]);
+    return NearLandmarkRef(
+      id: wireString(json["id"], "id", pattern: r'^lm_\d{4}$'),
+      name: wireString(json["name"], "name", minLength: 1),
+    );
+  }
+  Map<String, dynamic> toJson() => {"id": id, "name": name};
+}
+
 final class VisualSearchRequest {
   final String schemaVersion;
   final String searchId;
@@ -1148,6 +1217,9 @@ final class VisualSearchRequest {
   final List<String> candidateIds;
   final String imageJpegBase64;
   final AreaContext? area;
+
+  /// 撮影の手がかり（任意）。null なら送らない（古い API でも通る）。
+  final SearchContext? context;
   VisualSearchRequest._({
     required this.schemaVersion,
     required this.searchId,
@@ -1156,6 +1228,7 @@ final class VisualSearchRequest {
     required this.candidateIds,
     required this.imageJpegBase64,
     required this.area,
+    required this.context,
   });
   factory VisualSearchRequest({
     String schemaVersion = currentSchemaVersion,
@@ -1165,6 +1238,7 @@ final class VisualSearchRequest {
     required List<String> candidateIds,
     required String imageJpegBase64,
     required AreaContext? area,
+    SearchContext? context,
   }) => VisualSearchRequest.fromJson({
     "schema_version": schemaVersion,
     "search_id": searchId,
@@ -1173,6 +1247,7 @@ final class VisualSearchRequest {
     "candidate_ids": List.of(candidateIds),
     "image_jpeg_base64": imageJpegBase64,
     "area": area?.toJson(),
+    if (context != null) "context": context.toJson(),
   });
   factory VisualSearchRequest.fromJson(Map<String, dynamic> json) {
     wireKeys(
@@ -1194,6 +1269,7 @@ final class VisualSearchRequest {
         "candidate_ids",
         "image_jpeg_base64",
         "area",
+        "context",
       ],
     );
     final result = VisualSearchRequest._(
@@ -1224,6 +1300,9 @@ final class VisualSearchRequest {
       area: json["area"] == null
           ? null
           : AreaContext.fromJson(wireMap(json["area"], "area")),
+      context: json["context"] == null
+          ? null
+          : SearchContext.fromJson(wireMap(json["context"], "context")),
     );
     return result;
   }
@@ -1235,6 +1314,7 @@ final class VisualSearchRequest {
     "candidate_ids": List.of(candidateIds),
     "image_jpeg_base64": imageJpegBase64,
     "area": area?.toJson(),
+    if (context != null) "context": context!.toJson(),
   };
 }
 

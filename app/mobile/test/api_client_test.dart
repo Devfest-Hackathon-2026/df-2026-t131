@@ -80,4 +80,38 @@ void main() {
     }
     expect((await api.health()).label, '呼びすぎ防止で待っています');
   });
+
+  test('context を知らない古い API が 400 を返したら、context を外して一度だけ送り直す', () async {
+    final bodies = <String>[];
+    final api = ApiClient(
+      baseUrl: 'https://example.run.app',
+      token: 't',
+      client: MockClient((req) async {
+        bodies.add(req.body);
+        return req.body.contains('"context"')
+            ? http.Response('{"error":"bad_request"}', 400)
+            : http.Response('{"ok":true}', 200);
+      }),
+    );
+    final r = await api.postVisualSearch({
+      'search_id': 's_000001',
+      'context': {'trigger': 'auto'},
+    });
+    expect(r.error, isNull);
+    expect(bodies, hasLength(2));
+    expect(bodies.last.contains('context'), isFalse);
+
+    // context が無い 400 は送り直さない
+    bodies.clear();
+    final r2 = await ApiClient(
+      baseUrl: 'https://example.run.app',
+      token: 't',
+      client: MockClient((req) async {
+        bodies.add(req.body);
+        return http.Response('{"error":"bad_request"}', 400);
+      }),
+    ).postVisualSearch({'search_id': 's_000002'});
+    expect(r2.error, 'server');
+    expect(bodies, hasLength(1));
+  });
 }

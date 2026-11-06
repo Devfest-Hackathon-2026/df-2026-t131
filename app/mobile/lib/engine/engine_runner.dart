@@ -137,13 +137,15 @@ class EngineRunner {
   ///
   /// 撮るかどうかは engine が決める。読み上げ中・横断歩道の手前などで撮れないときは、
   /// engine が見送った理由を判断として出す（画面の「今の判断」に出る）。あとで勝手に撮らない。
-  void requestSearch() {
+  void requestSearch({bool byVoice = false}) {
     final decisions = <eng.Decision>[];
     _collect = decisions;
+    _requestVia = byVoice ? 'voice' : 'button';
     try {
       _push(eng.SearchRequested(tMs: _t()));
     } finally {
       _collect = null;
+      _requestVia = null;
     }
     for (final d in decisions) {
       if (d.kind == 'search_skip') {
@@ -159,7 +161,28 @@ class EngineRunner {
   /// [requestSearch] の間に出た判断を集める所（それ以外のときは null）。
   List<eng.Decision>? _collect;
 
-  Future<void> _search(eng.CaptureAndSearch c, {bool requested = false}) async {
+  /// [requestSearch] の間だけ、頼んだ手段（`button`・`voice`）。
+  String? _requestVia;
+
+  /// 撮影の手がかり（B の送信の `context`）を、指示が出た瞬間の engine の状態から作る。
+  /// 正確な座標は入れない（町丁目名・ランドマーク名・日本時間の分まで・きっかけだけ）。
+  eng.SearchContext _searchContext(String? reason, bool requested) =>
+      eng.SearchContext(
+        capturedAt: jstMinute(DateTime.fromMillisecondsSinceEpoch(_now())),
+        trigger: requested
+            ? (_requestVia ?? 'button')
+            : reason == 'search:stopped_early'
+            ? 'stopped'
+            : 'auto',
+        town: engine.view.currentTown?.name,
+        nearLandmark: engine.nearLandmark,
+      );
+
+  Future<void> _search(
+    eng.CaptureAndSearch c, {
+    bool requested = false,
+    eng.SearchContext? context,
+  }) async {
     final s = searcher;
     if (s == null || !_searchEnabled()) return;
     void show(SearchPhase phase, [String? detail]) {
@@ -173,7 +196,7 @@ class EngineRunner {
 
     final VisualOutcome outcome;
     try {
-      outcome = await s.run(c, onPhase: show);
+      outcome = await s.run(c, onPhase: show, context: context);
     } catch (_) {
       show(SearchPhase.failed, 'server');
       // 結果待ちのまま残さない（頼んだ検索だと、その間 A も次の検索も止まるため）
@@ -230,15 +253,14 @@ class EngineRunner {
         } catch (_) {
           continue; // 1つのイベントで止まらない
         }
-        // 頼まれた検索の撮影か（判断の理由で見分ける。画面の札で「検索します」と出すため）
-        final requested = {
+        // 撮影の理由（search:〜）を検索 ID ごとに。頼まれた検索か・立ち止まりかを見分ける
+        final reasons = <String?, String>{
           for (final c in cmds)
-            if (c is eng.LogDecision &&
-                c.decision.reason == 'search:user_requested')
-              c.decision.targetId,
+            if (c is eng.LogDecision && c.decision.kind == 'search')
+              c.decision.targetId: c.decision.reason,
         };
         for (final c in cmds) {
-          _run(c, requested);
+          _run(c, reasons);
         }
       }
       view.value = engine.view;
@@ -247,7 +269,7 @@ class EngineRunner {
     }
   }
 
-  void _run(eng.Command c, Set<String?> requestedSearches) {
+  void _run(eng.Command c, Map<String?, String> searchReasons) {
     switch (c) {
       case eng.Speak():
         _myUtterances.add(c.utteranceId);
@@ -264,8 +286,14 @@ class EngineRunner {
       case eng.FetchTiles():
         tiles.request([for (final t in c.tiles) TileId(t.x, t.y, z: t.z)]);
       case eng.CaptureAndSearch():
+        final reason = searchReasons[c.searchId];
+        final requested = reason == 'search:user_requested';
         unawaited(
-          _search(c, requested: requestedSearches.contains(c.searchId)),
+          _search(
+            c,
+            requested: requested,
+            context: _searchContext(reason, requested),
+          ),
         );
       case eng.LogDecision():
         lastDecision.value = c.decision;
@@ -281,4 +309,12 @@ class EngineRunner {
     lastDecision.dispose();
     searchProgress.dispose();
   }
+}
+
+/// 日本時間の分までの日時（`2026-11-07T14:05+09:00`）。B の送信の `context.captured_at`。
+String jstMinute(DateTime t) {
+  final j = t.toUtc().add(const Duration(hours: 9));
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${j.year.toString().padLeft(4, '0')}-${two(j.month)}-${two(j.day)}'
+      'T${two(j.hour)}:${two(j.minute)}+09:00';
 }

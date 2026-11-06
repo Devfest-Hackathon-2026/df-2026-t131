@@ -1409,6 +1409,27 @@ void main() {
       expect(view.nextSearchInMs, 0);
     });
 
+    test('nearLandmark：範囲の中のランドマーク（エリアを除く）でいちばん近いもの。外なら null', () {
+      final sim = Sim(bConfig);
+      expect(sim.engine.nearLandmark, isNull); // 位置がまだ無い
+      sim.run(
+        0,
+        extra: {
+          0: [
+            tiles(0, [
+              landmark('lm_0001', 0, 0, kind: 'area', radiusM: 200),
+              landmark('lm_0002', -5, 0, radiusM: 25),
+              landmark('lm_0003', -100, 0, radiusM: 25),
+            ]),
+          ],
+        },
+      );
+      expect(sim.engine.nearLandmark?.id, 'lm_0002');
+      // 30秒で南へ39m：lm_0002 の範囲の外、lm_0003 にはまだ遠い
+      sim.run(30, from: 1);
+      expect(sim.engine.nearLandmark, isNull);
+    });
+
     test('EngineView：いまいる町丁目は、持っている代表点でいちばん近いもの。800m より遠ければ null', () {
       final ichome = town('162019990001', '見本町一丁目', -50, 0);
       final nichome = town('162019990002', '見本町二丁目', -400, 0);
