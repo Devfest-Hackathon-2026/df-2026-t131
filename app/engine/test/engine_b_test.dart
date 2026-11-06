@@ -87,10 +87,14 @@ extension on Sim {
   List<double> get searchSecs => [for (final (t, _) in searches) secOf(t)];
 }
 
+/// 場面のテストは、作ったときの計測の間隔（60秒）で時刻を組んである。
+/// 既定（20秒）で動くことは「既定の間隔は20秒」のテストで確かめる。
+const bConfig = EngineConfig(visualIntervalMs: 60000);
+
 void main() {
   group('いつ撮るか', () {
     test('論点1・2：最初の1枚はタイルが届いてから60秒後、その後は最後に撮った時刻から60秒ごと', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         200,
         quality: goodQuality,
@@ -108,7 +112,7 @@ void main() {
     });
 
     test('タイルが届かなくても、位置と向きが初めて取れてから60秒後に撮る（候補は空）', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(100, from: 10, quality: goodQuality);
       expect(sim.searchSecs, [70]);
       final c = sim.searches.single.$2;
@@ -117,7 +121,7 @@ void main() {
     });
 
     test('論点7：画質が足りない間は撮らず、理由を1回だけ記録し、足りたら次の秒に撮る', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         140,
         quality: (sec) =>
@@ -136,7 +140,7 @@ void main() {
     });
 
     test('画質の値がない（null）ときも撮らない', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         70,
         extra: {
@@ -148,7 +152,7 @@ void main() {
     });
 
     test('前回と同じ場所・同じ向きなら撮らず、向きを変えたら撮る', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         140,
         pose: standing,
@@ -186,6 +190,18 @@ void main() {
       expect(sim.engine.view.nextSearchInMs, isNull);
     });
 
+    test('既定の間隔は20秒：最初の1枚は位置と向きが取れてから20秒後、その後20秒ごと', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        70,
+        quality: goodQuality,
+        extra: {
+          0: [tiles(0, const [])],
+        },
+      );
+      expect(sim.searchSecs, [20, 40, 60]);
+    });
+
     test('既定では回数の上限がなく、31回目以降も撮る', () {
       final sim = Sim(
         const EngineConfig(visualIntervalMs: 20000),
@@ -204,7 +220,7 @@ void main() {
     });
 
     test('論点6：立ち止まって5秒たち、前に撮ってから30秒以上なら前倒しで撮る', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         45,
         pose: (sec) => sec < 35 ? southWalk(sec) : stopAt(35),
@@ -219,7 +235,7 @@ void main() {
     });
 
     test('論点6：前に撮ってから30秒たっていなければ、立ち止まっても待つ', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         35,
         pose: (sec) => sec < 10 ? southWalk(sec) : stopAt(10),
@@ -252,7 +268,7 @@ void main() {
     });
 
     test('計測間隔が経っていなくても、その場で撮る。次の自動はそこから60秒後', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         100,
         quality: goodQuality,
@@ -268,7 +284,7 @@ void main() {
     });
 
     test('前回と同じ場所・同じ向きでも撮る', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         75,
         pose: standing,
@@ -288,7 +304,7 @@ void main() {
         lon: lonAt(0),
         kind: 'crossing',
       );
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         50,
         quality: goodQuality,
@@ -306,7 +322,7 @@ void main() {
     });
 
     test('前の検索の結果を待っている間は撮らない', () {
-      final sim = Sim(const EngineConfig(), answer(unknownFor), 10);
+      final sim = Sim(bConfig, answer(unknownFor), 10);
       sim.run(
         65,
         quality: goodQuality,
@@ -328,7 +344,7 @@ void main() {
         (Activity.inVehicle, AudioOut.earphone),
         (Activity.walking, AudioOut.none),
       ]) {
-        final sim = Sim(const EngineConfig(), answer(unknownFor));
+        final sim = Sim(bConfig, answer(unknownFor));
         sim.run(
           100,
           activity: (_) => activity,
@@ -344,7 +360,7 @@ void main() {
     });
 
     test('論点3：前の話が終わってから「話題の間隔−答えの見込み」が過ぎるまで撮らず、答えは間隔が空いてから話す', () {
-      final sim = Sim(const EngineConfig(), answer((id) => unlistedFor(id)));
+      final sim = Sim(bConfig, answer((id) => unlistedFor(id)));
       sim.run(
         100,
         quality: goodQuality,
@@ -378,10 +394,7 @@ void main() {
     test('論点4：15秒以内に A が話し始めそうなら撮らず、A を先に話す', () {
       // 南へ1.3m/sで歩き、85秒に最接近する（A は20秒前の65秒に話し始める）
       final lm = landmark('lm_0001', -1.3 * 85, 10);
-      final sim = Sim(
-        const EngineConfig(),
-        answer((id) => matchedFor(id, 'lm_0001')),
-      );
+      final sim = Sim(bConfig, answer((id) => matchedFor(id, 'lm_0001')));
       sim.run(
         130,
         quality: goodQuality,
@@ -403,7 +416,7 @@ void main() {
     });
 
     test('論点11：答えを待つ間は話せず、鮮度期限（撮ってから15秒）を過ぎたら捨てる', () {
-      final sim = Sim(const EngineConfig(), answer((id) => unlistedFor(id)));
+      final sim = Sim(bConfig, answer((id) => unlistedFor(id)));
       sim.run(
         90,
         quality: goodQuality,
@@ -424,10 +437,7 @@ void main() {
     test('候補のランドマークと一致したら A の原稿で話し、A で話した扱いにする', () {
       // 歩く道から40m離れた（A のジオフェンスの外の）ランドマークを、正面の視線の中に置く
       final lm = landmark('lm_0002', -200, 40, short: '見本の蔵の説明です。');
-      final sim = Sim(
-        const EngineConfig(),
-        answer((id) => matchedFor(id, 'lm_0002')),
-      );
+      final sim = Sim(bConfig, answer((id) => matchedFor(id, 'lm_0002')));
       sim.run(
         70,
         quality: goodQuality,
@@ -452,10 +462,7 @@ void main() {
       // 道から20m、ジオフェンスは10m（A は話さない）。60秒（124m先）と120秒（48m先）の
       // どちらでも視線の左右30°以内・150m以内に入る
       final lm = landmark('lm_0009', -200, 20, radiusM: 10);
-      final sim = Sim(
-        const EngineConfig(),
-        answer((id) => matchedFor(id, 'lm_0009')),
-      );
+      final sim = Sim(bConfig, answer((id) => matchedFor(id, 'lm_0009')));
       sim.run(
         130,
         quality: goodQuality,
@@ -475,7 +482,7 @@ void main() {
     });
 
     test('論点10：方向は、撮ったときの視線と話し始めるときの進行方向の差で言う', () {
-      final sim = Sim(const EngineConfig(), answer((id) => unlistedFor(id)));
+      final sim = Sim(bConfig, answer((id) => unlistedFor(id)));
       sim.run(
         70,
         quality: goodQuality,
@@ -495,7 +502,7 @@ void main() {
       final far = landmark('lm_0004', -200, -20);
       final side = landmark('lm_0005', -80, 100); // 視線から外れる
       final area = landmark('lm_0006', 0, 0, kind: 'area', radiusM: 10);
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         60,
         quality: goodQuality,
@@ -511,7 +518,7 @@ void main() {
     });
 
     test('論点9：候補外の対象は名前が同じなら2回話さない', () {
-      final sim = Sim(const EngineConfig(), answer((id) => unlistedFor(id)));
+      final sim = Sim(bConfig, answer((id) => unlistedFor(id)));
       sim.run(
         130,
         quality: goodQuality,
@@ -525,7 +532,7 @@ void main() {
 
     test('一般名は、前に話した撮影場所から100m以上離れていれば、同じ名前でもまた話す', () {
       // 1.3m/sで歩くと、60秒→120秒は78m（二度目とみなす）、60秒→180秒は156m（別の対象）
-      final sim = Sim(const EngineConfig(), answer((id) => unlistedFor(id)));
+      final sim = Sim(bConfig, answer((id) => unlistedFor(id)));
       sim.run(
         190,
         quality: goodQuality,
@@ -547,7 +554,7 @@ void main() {
 
     test('固有名は、離れた場所でも同じ名前なら二度は話さない', () {
       final sim = Sim(
-        const EngineConfig(),
+        bConfig,
         answer((id) => unlistedFor(id, name: '見本橋', named: true)),
       );
       sim.run(
@@ -576,7 +583,7 @@ void main() {
               'answer:matched_landmark',
             ),
           ]) {
-        final sim = Sim(const EngineConfig(), answer(make));
+        final sim = Sim(bConfig, answer(make));
         sim.run(
           70,
           quality: goodQuality,
@@ -595,7 +602,7 @@ void main() {
 
     test('自信が低い答えは話さない', () {
       final sim = Sim(
-        const EngineConfig(),
+        bConfig,
         answer((id) => unlistedFor(id, confidence: 0.5)),
       );
       sim.run(
@@ -620,7 +627,7 @@ void main() {
       );
       const source = (title: '見本橋（見本の場所データ）', uri: 'https://example.com/p');
       final sim = Sim(
-        const EngineConfig(),
+        bConfig,
         answer(
           (id) => unlistedFor(
             id,
@@ -664,7 +671,7 @@ void main() {
       final lm = landmark('lm_0009', -1.3 * (63 + 33), 0, radiusM: 10);
       final long = '白い漆喰の壁と黒い瓦屋根の蔵が見えます。' * 4;
       final sim = Sim(
-        const EngineConfig(),
+        bConfig,
         answer((id) => unlistedFor(id, description: long)),
       );
       sim.run(
@@ -684,7 +691,7 @@ void main() {
 
     test('A に間に合うなら B を話す（短い説明）', () {
       final lm = landmark('lm_0009', -1.3 * (63 + 33), 0, radiusM: 10);
-      final sim = Sim(const EngineConfig(), answer(unlistedFor));
+      final sim = Sim(bConfig, answer(unlistedFor));
       sim.run(
         110,
         quality: goodQuality,
@@ -701,7 +708,7 @@ void main() {
 
   group('結果が来ないとき・失敗', () {
     test('論点5：結果待ちの間は次を撮らず、15秒たっても来なければ諦めて次の間隔を待つ', () {
-      final sim = Sim(const EngineConfig(), (c, t) => null);
+      final sim = Sim(bConfig, (c, t) => null);
       sim.run(
         130,
         quality: goodQuality,
@@ -717,11 +724,7 @@ void main() {
     });
 
     test('諦めたあとに届いた結果は、期限切れとして記録し、話さない', () {
-      final sim = Sim(
-        const EngineConfig(),
-        answer((id) => unlistedFor(id)),
-        20,
-      );
+      final sim = Sim(bConfig, answer((id) => unlistedFor(id)), 20);
       sim.run(
         90,
         quality: goodQuality,
@@ -735,11 +738,7 @@ void main() {
     });
 
     test('鮮度期限を過ぎて届いた結果は話さない', () {
-      final sim = Sim(
-        const EngineConfig(),
-        answer((id) => unlistedFor(id)),
-        16,
-      );
+      final sim = Sim(bConfig, answer((id) => unlistedFor(id)), 16);
       sim.run(
         80,
         quality: goodQuality,
@@ -753,7 +752,7 @@ void main() {
 
     test('失敗（visual_error）は answer:error を記録し、次の計測へ進む', () {
       final sim = Sim(
-        const EngineConfig(),
+        bConfig,
         (c, t) => VisualError(tMs: t, searchId: c.searchId, error: 'timeout'),
       );
       sim.run(
@@ -772,7 +771,7 @@ void main() {
     // 道から20m・範囲10m（A は話さない）。60秒と120秒の2回とも候補に入る（上の lm_0009 の場面と同じ）
     Landmark near() => landmark('lm_0009', -200, 20, radiusM: 10);
     Sim twoSearches(Responder respond) {
-      final sim = Sim(const EngineConfig(), respond);
+      final sim = Sim(bConfig, respond);
       sim.run(
         130,
         quality: goodQuality,
@@ -789,7 +788,7 @@ void main() {
     test('登録したランドマークの特徴は、特徴の説明を読み、A で話した扱いにはしない', () {
       final lm = landmark('lm_0002', -200, 40, short: '見本の原稿です。');
       final sim = Sim(
-        const EngineConfig(),
+        bConfig,
         answer(
           (id) => matchedFor(
             id,
@@ -818,7 +817,7 @@ void main() {
     test('特徴は自信0.7未満なら話さない（全体の紹介は0.6でよい）', () {
       final lm = landmark('lm_0002', -200, 40);
       final sim = Sim(
-        const EngineConfig(),
+        bConfig,
         answer(
           (id) => matchedFor(id, 'lm_0002', part: 'roof', confidence: 0.65),
         ),
@@ -931,7 +930,7 @@ void main() {
       test('$name → $reason', () {
         // matched の見本が返す lm_0001 を、視線の中（候補）に置く
         final lm = landmark('lm_0001', -200, 40, short: '見本の原稿です。');
-        final sim = Sim(const EngineConfig(), example(name));
+        final sim = Sim(bConfig, example(name));
         sim.run(
           70,
           quality: goodQuality,
@@ -954,10 +953,7 @@ void main() {
     test('送った候補にない ID が一致として返ったら、取り違えとみなして話さない', () {
       // lm_0001 は持っているが、視線の外なので候補に入らない
       final lm = landmark('lm_0001', 100, 0);
-      final sim = Sim(
-        const EngineConfig(),
-        example('visual_search_response_matched.json'),
-      );
+      final sim = Sim(bConfig, example('visual_search_response_matched.json'));
       sim.run(
         70,
         quality: goodQuality,
@@ -977,7 +973,7 @@ void main() {
   group('送るもの・画面に出す値', () {
     test('視線の方位は10°単位に丸めて送る', () {
       for (final (gaze, expected) in [(355.0, 0), (184.0, 180), (5.0, 10)]) {
-        final sim = Sim(const EngineConfig(), answer(unknownFor));
+        final sim = Sim(bConfig, answer(unknownFor));
         sim.run(
           60,
           pose: (sec) => (north: -1.3 * sec, east: 0, speed: 1.3, course: 180),
@@ -993,7 +989,7 @@ void main() {
 
     test('EngineView：次の計測までの時間、結果待ち、近くの候補、最後の判断を返す', () {
       final lm = landmark('lm_0008', -30, 20);
-      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      final sim = Sim(bConfig, answer(unknownFor));
       sim.run(
         20,
         quality: goodQuality,

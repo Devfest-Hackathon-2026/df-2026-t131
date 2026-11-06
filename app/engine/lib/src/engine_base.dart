@@ -668,7 +668,7 @@ class Engine {
     final t = s.tMs;
     if (_inflight != null) return; // 1件ずつ（結果か失敗、または諦めるまで次を出さない）
 
-    // 60秒は最後に撮った時刻から。最初の1枚は位置と向きが初めて取れてから（論点1・2）。
+    // 計測の間隔（既定20秒）は最後に撮った時刻から。最初の1枚は位置と向きが初めて取れてから（論点1・2）。
     final ref = _lastCaptureMs ?? _firstFixMs;
     if (ref == null) return;
     final elapsed = t - ref;

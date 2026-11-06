@@ -28,3 +28,4 @@
   - `EngineView` に `currentArea`・`searchSkipReason` を追加し、`NearbyLandmark.relativeDeg` を `relativeBearingDeg` に改名（リーダーの案に合わせた）。
 - B の応答の `part`（どの部分か）に対応（メンバー1の m1/visual-part）：`VisualSearchResponse.part`、`visualPartLabels`。登録したランドマークの特徴（`answer:landmark_feature`）を話す。重複は（場所, part）で見る。
 - B の1回の歩行での回数の上限を既定で外した（`EngineConfig.maxSearchesPerWalk` は `int?`、既定 null＝上限なし）。値を入れれば今までどおり `search_skip:limit_reached` で止まる。`EngineView.searchesLeft` も上限なしのとき null。
+- B の計測の間隔の既定を60秒から20秒に短くした（60秒では約80mに1枚で見逃しが多いため。試し歩きで調整する）。

@@ -80,7 +80,7 @@ final class EngineConfig {
     this.prefetchHorizonMs = 150000,
     this.proximityHorizonMs = 20000,
     this.topicIntervalMs = 20000,
-    this.visualIntervalMs = 60000,
+    this.visualIntervalMs = 20000,
     this.samePlaceDistanceM = 20,
     this.samePlaceAzimuthDeg = 30,
     this.candidateDistanceM = 150,
