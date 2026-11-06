@@ -1044,6 +1044,57 @@ void main() {
       expect(view.nextSearchInMs, 0);
     });
 
+    test('EngineView：いまいる町丁目は、持っている代表点でいちばん近いもの。800m より遠ければ null', () {
+      final ichome = town('162019990001', '見本町一丁目', -50, 0);
+      final nichome = town('162019990002', '見本町二丁目', -400, 0);
+      final sim = Sim(bConfig);
+      expect(sim.engine.view.currentTown, isNull); // 位置がまだ無い
+      sim.run(
+        0,
+        extra: {
+          0: [
+            tiles(0, const [], towns: [nichome, ichome]),
+          ],
+        },
+      );
+      expect(sim.engine.view.currentTown?.name, '見本町一丁目');
+      // 200秒で南へ260m：一丁目まで210m、二丁目まで140m
+      sim.run(200, from: 1);
+      expect(sim.engine.view.currentTown?.name, '見本町二丁目');
+      // 二丁目の代表点から800mより遠くへ
+      sim.run(1000, from: 201);
+      expect(sim.engine.view.currentTown, isNull);
+    });
+
+    test('町丁目：距離が同じなら ID の小さい方。町丁目を持たない（古い）タイルだけなら null', () {
+      final sim = Sim(bConfig);
+      sim.run(
+        0,
+        extra: {
+          0: [
+            tiles(
+              0,
+              const [],
+              towns: [
+                town('162019990002', '見本町東', 0, 100),
+                town('162019990001', '見本町西', 0, -100),
+              ],
+            ),
+          ],
+        },
+      );
+      expect(sim.engine.view.currentTown?.id, '162019990001');
+
+      final old = Sim(bConfig);
+      old.run(
+        0,
+        extra: {
+          0: [tiles(0, const [])],
+        },
+      );
+      expect(old.engine.view.currentTown, isNull);
+    });
+
     test('判断ログの sources は answer のときだけ付けられる', () {
       expect(
         () => Decision(

@@ -78,6 +78,10 @@ final class EngineConfig {
   /// 同じ名前のときだけ二度目とみなす。離れた場所の別の蔵はまた話せる（11/6 に決定）。
   final double genericObjectDedupM;
 
+  /// 今の町丁目：持っているタイルの町丁目のうち、いちばん近い代表点。これより遠ければ「わからない」（m）。
+  /// cloud/data/scripts/town_lookup.py の MAX_TOWN_DISTANCE_M と同じ値にする。
+  final double townMaxDistanceM;
+
   const EngineConfig({
     this.sensorIntervalMs = 1000,
     this.defaultRadiusM = 25,
@@ -117,6 +121,7 @@ final class EngineConfig {
     this.stillEarlyMinIntervalMs = 10000,
     this.unlistedMinConfidence = 0.7,
     this.genericObjectDedupM = 100,
+    this.townMaxDistanceM = 800,
   });
 }
 

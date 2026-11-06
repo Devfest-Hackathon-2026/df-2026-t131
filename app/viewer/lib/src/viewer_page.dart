@@ -436,6 +436,7 @@ class _StatePanel extends StatelessWidget {
               ),
             ],
             Text('エリア：${v.currentArea?.name ?? '（エリアの外）'}'),
+            Text('町丁目：${v.currentTown?.name ?? '（わからない）'}'),
           ]),
           section('B（景色を調べる）', [
             Text(
@@ -449,8 +450,7 @@ class _StatePanel extends StatelessWidget {
             ),
             if (v.searchSkipReason case final reason?)
               Text('見送り：${reasonLabels[reason] ?? reason}'),
-            if (v.searchesLeft case final left?)
-              Text('この歩行であと $left 回'),
+            if (v.searchesLeft case final left?) Text('この歩行であと $left 回'),
           ]),
           section('近くのランドマーク', [
             if (v.nearby.isEmpty) const Text('（150 m 以内にありません）'),

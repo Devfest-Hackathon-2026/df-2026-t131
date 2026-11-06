@@ -58,7 +58,7 @@
 
 ### 画面に出す値（`engine.view`）
 
-`EngineView`（読み取り専用。判断ログには入れない）：`tMs`、いまいるエリア `currentArea`（外なら null）、近くのランドマーク `nearby`（ID・名前・種類・距離・視線から見た方位 `relativeBearingDeg`（右が正）・話したか。近い順に10件）、B の次の計測までのミリ秒 `nextSearchInMs`（結果待ち・上限・センサー未着は null）、B を止めている理由 `searchSkipReason`（判断ログの reason と同じ値。止められていなければ null）、`searching`、`searchesLeft`（上限なしなら null）、最後の判断 `lastDecision`。
+`EngineView`（読み取り専用。判断ログには入れない）：`tMs`、いまいるエリア `currentArea`（外なら null）、いまいる町丁目 `currentTown`（いちばん近い代表点。800m より遠ければ null）、近くのランドマーク `nearby`（ID・名前・種類・距離・視線から見た方位 `relativeBearingDeg`（右が正）・話したか。近い順に10件）、B の次の計測までのミリ秒 `nextSearchInMs`（結果待ち・上限・センサー未着は null）、B を止めている理由 `searchSkipReason`（判断ログの reason と同じ値。止められていなければ null）、`searching`、`searchesLeft`（上限なしなら null）、最後の判断 `lastDecision`。
 mobile のグラス視点の画面と viewer の再生画面の両方で、`handle()` のあとに読む。
 
 **まだ入っていないもの**：交通（`speak:transit_next`）・イベント（`speak:event_nearby`）の読み上げ。

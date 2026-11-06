@@ -39,6 +39,7 @@ TilesLoaded tiles(
   num sec,
   List<Landmark> landmarks, {
   List<Crossing> crossings = const [],
+  List<Town>? towns,
 }) => TilesLoaded(
   tMs: ms(sec),
   tile: TileResponse(
@@ -47,8 +48,13 @@ TilesLoaded tiles(
     stops: const [],
     crossings: crossings,
     events: const [],
+    towns: towns,
   ),
 );
+
+/// 原点から north・east（m）の位置に代表点がある町丁目。
+Town town(String id, String name, double north, double east) =>
+    Town(id: id, name: name, lat: latAt(north), lon: lonAt(east));
 
 /// 1秒ごとの位置。既定は南へ 1.3 m/s。
 typedef Pose = ({double north, double east, double speed, double course});

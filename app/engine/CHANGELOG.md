@@ -32,3 +32,4 @@
 - B はランドマーク全体を話さない（`answer:whole_left_to_narrative`）、全体の紹介（A）より先に部分やエリアの中のものを話さない（`answer:feature_before_intro`）。11/6 夜のメンバー1の決定（CLAUDE.md 6章）。理由コードを schema に追加。`answer:matched_landmark` は出さなくなり、`minConfidence`（0.6）は使わなくなった。B で話しても A で話した扱いにはしない。
 - タイルの応答の町丁目（`towns`、メンバー1の m1/tile-towns）に対応：`Town`、`TileResponse.towns`（無い古いタイルは空として読み、書き出しでも足さない）。
 - 立ち止まりの前倒しの「前に撮ってから」を30秒から10秒に下げた（間隔20秒より長く、前倒しにならなかったため）。
+- 今の町丁目 `Engine.currentTown`・`EngineView.currentTown` を追加：持っているタイルの町丁目のうち、いちばん近い代表点（距離が同じなら ID の小さい方）。`townMaxDistanceM`（800m）より遠ければ null。決め方は cloud/data/scripts/town_lookup.py と同じ。

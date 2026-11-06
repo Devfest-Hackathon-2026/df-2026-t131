@@ -74,6 +74,7 @@ class Engine {
 
   // ---- エリア ----
   String? _currentAreaId;
+  final Map<String, Town> _towns = {};
 
   // ---- B：視界の定期検索 ----
   int _searchSeq = 0;
@@ -105,6 +106,24 @@ class Engine {
     return AreaContext(id: area.id, name: area.name, summary: area.scriptShort);
   }
 
+  /// いまいる町丁目。持っているタイルの町丁目のうち、いちばん近い代表点（距離が同じなら ID の小さい方）。
+  /// townMaxDistanceM より遠い・町丁目を持っていない・位置がまだ無いときは null。
+  /// 決め方は cloud/data/scripts/town_lookup.py と同じ（近い2点なので平面で近似）。
+  Town? get currentTown {
+    if (_sensor == null || _towns.isEmpty) return null;
+    final (lat, lon) = _projection!.toLatLon(_position);
+    Town? best;
+    var bestD = double.infinity;
+    for (final t in _towns.values) {
+      final d = townDistanceM(lat, lon, t.lat, t.lon);
+      if (d < bestD || (d == bestD && t.id.compareTo(best!.id) < 0)) {
+        best = t;
+        bestD = d;
+      }
+    }
+    return bestD > config.townMaxDistanceM ? null : best;
+  }
+
   /// 話した対象（ランドマーク・エリア）の ID の一覧。読み取り専用。
   Set<String> get toldIds => Set.unmodifiable(_told);
 
@@ -116,6 +135,7 @@ class Engine {
         tMs: 0,
         nearby: const [],
         currentArea: null,
+        currentTown: null,
         nextSearchInMs: null,
         searchSkipReason: null,
         searching: false,
@@ -149,6 +169,7 @@ class Engine {
       tMs: s.tMs,
       nearby: nearby.take(config.candidateLimit).toList(),
       currentArea: currentArea,
+      currentTown: currentTown,
       nextSearchInMs:
           ref == null || _inflight != null || (left != null && left <= 0)
           ? null
@@ -284,6 +305,9 @@ class Engine {
     }
     for (final c in e.tile.crossings) {
       _crossings[c.id] = c;
+    }
+    for (final t in e.tile.towns) {
+      _towns[t.id] = t;
     }
   }
 
@@ -1067,6 +1091,9 @@ final class EngineView {
   /// いまいるエリア。エリアの外なら null。
   final AreaContext? currentArea;
 
+  /// いまいる町丁目（いちばん近い代表点）。わからなければ null。
+  final Town? currentTown;
+
   /// B の次の計測までのミリ秒。0 なら計測できる状態待ち（ゲート・画質など）。
   /// 結果待ち・上限到達・センサー未着のときは null。
   final int? nextSearchInMs;
@@ -1088,12 +1115,22 @@ final class EngineView {
     required this.tMs,
     required List<NearbyLandmark> nearby,
     required this.currentArea,
+    required this.currentTown,
     required this.nextSearchInMs,
     required this.searchSkipReason,
     required this.searching,
     required this.searchesLeft,
     required this.lastDecision,
   }) : nearby = List.unmodifiable(nearby);
+}
+
+/// 近い2点の距離（m）。cloud/data/scripts/town_lookup.py の distance_m と同じ式（平面で近似）。
+double townDistanceM(double lat1, double lon1, double lat2, double lon2) {
+  const mPerDegLat = 111320.0;
+  final dy = (lat2 - lat1) * mPerDegLat;
+  final dx =
+      (lon2 - lon1) * mPerDegLat * math.cos((lat1 + lat2) / 2 * math.pi / 180);
+  return math.sqrt(dx * dx + dy * dy);
 }
 
 /// 画面に出す近くのランドマーク。
