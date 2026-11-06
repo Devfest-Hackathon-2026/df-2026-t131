@@ -205,6 +205,87 @@ void main() {
     });
   });
 
+  group('「調べて」と頼まれたとき', () {
+    SearchRequested request(int sec) => SearchRequested(tMs: ms(sec));
+
+    test('歩行ログには search_request（data は空）として書き、読み戻せる', () {
+      final json = eventToJson(request(3));
+      expect(json['type'], 'search_request');
+      expect(json['data'], isEmpty);
+      expect(eventFromJson(json), isA<SearchRequested>());
+    });
+
+    test('計測間隔が経っていなくても、その場で撮る。次の自動はそこから60秒後', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        100,
+        quality: goodQuality,
+        extra: {
+          20: [request(20)],
+        },
+      );
+      expect(sim.searchSecs, [20, 80]);
+      expect(
+        sim.decisions.firstWhere((d) => d.kind == 'search').reason,
+        'search:user_requested',
+      );
+    });
+
+    test('前回と同じ場所・同じ向きでも撮る', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        75,
+        pose: standing,
+        quality: goodQuality,
+        extra: {
+          70: [request(70)],
+        },
+      );
+      expect(sim.searchSecs, [60, 70]);
+      expect(sim.withReason('search:user_requested'), hasLength(1));
+    });
+
+    test('横断歩道の手前では撮らず、理由を残して依頼を終える（渡ったあとに勝手に撮らない）', () {
+      final crossing = Crossing(
+        id: 'cr_0001',
+        lat: latAt(-20),
+        lon: lonAt(0),
+        kind: 'crossing',
+      );
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        50,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, const [], crossings: [crossing]),
+          ],
+          5: [request(5)],
+        },
+      );
+      expect(sim.searches, isEmpty);
+      final skip = sim.withReason('search_skip:gate_blocked').single;
+      expect(sim.secOf(skip.tMs), 5);
+      expect(sim.engine.view.searchSkipReason, 'search_skip:gate_blocked');
+    });
+
+    test('前の検索の結果を待っている間は撮らない', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor), 10);
+      sim.run(
+        65,
+        quality: goodQuality,
+        extra: {
+          62: [request(62)],
+        },
+      );
+      expect(sim.searchSecs, [60]);
+      expect(
+        sim.withReason('search_skip:gate_blocked').map((d) => sim.secOf(d.tMs)),
+        [62],
+      );
+    });
+  });
+
   group('文脈ゲート', () {
     test('乗り物の中・音声の出力先がないときは撮らない', () {
       for (final (activity, audio) in [
