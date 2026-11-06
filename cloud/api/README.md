@@ -24,6 +24,7 @@
 
 * 送信の中身で決まった応答を返す
   * `area` あり → エリア内の名前付きの対象（`named: true`）
+  * `search_id` が `_feature` で終わり候補あり → 候補の先頭の特徴（`matched`・`part` が `whole` 以外。`visual_search_response_matched_feature.json`）
   * 候補あり → 候補の先頭に一致（`matched`）
   * 候補なし → 候補外の対象（`unlisted`）
   * `search_id` が `_unknown` で終わる → `unknown`（「黙る」動作の確認用）

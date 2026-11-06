@@ -177,3 +177,42 @@ def test_http_real_mode_with_fake_client():
 def test_real_mode_requires_project():
     with pytest.raises(RuntimeError):
         create_app(settings=Settings(gemini_mode="real", app_token="t", gcp_project=""))
+
+
+# ---- 部分（part。B の仕様書 5章） ----
+
+def test_matched_whole_has_no_description():
+    r = pp(ans(result="matched", landmark_id="lm_0001", part="whole", description="大きな公園です。"))
+    assert (r["part"], r["description"]) == ("whole", None)
+
+
+def test_matched_feature_returns_visible_description():
+    r = pp(ans(result="matched", landmark_id="lm_0001", part="entrance",
+               description="入口の上に白い波形の飾りがあります。昭和に作られました。"))
+    assert r["result"] == "matched" and r["part"] == "entrance"
+    assert r["description"] == "入口の上に白い波形の飾りがあります。"  # 数字・年号の文は落とす
+
+
+def test_matched_feature_without_description_falls_back_to_whole():
+    for desc in (None, "", "昭和三年に作られました。"):
+        r = pp(ans(result="matched", landmark_id="lm_0001", part="window", description=desc))
+        assert (r["result"], r["part"], r["description"]) == ("matched", "whole", None)
+
+
+def test_unknown_part_becomes_other():
+    r = pp(ans(result="unlisted", object_name="蔵", part="chimney", description="黒い瓦の蔵です。"))
+    assert r["part"] == "other"
+    r = pp(ans(result="matched", landmark_id="lm_0001", part=None, description="赤い屋根です。"))
+    assert (r["part"], r["description"]) == ("other", "赤い屋根です。")
+
+
+def test_unlisted_keeps_part_and_unknown_has_none():
+    assert pp(ans(result="unlisted", object_name="蔵", part="roof", description="黒い瓦の屋根です。"))["part"] == "roof"
+    assert pp(ans(result="unknown", part="roof"))["part"] is None
+
+
+def test_prompt_lists_parts():
+    c = FakeClient(ans())
+    GeminiVisualSearch(S, FakeTileSource(), client=c).search(request())
+    prompt = c.calls[0].contents[1]
+    assert "whole（全体）" in prompt and "railing（欄干・手すり）" in prompt and "{parts}" not in prompt

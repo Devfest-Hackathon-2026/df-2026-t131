@@ -112,17 +112,21 @@ class FakeVisualSearch:
     - 候補がある   → 候補の先頭に一致（matched）
     - 候補がない   → 候補外の対象（unlisted）
     - search_id が "_unknown" で終わる → わからない（unknown）。mobile の「黙る」動作の確認用
+    - search_id が "_feature" で終わり候補がある → 候補の先頭の特徴（matched・part が whole 以外）
     """
 
     def __init__(self) -> None:
         self._examples = {
             k: _load_example(f"visual_search_response_{k}.json")
-            for k in ("matched", "unlisted", "unknown", "named")
+            for k in ("matched", "matched_feature", "unlisted", "unknown", "named")
         }
 
     def search(self, request: dict) -> dict:
         if request["search_id"].endswith("_unknown"):
             res = copy.deepcopy(self._examples["unknown"])
+        elif request["search_id"].endswith("_feature") and request["candidate_ids"]:
+            res = copy.deepcopy(self._examples["matched_feature"])
+            res["landmark_id"] = request["candidate_ids"][0]
         elif request.get("area"):
             res = copy.deepcopy(self._examples["named"])
         elif request["candidate_ids"]:

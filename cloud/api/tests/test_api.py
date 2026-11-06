@@ -118,6 +118,14 @@ def test_visual_search_unknown_switch(client):
     assert body["result"] == "unknown"
 
 
+
+def test_visual_search_feature_switch(client):
+    req = example("visual_search_request.json") | {"search_id": "s_000010_feature", "candidate_ids": ["lm_0002"]}
+    body = client.post("/v1/visual-search", headers=H, json=req).json()
+    assert_valid(contracts.VISUAL_RESPONSE, body)
+    assert body["result"] == "matched" and body["landmark_id"] == "lm_0002"
+    assert body["part"] != "whole" and body["description"]
+
 @pytest.mark.parametrize("mutate", [
     lambda r: r.pop("search_id"),
     lambda r: r.update(gaze_az_deg=185),             # 10°単位でない

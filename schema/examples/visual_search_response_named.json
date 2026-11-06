@@ -6,6 +6,7 @@
   "object_name": "見本橋",
   "named": true,
   "description": "公園の両岸を結ぶ歩行者用の橋で、上から水辺を見渡せます。",
+  "part": "whole",
   "confidence": 0.81,
   "sources": [
     {

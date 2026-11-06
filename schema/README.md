@@ -28,6 +28,7 @@
   * 0.2 → 0.3：電停・イベント・横断歩道の形を `stop`・`event`・`crossing` の schema に切り出し（タイル応答の形は変わらない）、`manual/timetable.json`・`manual/events.json`・`osm/crossings.json` と FCM の警報の形を追加、`validate.py` に ID の重複とデモ範囲の確認を追加
   * 0.3 に追加（版は上げない。今あるデータはそのまま通るため）：ランドマークを1件1ファイルに（`landmark_entry`、`templates/`）、判断ログ `decision` に `sources`（B の答えの出典。`answer` のときだけ）
   * 0.1 → 0.2：エリア、B の送信に `area`、応答に `named`・`sources`、理由コード2つを追加
+  * 0.3（11/6、版は上げない）：B の応答に `part`（どの部分か）を追加、理由コード `answer:landmark_feature` を追加、見本 `visual_search_response_matched_feature.json` を追加（B の仕様書 5章）
 * `examples/` の地名・原稿は**実在しない仮のもの**。位置は富山駅南口付近（z16 タイル `16/57746/25576`）
 * `walk_short.jsonl` は南へ 1.3 m/s で60秒歩くログ。1秒後にタイル到着、25〜33秒に読み上げ、40秒目に B の計測、42秒目に B の結果（候補外）
 * `decisions_short.jsonl` は、エンジンが出す判断の**形の見本**。中身（時刻・どれを話すか）が正解という意味ではない

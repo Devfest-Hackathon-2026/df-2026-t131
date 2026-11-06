@@ -1,0 +1,12 @@
+{
+  "schema_version": "0.3",
+  "search_id": "s_000003",
+  "result": "matched",
+  "landmark_id": "lm_0001",
+  "object_name": null,
+  "description": "入口の上に、波のような形の白い飾りが付いています。",
+  "part": "entrance",
+  "confidence": 0.78,
+  "named": false,
+  "sources": []
+}

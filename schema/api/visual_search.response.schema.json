@@ -13,7 +13,8 @@
     "description",
     "confidence",
     "sources",
-    "named"
+    "named",
+    "part"
   ],
   "properties": {
     "schema_version": {
@@ -53,7 +54,25 @@
         "null"
       ],
       "maxLength": 120,
-      "description": "unlisted のときだけ。目安100字以内（約15秒）、数字・年号なし"
+      "description": "unlisted のとき、または matched で part が whole 以外（登録したランドマークの特徴）のとき。目安100字以内（約15秒）、数字・年号なし。特徴の説明は写真に見えていること（形・色・素材・飾り）だけ"
+    },
+    "part": {
+      "enum": [
+        "whole",
+        "window",
+        "entrance",
+        "roof",
+        "wall",
+        "pillar",
+        "sign",
+        "statue",
+        "railing",
+        "planting",
+        "waterside",
+        "other",
+        null
+      ],
+      "description": "中央に写っているのがどの部分か（B の仕様書 5章）。whole＝そのもの全体、ほかは特定の部分（window 窓／entrance 入口・門／roof 屋根／wall 壁・外壁／pillar 柱／sign 看板・文字／statue 像・彫刻／railing 欄干・手すり／planting 植え込み・木／waterside 水辺・川・運河／other その他）。unknown のときだけ null。重複判定は（場所, part）で行う"
     },
     "confidence": {
       "type": "number",
@@ -108,8 +127,21 @@
           "object_name": {
             "type": "null"
           },
-          "description": {
-            "type": "null"
+          "part": {
+            "enum": [
+              "whole",
+              "window",
+              "entrance",
+              "roof",
+              "wall",
+              "pillar",
+              "sign",
+              "statue",
+              "railing",
+              "planting",
+              "waterside",
+              "other"
+            ]
           }
         }
       }
@@ -132,6 +164,22 @@
           },
           "description": {
             "type": "string"
+          },
+          "part": {
+            "enum": [
+              "whole",
+              "window",
+              "entrance",
+              "roof",
+              "wall",
+              "pillar",
+              "sign",
+              "statue",
+              "railing",
+              "planting",
+              "waterside",
+              "other"
+            ]
           }
         }
       }
@@ -154,9 +202,72 @@
           },
           "description": {
             "type": "null"
+          },
+          "part": {
+            "type": "null"
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "matched"
+          },
+          "part": {
+            "const": "whole"
+          }
+        },
+        "required": [
+          "result",
+          "part"
+        ]
+      },
+      "then": {
+        "properties": {
+          "description": {
+            "type": "null"
+          }
+        }
+      },
+      "$comment": "登録したランドマーク全体：A の確認済みの原稿を読むので説明は返さない"
+    },
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "matched"
+          },
+          "part": {
+            "enum": [
+              "window",
+              "entrance",
+              "roof",
+              "wall",
+              "pillar",
+              "sign",
+              "statue",
+              "railing",
+              "planting",
+              "waterside",
+              "other"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "part"
+        ]
+      },
+      "then": {
+        "properties": {
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "$comment": "登録したランドマークの特徴：説明を返す"
     }
   ]
 }

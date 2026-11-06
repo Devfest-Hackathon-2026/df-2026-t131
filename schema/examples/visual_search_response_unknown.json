@@ -5,6 +5,7 @@
   "landmark_id": null,
   "object_name": null,
   "description": null,
+  "part": null,
   "confidence": 0.2,
   "named": false,
   "sources": []

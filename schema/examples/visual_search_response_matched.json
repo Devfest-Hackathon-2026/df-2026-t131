@@ -5,6 +5,7 @@
   "landmark_id": "lm_0001",
   "object_name": null,
   "description": null,
+  "part": "whole",
   "confidence": 0.86,
   "named": false,
   "sources": []

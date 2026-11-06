@@ -95,7 +95,7 @@ check("api/tile.response.schema.json", tile, "tile_response.json")
 for key in ("landmarks", "stops", "crossings", "events"):
     check_items(tile.get(key, []), f"tile_response.json の {key}")
 check("api/visual_search.request.schema.json", load(E / "visual_search_request.json"), "visual_search_request.json")
-for k in ("matched", "unlisted", "unknown", "named"):
+for k in ("matched", "matched_feature", "unlisted", "unknown", "named"):
     check("api/visual_search.response.schema.json", load(E / f"visual_search_response_{k}.json"), f"visual_search_response_{k}.json")
 check_jsonl("eventlog.schema.json", E / "walk_short.jsonl")
 check_jsonl("decision.schema.json", E / "decisions_short.jsonl")

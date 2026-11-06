@@ -3,10 +3,15 @@
 1回の呼び出しで「候補のどれか（matched）／候補外の名前と説明（unlisted）／わからない（unknown）」と
 自信の度合いを返させ、ここで後処理してから schema の形で返す。
 
+部分（part）：中央に写っているのが対象の全体（whole）か、窓・入口などの特定の部分か（B の仕様書 5章）。
+  matched・whole は A の確認済みの原稿で話すので説明を返さない。matched・whole 以外は「登録したランドマークの特徴」で、
+  見えていることだけの説明を返す（engine は全体の紹介とは別の話として扱う）。
+
 後処理（AI の答えをそのまま信じない）:
   - JSON が壊れている・候補に無い ID を返した・名前が無い → unknown（推測で補わない）
   - 説明から、数字・年号を含む文を落とす（AI が作った数字は読み上げない。CLAUDE.md 3章7）
   - 説明は目安100字で切る
+  - part が一覧に無い → other。matched で part が whole 以外なのに説明が残らない → matched・whole に戻す（安全側）
   - 自信が VISUAL_MIN_CONFIDENCE 未満 → unknown（話すかどうかの本当のしきい値は engine の定数）
   - 画像は検索が終わったら手放す（保存しない・ログに出さない）
 """
@@ -24,6 +29,12 @@ from .tiles import tile_bounds
 log = logging.getLogger("api")
 
 RESULTS = ("matched", "unlisted", "unknown")
+# 部分の一覧（schema/api/visual_search.response.schema.json の part と同じ）。日本語はプロンプト用
+PARTS = {
+    "whole": "全体", "window": "窓", "entrance": "入口・門", "roof": "屋根", "wall": "壁・外壁", "pillar": "柱",
+    "sign": "看板・文字", "statue": "像・彫刻", "railing": "欄干・手すり", "planting": "植え込み・木",
+    "waterside": "水辺・川・運河", "other": "その他",
+}
 
 # 数字・年号を含む文を見つける（全角・漢数字＋単位・元号）
 NUMBER_RE = re.compile(
@@ -44,6 +55,13 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 
 # 答え方
 - 中央のものが候補のどれかなら result="matched"、landmark_id にその ID を入れる（候補に無い ID は使わない）
+- part に、中央に写っているのがどの部分かを、次の一覧から1つ選んで入れる（unknown のときは null）
+  {parts}
+  対象のそのもの全体（建物の外観全体・像全体・橋全体など）なら "whole"、特定の部分が中心なら、その部分を選ぶ
+- matched で part="whole" のときは、description を null にする（登録済みの説明を使うので書かない）
+- matched で part が "whole" 以外のときは、description にその部分の特徴を書く。
+  写真に見えていること（形・色・素材・飾り・模様）だけを書き、由来・歴史・作者・年代は書かない。
+  登録した場所の名前は説明の中で繰り返さない
 - 候補ではないが何か分かるなら result="unlisted"。object_name に名前を入れる。
   固有の名前（例：〇〇橋）まで分かったときだけ named=true、一般的な名前（例：木造の蔵）なら named=false
   description に、歩きながら一度聞いて分かる話し言葉の説明を入れる（目安{max_chars}字以内、1〜2文）
@@ -60,7 +78,7 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 # 出力
 次の JSON だけを出力する。
 {{"result": "matched|unlisted|unknown", "landmark_id": "lm_0001 または null", "object_name": "名前 または null",
-  "named": true/false, "description": "説明 または null", "confidence": 0.0}}
+  "named": true/false, "description": "説明 または null", "part": "whole など または null", "confidence": 0.0}}
 """
 
 AREA_RULE = "- 利用者はエリア「{name}」の中にいる（{summary}）。エリアの中にある、名前の付いた建物・橋・道・広場などを特定して答える\n"
@@ -74,16 +92,17 @@ RESPONSE_SCHEMA = {
         "object_name": {"type": "STRING", "nullable": True},
         "named": {"type": "BOOLEAN"},
         "description": {"type": "STRING", "nullable": True},
+        "part": {"type": "STRING", "enum": list(PARTS), "nullable": True},
         "confidence": {"type": "NUMBER"},
     },
-    "required": ["result", "landmark_id", "object_name", "named", "description", "confidence"],
+    "required": ["result", "landmark_id", "object_name", "named", "description", "part", "confidence"],
 }
 
 
 def unknown(search_id: str, confidence: float = 0.0) -> dict:
     return {
         "schema_version": SCHEMA_VERSION, "search_id": search_id, "result": "unknown",
-        "landmark_id": None, "object_name": None, "description": None,
+        "landmark_id": None, "object_name": None, "description": None, "part": None,
         "confidence": max(0.0, min(1.0, confidence)), "named": False, "sources": [],
     }
 
@@ -118,11 +137,21 @@ def postprocess(raw_text: str, search_id: str, candidate_ids: list[str], sources
         return unknown(search_id, conf)
 
     base = unknown(search_id, conf)
+    part = data.get("part")
+    if part not in PARTS:  # 一覧に無い・空 → その他
+        part = "other"
     if data["result"] == "matched":
         lm = data.get("landmark_id")
         if lm not in candidate_ids:  # 候補に無い ID は信じない
             return unknown(search_id, conf)
-        return base | {"result": "matched", "landmark_id": lm}
+        whole = base | {"result": "matched", "landmark_id": lm, "part": "whole"}
+        if part == "whole":
+            return whole
+        # 登録したランドマークの特徴。説明が残らなければ全体の紹介に戻す（A の確認済みの原稿で話す）
+        desc = clean_description(data.get("description") or "", settings.description_max_chars)
+        if desc is None:
+            return whole
+        return whole | {"part": part, "description": desc}
 
     name = (data.get("object_name") or "").strip()
     if not name or NUMBER_RE.search(name):
@@ -131,7 +160,7 @@ def postprocess(raw_text: str, search_id: str, candidate_ids: list[str], sources
     if desc is None:
         return unknown(search_id, conf)
     return base | {
-        "result": "unlisted", "object_name": name, "description": desc,
+        "result": "unlisted", "object_name": name, "description": desc, "part": part,
         "named": bool(data.get("named")), "sources": sources,
     }
 
@@ -162,6 +191,7 @@ class GeminiVisualSearch:
         return PROMPT.format(
             tile=f"16/{req['tile']['x']}/{req['tile']['y']}", lat=(s + n) / 2, lon=(w + e) / 2,
             gaze=req["gaze_az_deg"], candidates=cand, max_chars=self._s.description_max_chars,
+            parts="／".join(f"{k}（{v}）" for k, v in PARTS.items()),
             area=AREA_RULE.format(name=area["name"], summary=area["summary"]) if area else "",
             grounding_rule=GROUNDING_RULE if self._use_maps(req) else "",
         )
