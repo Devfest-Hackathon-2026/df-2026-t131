@@ -216,10 +216,27 @@ class _DevSettingsSectionState extends State<DevSettingsSection> {
                   '持っている ${t.tiles.length} 枚（うち空 ${t.empty} 枚）・'
                   '取得 ${t.fetched}・端末から ${t.fromCache}・失敗 ${t.failed}\n'
                   '前回：${t.lastResult}\n'
-                  '送るのはタイル番号だけ。空のタイル（範囲の外）も覚えて、同じタイルは問い合わせ直しません。押すと数を更新します。',
+                  'どのタイルを取るかは engine が決めます（計測中だけ）。送るのはタイル番号だけ。'
+                  '空のタイル（範囲の外）も覚えて、同じタイルは問い合わせ直しません。押すと数を更新します。',
                 ),
                 onTap: () => setState(() {}),
               );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.layers_clear_outlined),
+            title: const Text('地図のキャッシュを消す'),
+            subtitle: const Text(
+              'サーバーの地図データは再デプロイのたびに変わります。'
+              'デモの撮影の前や、データを直してもらったあとに押してください（次の計測で取り直します）。',
+            ),
+            onTap: () async {
+              await widget.services.tiles.clear();
+              if (!context.mounted) return;
+              setState(() {});
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('地図のキャッシュを消しました')));
             },
           ),
           ListTile(

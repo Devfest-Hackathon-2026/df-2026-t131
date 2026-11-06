@@ -12,14 +12,22 @@ class MainActivity : FlutterActivity() {
         val messenger = flutterEngine.dartExecutor.binaryMessenger
         gaze = GazePlugin(applicationContext, messenger)
         audioState = AudioStatePlugin(applicationContext, messenger)
-        TonePlugin(messenger)
+        tone = TonePlugin(applicationContext, messenger)
+        voicevox = VoicevoxPlugin(applicationContext, messenger)
     }
+
+    private var voicevox: VoicevoxPlugin? = null
+    private var tone: TonePlugin? = null
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         gaze?.dispose()
         audioState?.dispose()
+        voicevox?.dispose()
+        tone?.dispose()
+        tone = null
         gaze = null
         audioState = null
+        voicevox = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 }

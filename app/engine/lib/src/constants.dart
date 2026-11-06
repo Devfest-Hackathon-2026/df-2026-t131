@@ -78,6 +78,19 @@ final class EngineConfig {
   /// 同じ名前のときだけ二度目とみなす。離れた場所の別の蔵はまた話せる（11/6 に決定）。
   final double genericObjectDedupM;
 
+  // ---- 話の続け方と中断（11/6 夕、メンバー3。実機で調整する）----
+
+  /// A → A、警報 → A の間に空ける時間。話題の間隔（topicIntervalMs）は
+  /// 「B が続けて話し続けないように」（CLAUDE.md 4章）のためなので、B の前後だけに使う。
+  /// A のあとに20秒空けると、続くランドマークの範囲を歩き過ぎて話せなくなるため。
+  final int narrativeChainGapMs;
+
+  /// 止まってからこれだけ経ったら長い版を話す。出発直後の速さ0で長い版を選ばないため。
+  final int longVersionStillMs;
+
+  /// 検索で止めたランドマークは、半径＋この距離より離れてから、また近づいたときに話す。
+  final double revisitMarginM;
+
   /// 今の町丁目：持っているタイルの町丁目のうち、いちばん近い代表点。これより遠ければ「わからない」（m）。
   /// cloud/data/scripts/town_lookup.py の MAX_TOWN_DISTANCE_M と同じ値にする。
   final double townMaxDistanceM;
@@ -121,6 +134,9 @@ final class EngineConfig {
     this.stillEarlyMinIntervalMs = 10000,
     this.unlistedMinConfidence = 0.7,
     this.genericObjectDedupM = 100,
+    this.narrativeChainGapMs = 3000,
+    this.longVersionStillMs = 5000,
+    this.revisitMarginM = 10,
     this.townMaxDistanceM = 800,
   });
 }
@@ -183,5 +199,8 @@ const reasonCodes = <String>{
   'answer:whole_left_to_narrative',
   'answer:feature_before_intro',
   'answer:error',
+  'speak:search_ack',
+  'skip:awaiting_search',
+  'skip:interrupted',
   'fetch:prefetch_tiles',
 };

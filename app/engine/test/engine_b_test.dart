@@ -372,6 +372,176 @@ void main() {
       expect(sim.engine.view.searchSkipReason, 'search_skip:gate_blocked');
     });
 
+    Landmark longLandmark() => landmark(
+      'lm_0001',
+      -60,
+      5,
+      radiusM: 30,
+      short: '見本のための架空の石碑で、とても長い説明がこのあとしばらく続きます。',
+    );
+
+    /// 頼まずに歩いて、A が話し始める秒を調べる。
+    int narrativeStartSec(Pose Function(int) pose) {
+      final dry = Sim(const EngineConfig(), answer(unknownFor));
+      dry.run(
+        60,
+        pose: pose,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [longLandmark()]),
+          ],
+        },
+      );
+      return dry.secOf(dry.speaks.first.$1).ceil();
+    }
+
+    test('A を読み上げている最中でも撮り、「検索します」で A を止め、答えを話す。A の続きは話さない', () {
+      final aSec = narrativeStartSec(southWalk);
+      final sim = Sim(const EngineConfig(), answer((id) => unlistedFor(id)));
+      sim.run(
+        aSec + 20,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [longLandmark()]),
+          ],
+          aSec + 1: [SearchRequested(tMs: ms(aSec + 1))],
+        },
+      );
+      final search = sim.withReason('search:user_requested').single;
+      expect(sim.secOf(search.tMs), aSec + 1);
+      final ack = sim.speaks.firstWhere((s) => s.$2.text == '検索します。');
+      expect(sim.secOf(ack.$1), aSec + 1);
+      expect(ack.$2.interrupt, isTrue);
+      expect(ack.$2.chime, isFalse);
+      expect(sim.withReason('speak:search_ack'), hasLength(1));
+      final answerSpeak = sim.speaks.firstWhere(
+        (s) => s.$2.text.contains('古い木造の蔵'),
+      );
+      expect(sim.secOf(answerSpeak.$1), aSec + 1 + 3);
+      expect(answerSpeak.$2.chime, isTrue);
+      // A の続きも話し直しもしない。範囲にいる間は止めた理由を残す
+      expect(
+        sim.speaks.where((s) => s.$2.text.contains('見本lm_0001')),
+        hasLength(1),
+      );
+      expect(
+        sim.speaks.where((s) => s.$2.text.contains('さきほどの話の続きです')),
+        isEmpty,
+      );
+      expect(sim.withReason('skip:interrupted'), isNotEmpty);
+    });
+
+    test('答えを待っている間は A を始めない', () {
+      final sim = Sim(const EngineConfig(), answer((id) => unlistedFor(id)), 5);
+      // A の話が始まる少し前に頼む
+      final aSec = narrativeStartSec(southWalk);
+      sim.run(
+        aSec + 20,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [longLandmark()]),
+          ],
+          aSec - 2: [SearchRequested(tMs: ms(aSec - 2))],
+        },
+      );
+      expect(sim.withReason('skip:awaiting_search'), isNotEmpty);
+      final answerSec = sim.secOf(
+        sim.speaks.firstWhere((s) => s.$2.text.contains('古い木造の蔵')).$1,
+      );
+      final aSpeaks = sim.speaks.where((s) => s.$2.text.contains('見本lm_0001'));
+      for (final (t, _) in aSpeaks) {
+        expect(sim.secOf(t), greaterThan(answerSec));
+      }
+    });
+
+    test('検索で止めたランドマークは、一度離れてからまた近づいたら最初から話す', () {
+      // 南へ80秒歩いて（石碑から約44m 離れる）、北へ引き返す
+      Pose outAndBack(int sec) => sec <= 80
+          ? (north: -1.3 * sec, east: 0, speed: 1.3, course: 180)
+          : (
+              north: -1.3 * 80 + 1.3 * (sec - 80),
+              east: 0,
+              speed: 1.3,
+              course: 0,
+            );
+      final aSec = narrativeStartSec(outAndBack);
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        160,
+        pose: outAndBack,
+        quality: goodQuality,
+        extra: {
+          0: [
+            tiles(0, [longLandmark()]),
+          ],
+          aSec + 1: [SearchRequested(tMs: ms(aSec + 1))],
+        },
+      );
+      final aSpeaks = [
+        for (final (t, s) in sim.speaks)
+          if (s.text.contains('見本lm_0001')) sim.secOf(t),
+      ];
+      expect(aSpeaks, hasLength(2));
+      expect(aSpeaks.last, greaterThan(80));
+    });
+
+    test('警報を読み上げている最中は撮らない（警報は横取りしない）', () {
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        30,
+        quality: goodQuality,
+        extra: {
+          0: [tiles(0, const [])],
+          10: [
+            AlertReceived(
+              tMs: ms(10),
+              alertId: 'alert_x',
+              level: 3,
+              kind: '大雨警報',
+              areaName: '富山市',
+              text:
+                  '富山市に大雨警報が出ています。川や用水路に近づかないでください。'
+                  '最新の情報を確認してください。',
+            ),
+          ],
+          12: [SearchRequested(tMs: ms(12))],
+        },
+      );
+      expect(sim.withReason('search:user_requested'), isEmpty);
+      expect(
+        sim.withReason('search_skip:gate_blocked').map((d) => sim.secOf(d.tMs)),
+        contains(12),
+      );
+    });
+
+    test('頼まれた検索は、もう話した対象でももう一度話す（自動では話さない）', () {
+      // 11/6 メンバー3決定：頼んだのに「もう話した」で黙ると壊れて見えるため。
+      // ランドマーク全体は頼まれても B では話さない（全体の紹介は A。11/6 夜決定）。
+      final sim = Sim(
+        const EngineConfig(visualIntervalMs: 60000),
+        answer((id) => unlistedFor(id, part: 'window')),
+      );
+      sim.run(
+        110,
+        quality: goodQuality,
+        extra: {
+          100: [SearchRequested(tMs: ms(100))],
+        },
+      );
+      expect(sim.searchSecs, [60, 100]);
+      expect(sim.withReason('answer:unlisted_object'), hasLength(2));
+      expect(sim.withReason('answer:already_told'), isEmpty);
+      // 自動の答え・「検索します」・頼まれた答え
+      expect(sim.speaks.map((s) => s.$2.text.startsWith('検索します')), [
+        false,
+        true,
+        false,
+      ]);
+    });
+
     test('前の検索の結果を待っている間は撮らない', () {
       final sim = Sim(bConfig, answer(unknownFor), 10);
       sim.run(

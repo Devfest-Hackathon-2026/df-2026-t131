@@ -32,9 +32,56 @@ class Layout {
 }
 
 /// システムの文字サイズ設定が大きすぎても画面が崩れないよう、倍率を抑える。
-Widget clampTextScale(BuildContext context, Widget? child) =>
-    MediaQuery.withClampedTextScaling(
-      minScaleFactor: 0.85,
-      maxScaleFactor: 1.15,
-      child: child ?? const SizedBox.shrink(),
+/// あわせて、高さの小さい画面では画面全体を縮めて収める（[FitToShortScreen]）。
+Widget clampTextScale(BuildContext context, Widget? child) => FitToShortScreen(
+  child: MediaQuery.withClampedTextScaling(
+    minScaleFactor: 0.85,
+    maxScaleFactor: 1.15,
+    child: child ?? const SizedBox.shrink(),
+  ),
+);
+
+/// 横持ちで高さ（短い辺）が [designHeight] より小さい画面では、画面全体を同じ割合で縮める。
+///
+/// 画面の部品は高さ約470dp を想定した大きさなので、横長で背の低いスマホ（例：高さ393dp）では
+/// カメラ映像がほとんど隠れ、下のシートがはみ出す。文字・ボタン・余白を一緒に縮めて、
+/// 配置はそのまま収める。押せる場所も一緒に縮む。
+class FitToShortScreen extends StatelessWidget {
+  const FitToShortScreen({
+    super.key,
+    required this.child,
+    this.designHeight = 470,
+    this.minScale = 0.7,
+  });
+
+  final Widget child;
+  final double designHeight;
+  final double minScale;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final short = math.min(mq.size.width, mq.size.height);
+    if (short <= 0) return child;
+    final s = (short / designHeight).clamp(minScale, 1.0);
+    if (s >= 1.0) return child;
+    final virtual = mq.size / s;
+    return FittedBox(
+      fit: BoxFit.fill,
+      alignment: Alignment.topLeft,
+      child: SizedBox.fromSize(
+        size: virtual,
+        child: MediaQuery(
+          data: mq.copyWith(
+            size: virtual,
+            padding: mq.padding / s,
+            viewPadding: mq.viewPadding / s,
+            viewInsets: mq.viewInsets / s,
+            systemGestureInsets: mq.systemGestureInsets / s,
+          ),
+          child: child,
+        ),
+      ),
     );
+  }
+}

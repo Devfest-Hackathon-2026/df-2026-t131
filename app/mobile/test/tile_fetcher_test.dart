@@ -36,26 +36,6 @@ Map<String, Object?> body(TileId t, {bool withLandmark = false}) => {
 Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 20));
 
 void main() {
-  group('要るタイルの選び方（engine の _prefetch と同じ）', () {
-    test('止まっているときは今の位置 ±150 m だけ', () {
-      final s = tilesAhead(lat: lat, lon: lon, speedMps: 0, courseDeg: null);
-      expect(s, contains(station));
-      expect(s.length, inInclusiveRange(1, 4));
-    });
-
-    test('歩いていると、150秒先（約200 m）までの進む先のタイルも入る', () {
-      final still = tilesAhead(lat: lat, lon: lon);
-      final north = tilesAhead(lat: lat, lon: lon, speedMps: 1.3, courseDeg: 0);
-      expect(north.containsAll(still), isTrue);
-      expect(
-        north,
-        contains(TileId.at(lat + 195 / 111320 + 150 / 111320, lon)),
-      );
-      // 南（後ろ）へは ±150 m より先を取らない
-      expect(north, isNot(contains(TileId.at(lat - 400 / 111320, lon))));
-    });
-  });
-
   group('取得', () {
     late List<String> asked;
     late Set<String> withData;
@@ -109,10 +89,27 @@ void main() {
       f.request([station, outside]);
       await settle();
       expect(asked, ['/v1/tiles/16/57746/25576', '/v1/tiles/16/57700/25500']);
-      expect(got.map((d) => d.id), [station, outside]);
+      // 2回目は問い合わせず、持っている分を渡し直す
+      expect(got.map((d) => d.id), [station, outside, station, outside]);
       expect(got.first.landmarks.single.name, '富山駅');
       expect(got.last.isEmpty, isTrue);
       expect(f.empty, 1);
+    });
+
+    test('持っているタイルも、頼まれたら問い合わせずに渡し直す（新しい計測の engine 用）', () async {
+      final f = make();
+      final got = <TileId>[];
+      f.loaded.listen((d) => got.add(d.id));
+      f.request([station]);
+      await settle();
+      f.request([station]);
+      await settle();
+      expect(asked, hasLength(1));
+      expect(got, [station, station]);
+      await f.clear();
+      f.request([station]);
+      await settle();
+      expect(asked, hasLength(2)); // 消したら取り直す
     });
 
     test('範囲が分かっていれば、範囲の外は問い合わせもしない', () async {

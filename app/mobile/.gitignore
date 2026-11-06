@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# ずんだもん（VOICEVOX）の大きいファイル。tool/fetch_voicevox.sh で取る
+/vendor/

@@ -39,6 +39,9 @@
     "answer:whole_left_to_narrative": "B：ランドマーク全体が写っていた。全体の紹介は A が行うので B では話さない",
     "answer:feature_before_intro": "B：ランドマーク・エリアの全体の紹介（A）がまだなので、その部分や中のものの話を見送った",
     "answer:error": "B：通信・サーバーのエラーで話さない",
+    "speak:search_ack": "B：検索を頼まれたので「検索します」と返事した",
+    "skip:awaiting_search": "B：頼まれた検索の答えを待っている",
+    "skip:interrupted": "検索で止めた話。一度離れてからまた近づいたら最初から話す",
     "fetch:prefetch_tiles": "先読みのためにタイルを要求"
   }
 }

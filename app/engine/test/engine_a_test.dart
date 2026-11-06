@@ -101,7 +101,7 @@ void main() {
       expect(sim.speaks, isEmpty);
     });
 
-    test('話し終える前に通り過ぎるなら話さず、理由を1回だけ記録する', () {
+    test('原稿が話し終えられないなら、方向と名前だけを話す', () {
       // タイルが遅れて届き、最接近（約46秒後）の6秒前に初めて候補になる場面
       final sim = Sim()
         ..run(
@@ -114,11 +114,45 @@ void main() {
             ],
           },
         );
+      expect(sim.speaks.single.$2.text, '正面に見本lm_0001があります。');
+      expect(sim.withReason('speak:closest_approach'), hasLength(1));
+      expect(sim.withReason('skip:pass_before_end'), isEmpty);
+    });
+
+    test('名前だけでも話し終えられないなら話さず、理由を1回だけ記録する', () {
+      // 最接近（約46秒後）を過ぎてから届き、範囲（3m）を出るまで1秒ほどしかない
+      final sim = Sim()
+        ..run(
+          90,
+          extra: {
+            47: [
+              tiles(47, [
+                landmark('lm_0001', -60, 0, radiusM: 3, short: 'あ' * 80),
+              ]),
+            ],
+          },
+        );
       expect(sim.speaks, isEmpty);
       expect(sim.withReason('skip:pass_before_end'), hasLength(1));
     });
 
-    test('立ち止まってジオフェンスの中にいるときは長い版を話す', () {
+    test('立ち止まって5秒たち、ジオフェンスの中にいるときは長い版を話す', () {
+      final sim = Sim()
+        ..run(
+          30,
+          pose: (_) => (north: 0, east: 0, speed: 0, course: 0),
+          activity: (_) => Activity.still,
+          extra: {
+            6: [
+              tiles(6, [landmark('lm_0001', 0, 10)]),
+            ],
+          },
+        );
+      expect(sim.withReason('speak:long_version_still'), hasLength(1));
+      expect(sim.speaks.single.$2.text, endsWith('長い版の続きです。'));
+    });
+
+    test('止まってすぐ（出発直後など）は長い版ではなく短い版を話す', () {
       final sim = Sim()
         ..run(
           30,
@@ -130,8 +164,41 @@ void main() {
             ],
           },
         );
-      expect(sim.withReason('speak:long_version_still'), hasLength(1));
-      expect(sim.speaks.single.$2.text, endsWith('長い版の続きです。'));
+      expect(sim.withReason('speak:long_version_still'), isEmpty);
+      expect(sim.withReason('speak:closest_approach'), hasLength(1));
+      expect(sim.speaks.single.$2.text, isNot(contains('長い版')));
+    });
+
+    test('止まっていて後ろにあるものは「振り返ると」と言う', () {
+      // 南を向いて止まっている。ランドマークは 10m 北（後ろ）
+      final sim = Sim()
+        ..run(
+          30,
+          pose: (_) => (north: 0, east: 0, speed: 0, course: 180),
+          activity: (_) => Activity.still,
+          extra: {
+            1: [
+              tiles(1, [landmark('lm_0001', 10, 0)]),
+            ],
+          },
+        );
+      expect(sim.speaks.single.$2.text, startsWith('振り返ると見本lm_0001があります。'));
+    });
+
+    test('最接近を過ぎて後ろにあるものは「いま通り過ぎたのは」と言う', () {
+      // 出発地点の 10m 北（後ろ）にある、半径80mの駅。南へ歩いて離れていく
+      final sim = Sim()
+        ..run(
+          30,
+          extra: {
+            3: [
+              tiles(3, [landmark('lm_0001', 10, 0, radiusM: 80)]),
+            ],
+          },
+        );
+      final text = sim.speaks.single.$2.text;
+      expect(text, startsWith('いま通り過ぎたのは見本lm_0001です。'));
+      expect(text, isNot(contains('後方')));
     });
   });
 
@@ -285,7 +352,7 @@ void main() {
       expect(sim.secOf(t), greaterThanOrEqualTo(34));
     });
 
-    test('続けて近づいても、話題の間隔を空けて次を話す', () {
+    test('A のあとに A が続くときは、短い間隔（3秒）で次を話す', () {
       final sim = Sim()
         ..run(
           120,
@@ -299,8 +366,33 @@ void main() {
       expect(speaks, hasLength(2));
       final firstEnd =
           speaks[0].$1 + (speaks[0].$2.text.runes.length / 6 * 1000).ceil();
-      expect(speaks[1].$1 - firstEnd, greaterThanOrEqualTo(20000 - 1000));
-      expect(sim.withReason('skip:topic_interval'), isNotEmpty);
+      final gap = speaks[1].$1 - firstEnd;
+      expect(gap, greaterThanOrEqualTo(3000 - 1000));
+      expect(gap, lessThan(20000 - 1000));
+    });
+
+    test('A を話している間に入った次のランドマークは、待ってから短い間隔で話す', () {
+      // 1つ目を話している間に、2つ目の範囲（25m）に入る並び
+      final first = landmark('lm_0001', -40, -10, short: 'あ' * 70);
+      final second = landmark('lm_0002', -50, 10);
+      final sim = Sim()
+        ..run(
+          120,
+          extra: {
+            1: [
+              tiles(1, [first, second]),
+            ],
+          },
+        );
+      expect(sim.speaks.map((e) => e.$2.text), [
+        contains('見本lm_0001'),
+        contains('見本lm_0002'),
+      ]);
+      expect(
+        sim.withReason('skip:tts_busy').where((d) => d.targetId == 'lm_0002'),
+        isNotEmpty,
+      );
+      expect(sim.withReason('skip:expired'), isEmpty);
     });
 
     test('読み上げの終了が届かなくても、猶予を過ぎたら次へ進む', () {
@@ -394,6 +486,64 @@ void main() {
       expect(interrupt.priority, 1);
       expect(sim2.withReason('speak:alert_interrupt'), hasLength(1));
       expect(sim2.engine.toldIds, isNot(contains('lm_0001')));
+    });
+
+    test('割り込まれた A は、警報のあとも続きを話さない（範囲にいる間は skip:interrupted）', () {
+      final lm = landmark('lm_0001', -60, -18, short: 'あ' * 30);
+      final sim = Sim()
+        ..run(
+          70,
+          extra: {
+            1: [
+              tiles(1, [lm]),
+            ],
+            28: [alert(28, 4)],
+          },
+        );
+      final texts = sim.speaks.map((e) => e.$2.text).toList();
+      expect(texts, hasLength(2));
+      expect(texts[1], '富山市に大雨危険警報が発表されました。');
+      expect(
+        sim
+            .withReason('skip:interrupted')
+            .where((d) => d.targetId == 'lm_0001'),
+        hasLength(1),
+      );
+      expect(sim.engine.toldIds, isNot(contains('lm_0001')));
+    });
+
+    test('割り込まれた A は、一度離れてからまた近づいたら最初から話す', () {
+      final lm = landmark('lm_0001', -60, -18, short: 'あ' * 30);
+      // 南へ80秒歩いて離れ、北へ引き返す
+      Pose outAndBack(int sec) => sec <= 80
+          ? (north: -1.3 * sec, east: 0, speed: 1.3, course: 180)
+          : (
+              north: -1.3 * 80 + 1.3 * (sec - 80),
+              east: 0,
+              speed: 1.3,
+              course: 0,
+            );
+      final sim = Sim()
+        ..run(
+          150,
+          pose: outAndBack,
+          extra: {
+            1: [
+              tiles(1, [lm]),
+            ],
+            28: [alert(28, 4)],
+          },
+        );
+      final aSecs = [
+        for (final (t, s) in sim.speaks)
+          if (s.text.endsWith('あ' * 30)) sim.secOf(t),
+      ];
+      expect(aSecs, hasLength(2));
+      expect(aSecs.last, greaterThan(80));
+      expect(
+        sim.speaks.where((s) => s.$2.text.contains('さきほどの話の続きです')),
+        isEmpty,
+      );
     });
 
     test('同じ警報を2回受けても1回だけ話す', () {

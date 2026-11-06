@@ -3,26 +3,30 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
-/// 読み上げの声。デモでは端末の日本語音声から2つを選べる。
-/// 正式版で増やすときは値を足し、[VoiceCatalog] の割り当てを変えるだけでよい。
+/// 読み上げの声。声1・声2は端末の日本語音声（Google）、ずんだもんは VOICEVOX（端末の中で作る）。
+/// ずんだもんの声のファイルが入っていないビルドでは、ずんだもんを選んでも声1で話す。
+/// 増やすときは値を足し、[VoicevoxTtsEngine.styleFor] と [VoiceCatalog] の割り当てを変える。
 enum VoicePreset {
   voice1('声1'),
-  voice2('声2');
+  voice2('声2'),
+  zunda('ずんだもん'),
+  zundaSweet('ずんだもん（あまあま）');
 
   const VoicePreset(this.label);
   final String label;
 
-  static VoicePreset fromName(Object? name) => VoicePreset.values.firstWhere(
-    (v) => v.name == name,
-    orElse: () => voice1,
-  );
+  /// 画面のボタンで順に切り替えるときの次の声。
+  VoicePreset get next => values[(index + 1) % values.length];
+
+  static VoicePreset fromName(Object? name) =>
+      VoicePreset.values.firstWhere((v) => v.name == name, orElse: () => zunda);
 }
 
 /// 利用者が変えられる設定。値は変えずに作り直す（copyWith）。
 class AppSettings {
   const AppSettings({
     this.visualSearchEnabled = true,
-    this.voice = VoicePreset.voice1,
+    this.voice = VoicePreset.zunda,
     this.developerMode = false,
   });
 

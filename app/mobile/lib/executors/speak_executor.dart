@@ -20,6 +20,7 @@ class SpeakRequest {
     this.group,
     this.level = 0,
     this.expiresMs,
+    this.chime = true,
   });
 
   final String utteranceId;
@@ -44,6 +45,9 @@ class SpeakRequest {
   /// これを過ぎたら話さずに捨てる（UTC の UNIX ミリ秒。交通・イベント・B の答え）。null なら期限なし。
   final int? expiresMs;
 
+  /// 話し始めに合図音を鳴らすか（「検索します」の返事は声そのものが合図なので鳴らさない）。
+  final bool chime;
+
   /// [other] より先に話すべきか（優先度が小さい、同じなら警戒レベルが大きい）。
   bool outranks(SpeakRequest other) =>
       priority < other.priority ||
@@ -62,6 +66,9 @@ abstract class TtsEngine {
   });
   Future<void> stop();
   Future<void> useVoice(VoicePreset preset);
+
+  /// これから話す文を、先に用意しておく（声をその場で作る部品だけが使う。既定は何もしない）。
+  void prepare(String text) {}
 }
 
 /// 音の出口の取り合い（オーディオフォーカス）。
@@ -78,12 +85,16 @@ abstract class Chime {
 /// 読み上げを実行する（engine の `Speak` を受ける）。判断はしない。
 ///
 /// - 1件ずつ話す。待っている依頼は優先度（CLAUDE.md 4章）の順に並べ、同じ優先度なら来た順
-/// - `interrupt` で、今の発話より大事なら（[SpeakRequest.outranks]）今の読み上げを止めて先に話す。
-///   止めた方にも `TtsFinished` を返す（TODO(質問) 1）。大事でなければ今の発話の次に話す
+/// - `interrupt` で、今の発話より大事なとき（[SpeakRequest.outranks]）か、今の発話が警報でないとき
+///   （「検索します」や頼まれた B の答えは A に割り込む）、今の読み上げを止めて先に話す。
+///   止めた方にも `TtsFinished` を返す（TODO(質問) 1）。警報には警報より大事なときしか割り込まない
+/// - 文（「。」など）ごとに区切って話す。警報の割り込みはすぐ止めるが、それ以外の割り込みは
+///   今の文を話し終えてから止める（文の途中で切ると不自然なため）。止めた発話の残りは話さない
 /// - 話す番が来たときに期限（`expiresMs`）を過ぎていたら話さずに捨てる
 /// - `group` が同じ古い依頼は捨てる（話す前なら列から消し、話している最中なら止める）
 /// - 話す前に音の出口を確保（普段はダッキング、`pauseMusic` なら一時停止）し、合図音を鳴らす。
-///   割り込みで続けて話すときは合図音を重ねない
+///   割り込みでも合図音を鳴らす（話が切り替わったと分かるように）。鳴らさないのは、
+///   `chime` が false の依頼（「検索します」）と、試し聞きの連打（group の差し替え）
 /// - 字幕は「話し始め」の通知で出し、話した所まで `spokenChars` で知らせる
 class SpeakExecutor {
   SpeakExecutor({
@@ -138,14 +149,17 @@ class SpeakExecutor {
         cur != null &&
         !_interruptedCurrent &&
         ((group != null && cur.group == group) ||
-            (r.interrupt && r.outranks(cur)));
+            (r.interrupt && (r.outranks(cur) || cur.priority > 1)));
     _enqueue(r);
     if (replaceCurrent) {
       // 止めた発話の終わりは、ここで1回だけ返す
       _emitFinished(cur.utteranceId);
       _interruptedCurrent = true;
-      _skipNextChime = true;
-      unawaited(tts.stop());
+      // 試し聞きの連打は合図音を重ねない。ほかの割り込みは、話が切り替わったと分かるよう鳴らす
+      _skipNextChime = group != null;
+      // 警報と試し聞きはすぐ止める。それ以外は今の文を話し終えてから止める（_run の文の区切り）
+      final hard = group != null || r.priority <= 1;
+      if (hard) unawaited(tts.stop());
     }
     if (!_running) unawaited(_run());
   }
@@ -174,27 +188,40 @@ class SpeakExecutor {
           continue;
         }
         _current = r;
+        final sentences = splitSentences(r.text);
+        // 1文目は、音の出口の確保と合図音の間に作り始める（話し出しの待ちを減らす）
+        tts.prepare(sentences.first);
         await _guard(() => focus.acquire(pauseMusic: r.pauseMusic));
-        if (_skipNextChime) {
+        if (_skipNextChime || !r.chime) {
           _skipNextChime = false;
         } else {
           await _guard(chime.play);
         }
-        // 合図音の間に割り込まれていたら、この文は話さない
-        if (!_interruptedCurrent) {
+        // 文ごとに話す。文の切れ目で割り込まれていたら（合図音の間を含む）、残りは話さない
+        var offset = 0;
+        for (var i = 0; i < sentences.length; i++) {
+          final sentence = sentences[i];
+          if (_interruptedCurrent) break;
+          // 次の文は、今の文を話している間に作っておく（文と文の間を空けない）
+          if (i + 1 < sentences.length) tts.prepare(sentences[i + 1]);
+          final base = offset;
           await _guard(
             () => tts.speak(
-              r.text,
+              sentence,
               onStart: () {
                 if (!identical(_current, r)) return;
-                spokenChars.value = 0;
-                subtitle.value = r.text;
+                if (base == 0) {
+                  spokenChars.value = 0;
+                  subtitle.value = r.text;
+                }
               },
               onProgress: (end) {
-                if (identical(_current, r)) spokenChars.value = end;
+                if (identical(_current, r)) spokenChars.value = base + end;
               },
             ),
           );
+          offset += sentence.length;
+          if (identical(_current, r)) spokenChars.value = offset;
         }
         final wasInterrupted = _interruptedCurrent;
         _interruptedCurrent = false;
@@ -232,10 +259,23 @@ class SpeakExecutor {
   }
 }
 
+/// 読み上げる文を「。」「！」「？」の後ろで区切る（区切りの記号は前の文に付ける）。
+/// つなげると元の文に戻る。区切りが無ければ1つのまま。
+List<String> splitSentences(String text) {
+  final parts = RegExp(r'[^。！？!?]+[。！？!?]*|[。！？!?]+')
+      .allMatches(text)
+      .map((m) => m.group(0)!)
+      .toList();
+  return parts.isEmpty ? [text] : parts;
+}
+
 // ---- 実機の部品 ----
 
 /// flutter_tts（端末内の日本語音声）。
 class FlutterTtsEngine implements TtsEngine {
+  @override
+  void prepare(String text) {}
+
   FlutterTtsEngine(this._voices, [FlutterTts? tts])
     : _tts = tts ?? FlutterTts() {
     _tts.setStartHandler(_started);
@@ -286,9 +326,11 @@ class FlutterTtsEngine implements TtsEngine {
     final gen = _generation;
     if (!_configured) {
       _configured = true;
-      await _tts.setLanguage('ja-JP');
       // 音の用途を「ナビの案内」にする（音楽アプリと並べて扱われる）
       await _tts.setAudioAttributesForNavigation();
+      // 言語の設定（setLanguage）は端末の既定の声に戻してしまうので、ここでは単独で呼ばない。
+      // 選んでいる声を、言語ごと当て直す（初めての試し聞きで別の声になっていたのを直す）
+      await _voices.apply(_preset);
     }
     if (gen != _generation) return; // 準備の間に止められた
     _done(); // 前の発話が残っていれば終わらせる
@@ -314,8 +356,14 @@ class FlutterTtsEngine implements TtsEngine {
     await _tts.stop();
   }
 
+  /// 選んでいる声（初めて話す前の準備でも、この声を当てる）。
+  VoicePreset _preset = VoicePreset.voice1;
+
   @override
-  Future<void> useVoice(VoicePreset preset) => _voices.apply(preset);
+  Future<void> useVoice(VoicePreset preset) {
+    _preset = preset;
+    return _voices.apply(preset);
+  }
 }
 
 /// audio_session で音の出口を確保する。普段は「音量を下げてもらう」、警報だけ「一時停止してもらう」。

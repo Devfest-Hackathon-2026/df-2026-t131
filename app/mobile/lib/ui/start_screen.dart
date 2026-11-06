@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../app/app_services.dart';
-import '../app/app_settings.dart';
 import '../dev/fake_gps_panel.dart';
 import 'camera_view.dart';
 import 'alert_banner.dart';
@@ -213,10 +212,7 @@ class _StartScreenState extends State<StartScreen> {
                                 icon: Icons.record_voice_over,
                                 label: settings.voice.label,
                                 onTap: () {
-                                  final next =
-                                      settings.voice == VoicePreset.voice1
-                                      ? VoicePreset.voice2
-                                      : VoicePreset.voice1;
+                                  final next = settings.voice.next;
                                   services.updateSettings(
                                     settings.copyWith(voice: next),
                                   );

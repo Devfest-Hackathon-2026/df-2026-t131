@@ -53,7 +53,9 @@ class VoiceCatalog {
   Future<TtsVoice?> voiceFor(VoicePreset preset) async {
     final list = await voices();
     if (list.isEmpty) return null;
-    return list[preset.index.clamp(0, list.length - 1)];
+    // 声2だけ2つ目の声。声1とずんだもん（声のファイルが無いとき）は1つ目
+    final i = preset == VoicePreset.voice2 ? 1 : 0;
+    return list[i.clamp(0, list.length - 1)];
   }
 
   Future<void> apply(VoicePreset preset) async {

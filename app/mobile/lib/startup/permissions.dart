@@ -1,7 +1,7 @@
 import 'package:permission_handler/permission_handler.dart';
 
 /// 起動時に順に求める権限と、拒否されたときに画面へ出す説明。
-/// マイクは使わないので求めない。
+/// マイクは「検索して」の聞き取りだけに使う（音声も認識結果も保存・送信しない）。
 class RequiredPermission {
   const RequiredPermission(this.permission, this.label, this.reason);
 
@@ -23,6 +23,11 @@ const List<RequiredPermission> requiredPermissions = [
     '歩いているか止まっているかで話す量を変えるため',
   ),
   RequiredPermission(Permission.notification, '通知', '防災の警報を受け取るため'),
+  RequiredPermission(
+    Permission.microphone,
+    'マイク',
+    '「検索して」の声で目の前の景色を調べるため（音声は保存・送信しない）',
+  ),
 ];
 
 /// 権限を問い合わせる部分を差し替えられるようにする（テスト用）。

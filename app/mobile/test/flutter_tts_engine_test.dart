@@ -27,6 +27,12 @@ class _NativeTts extends FlutterTts {
   @override
   Future<void> setAudioAttributesForNavigation() async {}
   @override
+  Future<dynamic> get getVoices async => const [];
+  @override
+  Future<dynamic> setPitch(double pitch) async => 1;
+  @override
+  Future<dynamic> setSpeechRate(double rate) async => 1;
+  @override
   Future<dynamic> speak(String text, {bool focus = false}) async {
     spoken.add(text);
     return 1;

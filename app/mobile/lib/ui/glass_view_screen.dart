@@ -53,10 +53,14 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
     s.copyWith(visualSearchEnabled: !s.visualSearchEnabled),
   );
 
+  void _requestSearch(BuildContext context) {
+    if (services.requestSearch()) return;
+    ScaffoldMessenger.maybeOf(context)
+        ?.showSnackBar(const SnackBar(content: Text('計測中でないので検索できません')));
+  }
+
   void _toggleVoice(AppSettings s) {
-    final next = s.voice == VoicePreset.voice1
-        ? VoicePreset.voice2
-        : VoicePreset.voice1;
+    final next = s.voice.next;
     services.updateSettings(s.copyWith(voice: next));
     services.previewVoice(next);
   }
@@ -146,6 +150,15 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
                       children: [
                         const SubstituteBanner(),
                         const SizedBox(width: 8),
+                        // B：今見ているものをその場で調べる（撮るかは engine が決める）
+                        if (settings.visualSearchEnabled) ...[
+                          RoundIconButton(
+                            icon: Icons.image_search,
+                            tooltip: '今見ているものを検索',
+                            onPressed: () => _requestSearch(context),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                         // 設定はたたんでいても開ける
                         RoundIconButton(
                           icon: Icons.settings_outlined,
@@ -186,6 +199,20 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
                             tooltip: '画像検索を切り替える',
                             onTap: () => _toggleVisualSearch(settings),
                           ),
+                          if (settings.visualSearchEnabled &&
+                              services.voiceCommands != null) ...[
+                            const SizedBox(width: 8),
+                            ValueListenableBuilder<String>(
+                              valueListenable: services.voiceCommands!.status,
+                              builder: (context, v, _) => StatusChip(
+                                icon: Icons.mic_none,
+                                label: '「検索して」$v',
+                                color: v.startsWith('聞いています')
+                                    ? AppColors.primary
+                                    : AppColors.subtext,
+                              ),
+                            ),
+                          ],
                           const SizedBox(width: 8),
                           StatusChip(
                             icon: Icons.record_voice_over,

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'api_client.dart';
 
@@ -105,6 +104,15 @@ class TileCache {
     }
   }
 
+  Future<void> clear() async {
+    try {
+      final d = await _dir();
+      if (await d.exists()) await d.delete(recursive: true);
+    } catch (_) {
+      // 消せなくても、12時間たてば取り直す
+    }
+  }
+
   Future<void> write(TileId t, Map<String, Object?> json, int nowMs) async {
     try {
       final f = await _file(t);
@@ -116,7 +124,7 @@ class TileCache {
   }
 }
 
-/// A の地図タイルを取りに行く（engine の `FetchTiles` を実行する側）。
+/// A の地図タイルを取りに行く（engine の `FetchTiles` を実行する係）。どのタイルを取るかは決めない。
 ///
 /// - 一度届いたタイルは覚えておき、[keepFor] の間は取り直さない（中身はほとんど変わらない）
 /// - **空のタイル（デモの範囲の外）も覚える。** 範囲の外を歩き回っても、同じタイルを何度も問い合わせない
@@ -131,7 +139,8 @@ class TileFetcher {
     int Function()? now,
     this.inRange,
     this.keepFor = const Duration(hours: 12),
-    this.retryAfter = const Duration(seconds: 30),
+    // engine は届かないタイルを30秒ごとに頼み直す。それを通すため、こちらは少し短くする
+    this.retryAfter = const Duration(seconds: 20),
     this.authRetryAfter = const Duration(minutes: 10),
     this.maxParallel = 2,
   }) : _now = now ?? _systemMs;
@@ -174,11 +183,16 @@ class TileFetcher {
   void request(Iterable<TileId> tiles) {
     final now = _now();
     for (final t in tiles) {
-      if (_loaded.containsKey(t) ||
-          _inFlight.contains(t) ||
-          _waiting.contains(t)) {
+      final have = _loaded[t];
+      if (have != null) {
+        // 持っているタイルも、頼まれたら渡し直す（新しい計測の engine は何も持っていないため）。
+        // engine の処理の途中で呼ばれるので、渡すのは処理が終わってから
+        scheduleMicrotask(() {
+          if (!_out.isClosed) _out.add(have);
+        });
         continue;
       }
+      if (_inFlight.contains(t) || _waiting.contains(t)) continue;
       final failedAt = _failedAt[t];
       if (failedAt != null && now - failedAt < retryAfter.inMilliseconds) {
         continue;
@@ -246,6 +260,7 @@ class TileFetcher {
   }
 
   static Map<String, Object?> _emptyBody(TileId t) => {
+    'schema_version': '0.3',
     'tile': {'z': t.z, 'x': t.x, 'y': t.y},
     'landmarks': const [],
     'stops': const [],
@@ -253,50 +268,15 @@ class TileFetcher {
     'events': const [],
   };
 
-  Future<void> dispose() => _out.close();
-}
-
-/// engine とつながるまでの仮の先読み：engine の `_prefetch`（app/engine）と同じ決め方で、
-/// 要るタイルを選ぶ。
-///
-/// 今の位置から、今の速度のまま [stepS] 秒刻みで [horizonS] 秒先まで進んだ点を出し、
-/// それぞれの前後左右 [marginM] m の角が入るタイルを集める。止まっているとき（[minMovingMps] 未満
-/// か進行方向が無い）は今の位置の周りだけ。
-/// TODO(engine)：engine をつないだら、これは使わず engine の `FetchTiles` を [TileFetcher.request] に渡す。
-Set<TileId> tilesAhead({
-  required double lat,
-  required double lon,
-  double? speedMps,
-  double? courseDeg,
-  double horizonS = 150,
-  double stepS = 10,
-  double marginM = 150,
-  double minMovingMps = 0.3,
-}) {
-  final moving =
-      speedMps != null && courseDeg != null && speedMps >= minMovingMps;
-  final steps = moving ? (horizonS / stepS).floor() : 0;
-  // 東向き・北向きの速度（m/s）
-  final rad = (courseDeg ?? 0) * math.pi / 180;
-  final ve = moving ? speedMps * math.sin(rad) : 0.0;
-  final vn = moving ? speedMps * math.cos(rad) : 0.0;
-  const mPerDegLat = 111320.0;
-  final mPerDegLon = mPerDegLat * math.cos(lat * math.pi / 180);
-  final out = <TileId>{};
-  for (var k = 0; k <= steps; k++) {
-    final e = ve * k * stepS;
-    final n = vn * k * stepS;
-    for (final (de, dn) in [
-      (0.0, 0.0),
-      (-marginM, -marginM),
-      (-marginM, marginM),
-      (marginM, -marginM),
-      (marginM, marginM),
-    ]) {
-      out.add(
-        TileId.at(lat + (n + dn) / mPerDegLat, lon + (e + de) / mPerDegLon),
-      );
-    }
+  /// 覚えているタイルを全部忘れ、端末のキャッシュも消す（サーバーのデータを直したあと・デモの撮影の前）。
+  Future<void> clear() async {
+    _loaded.clear();
+    _failedAt.clear();
+    _authBlockedUntil = null;
+    fetched = fromCache = empty = skippedOutOfRange = failed = 0;
+    lastResult = 'キャッシュを消しました';
+    await cache?.clear();
   }
-  return out;
+
+  Future<void> dispose() => _out.close();
 }

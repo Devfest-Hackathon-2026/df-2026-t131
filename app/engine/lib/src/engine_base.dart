@@ -40,6 +40,9 @@ class Engine {
   /// 立ち止まり（Activity が still）が始まった時刻。B の前倒しに使う。
   int? _stillSinceMs;
 
+  /// 止まっている（Activity が still か、速さが0）が始まった時刻。A の長い版に使う。
+  int? _stoppedSinceMs;
+
   // ---- タイルと、そこから得たデータ ----
   final Map<String, int> _tileRequestedAt = {};
   final Set<String> _tilesLoaded = {};
@@ -54,6 +57,14 @@ class Engine {
   _Utterance? _speaking;
   final Set<String> _interruptedUtterances = {};
   int? _lastSpeechEndMs;
+
+  /// 最後に話し終えた話が B の答えだったか。B の前後だけ話題の間隔を空ける。
+  bool _lastSpeechVisual = false;
+
+  /// 割り込まれて途中で止まった A の対象。話し直すときに前置きを付ける。
+  /// 割り込まれて止めたランドマーク（警報・検索）。続きは話さず、
+  /// 一度離れてからまた近づいたら最初から話す。
+  final Set<String> _heldUntilLeft = {};
 
   /// 話した対象の ID（ランドマーク・エリア）。A と B で共有する。
   final Set<String> _told = {};
@@ -80,6 +91,18 @@ class Engine {
   int _searchSeq = 0;
   int _searchCount = 0;
   int? _lastCaptureMs;
+
+  /// 定期の検索の時刻に読み上げ中で見送った時刻。次はここから間隔を数え直す（読み上げの
+  /// 直後にすぐ撮らない）。
+  int? _intervalRestartMs;
+
+  /// 定期の検索の間隔を数える起点（最後に撮った時刻、見送った時刻、最初に位置が取れた時刻）。
+  int? get _searchRefMs {
+    final base = _lastCaptureMs ?? _firstFixMs;
+    final restart = _intervalRestartMs;
+    if (base == null || restart == null) return base;
+    return math.max(base, restart);
+  }
   Vec2? _lastCapturePos;
   double? _lastCaptureGaze;
 
@@ -162,7 +185,7 @@ class Engine {
       final byDist = a.distanceM.compareTo(b.distanceM);
       return byDist != 0 ? byDist : a.id.compareTo(b.id);
     });
-    final ref = _lastCaptureMs ?? _firstFixMs;
+    final ref = _searchRefMs;
     final max = config.maxSearchesPerWalk;
     final left = max == null ? null : max - _searchCount;
     return EngineView(
@@ -219,6 +242,11 @@ class Engine {
       _stillSinceMs ??= s.tMs;
     } else {
       _stillSinceMs = null;
+    }
+    if (s.activity == Activity.still || _velocity.length == 0) {
+      _stoppedSinceMs ??= s.tMs;
+    } else {
+      _stoppedSinceMs = null;
     }
     _prefetch(s.tMs, out);
     _updateArea();
@@ -336,9 +364,11 @@ class Engine {
   void _onTtsFinished(TtsFinished e) {
     // 割り込みで止めた話の終了の知らせは、今の話の終わりではないので無視する。
     if (_interruptedUtterances.remove(e.utteranceId)) return;
-    if (_speaking?.id != e.utteranceId) return;
+    final u = _speaking;
+    if (u == null || u.id != e.utteranceId) return;
     _speaking = null;
     _lastSpeechEndMs = e.tMs;
+    _lastSpeechVisual = u.visual;
   }
 
   /// エンジンが出した読み上げが続いているか。終了の知らせが来ないまま長く過ぎたら終わったとみなす。
@@ -348,6 +378,7 @@ class Engine {
     if (t > u.expectedEndMs + config.ttsFinishGraceMs) {
       _speaking = null;
       _lastSpeechEndMs = t;
+      _lastSpeechVisual = u.visual;
       return false;
     }
     return true;
@@ -374,6 +405,7 @@ class Engine {
     String kind = 'speak',
     _ToldObject? toldObject,
     List<VisualSearchSource>? sources,
+    bool chime = true,
   }) {
     final current = _speaking;
     if (interrupt && current != null) {
@@ -382,12 +414,18 @@ class Engine {
       if (current.narrative) _told.remove(current.targetId);
       final object = current.toldObject;
       if (object != null) _toldObjects.remove(object);
+      if (current.narrative && !current.visual) {
+        // 割り込まれた A（警報・検索）は続きも話し直しもしない。まだ話していない扱いのまま、
+        // 一度離れてからまた近づいたら最初から話す（途中で切った話の続きは不自然なため）。
+        _heldUntilLeft.add(current.targetId);
+      }
     }
     final id = _nextUtteranceId();
     _speaking = _Utterance(
       id: id,
       targetId: targetId,
       narrative: narrative,
+      visual: kind == 'answer',
       toldObject: toldObject,
       expectedEndMs: t + _durationMs(text),
     );
@@ -406,6 +444,7 @@ class Engine {
         priority: priority,
         interrupt: interrupt,
         pauseMusic: pauseMusic,
+        chime: chime,
       ),
     );
     _log(
@@ -463,7 +502,13 @@ class Engine {
       final block = _audioBlock(s) ?? (busy ? 'skip:tts_busy' : null);
       if (block != null) {
         _skipOnce(out, t, a.alertId, block, 1);
-        return; // 警報が待っている間は、それより低い優先度の話を始めない
+        // 警報が待っている間は、それより低い優先度の話を始めない。
+        // A の候補にも同じ理由を残し、待たせる（範囲を出たら skip:expired）。
+        for (final c in _narrativeCandidates(t, out)) {
+          _skipOnce(out, t, c.landmark.id, block, 5);
+          _waiting.add(c.landmark.id);
+        }
+        return;
       }
       _pendingAlerts.removeAt(0);
       _speak(
@@ -482,9 +527,29 @@ class Engine {
       return;
     }
 
+    // 頼まれた検索の答え：警報の次に優先し、話している途中の A・B に割り込む。
+    // 話題の間隔・まもなく始まる A は見ない。横断歩道の手前・乗り物・音声を出せない・
+    // 警報の読み上げ中は待つ（鮮度期限を過ぎたら _expireVisual で捨てる）。
+    final pending = _pendingAnswer;
+    if (pending != null && pending.search.requested) {
+      if (_audioBlock(s) == null &&
+          s.activity != Activity.inVehicle &&
+          !_crossingAhead() &&
+          !_alertSpeaking(t)) {
+        _speakVisualAnswer(t, out, interrupt: busy);
+      }
+      return;
+    }
+
     // 5. A：ランドマークとエリア
     final candidates = _narrativeCandidates(t, out);
-    final gate = _narrativeGate(s, t, busy);
+    // 話題の間隔は B の前後だけ。A → A・警報 → A は短く空ける。
+    final gate = _narrativeGate(
+      s,
+      t,
+      busy,
+      _lastSpeechVisual ? config.topicIntervalMs : config.narrativeChainGapMs,
+    );
     if (gate != null) {
       for (final c in candidates) {
         _skipOnce(out, t, c.landmark.id, gate, 5);
@@ -508,7 +573,9 @@ class Engine {
       return;
     }
 
-    // 6. B の答え
+    // 6. B の答え。前の話の終わりから話題の間隔を空ける（B が続けて話し続けないように）。
+    final end = _lastSpeechEndMs;
+    if (end != null && t - end < config.topicIntervalMs) return;
     _speakVisualAnswer(t, out);
   }
 
@@ -520,15 +587,17 @@ class Engine {
   }
 
   /// A の文脈ゲート（CLAUDE.md 5章）。null なら話してよい。
-  String? _narrativeGate(SensorFrame s, int t, bool busy) {
+  String? _narrativeGate(SensorFrame s, int t, bool busy, int intervalMs) {
     final audio = _audioBlock(s);
     if (audio != null) return audio;
     if (s.activity == Activity.inVehicle) return 'skip:in_vehicle';
     if (_velocity.length > config.fastWalkingMps) return 'skip:fast_walking';
     if (_crossingAhead()) return 'skip:crossing_ahead';
+    // 頼まれた検索の答えを待っている間は A を始めない（答えで A を切ることになるため）。
+    if (_inflight?.requested ?? false) return 'skip:awaiting_search';
     if (busy) return 'skip:tts_busy';
     final end = _lastSpeechEndMs;
-    if (end != null && t - end < config.topicIntervalMs) {
+    if (end != null && t - end < intervalMs) {
       return 'skip:topic_interval';
     }
     return null;
@@ -552,10 +621,20 @@ class Engine {
   List<_Candidate> _narrativeCandidates(int t, List<Command> out) {
     final result = <_Candidate>[];
     final v = _velocity;
-    final still = _sensor!.activity == Activity.still || v.length == 0;
+    final stoppedSince = _stoppedSinceMs;
+    final still =
+        stoppedSince != null && t - stoppedSince >= config.longVersionStillMs;
     for (final lm in _landmarks.values) {
       final rel = _local(lm.lat, lm.lon) - _position;
       final r = _radius(lm);
+      if (_heldUntilLeft.contains(lm.id)) {
+        if (rel.length > r + config.revisitMarginM) {
+          _heldUntilLeft.remove(lm.id); // 離れた。次に近づいたら最初から話す
+        } else {
+          _skipOnce(out, t, lm.id, 'skip:interrupted', 5);
+          continue;
+        }
+      }
       _Candidate? candidate;
       String? notPossible;
       if (lm.kind == 'area') {
@@ -567,19 +646,26 @@ class Engine {
         if (window != null &&
             window.closestS <= config.proximityHorizonMs / 1000) {
           final useLong = still && rel.length <= r;
-          final text =
-              _directionLead(lm, rel) +
-              (useLong ? lm.scriptLong : lm.scriptShort);
-          if (window.exitS * 1000 >= _durationMs(text)) {
+          final lead = _directionLead(lm, rel, window);
+          // 長い版 → 短い版 → 方向と名前だけ、の順に、範囲を出る前に話し終えられるものを選ぶ。
+          final texts = [
+            if (useLong) lead + lm.scriptLong,
+            lead + lm.scriptShort,
+            lead,
+          ];
+          for (final text in texts) {
+            if (window.exitS * 1000 < _durationMs(text)) continue;
             candidate = _Candidate(
               lm,
               window.closestS,
-              useLong ? 'speak:long_version_still' : 'speak:closest_approach',
+              useLong && identical(text, texts.first)
+                  ? 'speak:long_version_still'
+                  : 'speak:closest_approach',
               text,
             );
-          } else {
-            notPossible = 'skip:pass_before_end';
+            break;
           }
+          if (candidate == null) notPossible = 'skip:pass_before_end';
         }
       }
       if (_told.contains(lm.id)) {
@@ -606,9 +692,18 @@ class Engine {
   /// 原稿の前に付ける方向の一言（例「右手に見本の石碑があります。」）。テンプレートで作る。
   ///
   /// 原稿には方向の言葉を書かない決まり（cloud/data/scripts/draft_scripts.py）なので、ここで付ける。
-  String _directionLead(Landmark lm, Vec2 rel) =>
-      '${directionWord(angleDiffDeg(rel.bearingDeg, _heading), config)}に'
-      '${lm.name}があります。';
+  ///
+  /// 最も近い点を過ぎていて、後ろ寄り（横より後ろ）にあるときは「いま通り過ぎたのは〜」と言う。
+  /// 「後方に〜があります」では、振り返らないと見えないものを今あるように言ってしまうため。
+  /// 止まっていて後ろ寄りにあるときは「振り返ると〜があります。」と言う（見る向きが分かるように）。
+  String _directionLead(Landmark lm, Vec2 rel, _Window window) {
+    final diff = angleDiffDeg(rel.bearingDeg, _heading);
+    if (diff.abs() > config.directionSideDeg) {
+      if (_velocity.length == 0) return '振り返ると${lm.name}があります。';
+      if (window.closestS < 0) return 'いま通り過ぎたのは${lm.name}です。';
+    }
+    return '${directionWord(diff, config)}に${lm.name}があります。';
+  }
 
   /// 等速で進んだとき、半径 r の円の中にいる時間帯。今を0秒とする。
   ///
@@ -671,7 +766,7 @@ class Engine {
       if (window == null) continue;
       final text = lm.kind == 'area'
           ? lm.scriptShort
-          : _directionLead(lm, rel) + lm.scriptShort;
+          : _directionLead(lm, rel, window) + lm.scriptShort;
       final durS = _durationMs(text) / 1000;
       if (window.exitS < durS) continue; // 今すぐでも話し終えられない（A も話さない）
       final wantS = lm.kind == 'area'
@@ -693,12 +788,19 @@ class Engine {
     if (_inflight != null) return; // 1件ずつ（結果か失敗、または諦めるまで次を出さない）
 
     // 計測の間隔（既定20秒）は最後に撮った時刻から。最初の1枚は位置と向きが初めて取れてから（論点1・2）。
-    final ref = _lastCaptureMs ?? _firstFixMs;
+    final ref = _searchRefMs;
     if (ref == null) return;
     final elapsed = t - ref;
     final String reason;
     if (elapsed >= config.visualIntervalMs) {
       reason = 'search:interval_elapsed';
+      // 定期の時刻に話している途中なら、この回は撮らない。話し終えるのを待たず、
+      // 次の間隔まで数え直す（読み上げの直後に続けて撮って話さないため）
+      if (_engineSpeaking(t) || s.ttsSpeaking) {
+        _intervalRestartMs = t;
+        _searchSkipOnce(out, t, 'search_skip:gate_blocked');
+        return;
+      }
     } else {
       final since = _stillSinceMs;
       if (since == null || t - since < config.stillEarlyMs) return;
@@ -726,9 +828,10 @@ class Engine {
     _capture(s, t, reason, out);
   }
 
-  /// 「調べて」と頼まれた：そのときの景色で一度だけ撮影を試す（仕様書 2章）。
+  /// 「調べて」と頼まれた（検索ボタン・「検索して」）：そのときの景色で一度だけ撮影を試す（仕様書 2章）。
   ///
-  /// 計測間隔と「同じ場所」は見ない。ほかの見送りの条件は自動と同じ。
+  /// 計測間隔と「同じ場所」は見ない。警報以外の読み上げ中でも撮る（答えはその話に割り込む）。
+  /// 安全の条件（横断歩道の手前・乗り物・早歩き）と、音声を出せない・警報中・画質不足では撮らない。
   /// 撮れなければ理由を残して依頼を終える（渡ったあとなどに勝手に撮らない）。
   void _onSearchRequested(SearchRequested e, List<Command> out) {
     final s = _sensor;
@@ -738,23 +841,53 @@ class Engine {
     } else if (_inflight != null) {
       skip = 'search_skip:gate_blocked'; // 前の検索が終わっていない
     } else {
-      skip = _captureBlock(s, e.tMs);
+      skip = _requestedCaptureBlock(s, e.tMs);
     }
     if (skip != null) {
       _lastSearchSkip = skip; // 画面で見送った理由を出す
       _log(out, e.tMs, 'search_skip', skip, null, priority: 6);
       return;
     }
-    _capture(s!, e.tMs, 'search:user_requested', out);
+    _capture(s!, e.tMs, 'search:user_requested', out, requested: true);
+    // 頼まれたことが分かるよう「検索します」と返事する（テンプレート）。話している途中の A・B は
+    // 止める（止めた A は続きを話さない）。声そのものが合図なので合図音は鳴らさない。
+    _speak(
+      out,
+      t: e.tMs,
+      reason: 'speak:search_ack',
+      targetId: _inflight!.id,
+      text: '検索します。',
+      priority: 2,
+      interrupt: _engineSpeaking(e.tMs) || s.ttsSpeaking,
+      pauseMusic: false,
+      narrative: false,
+      chime: false,
+    );
   }
 
-  /// 自動でも「調べて」でも共通の見送りの条件。null なら撮ってよい。
-  String? _captureBlock(SensorFrame s, int t) {
+  /// 頼まれた検索の見送りの条件。自動（[_captureBlock]）と違い、読み上げ中・話題の間隔・
+  /// 待っている B の答え・まもなく始まる A では止めない。警報だけは横取りしない。
+  String? _requestedCaptureBlock(SensorFrame s, int t) {
     final max = config.maxSearchesPerWalk;
     if (max != null && _searchCount >= max) {
       return 'search_skip:limit_reached';
     }
-    if (_searchBlocked(s, t)) return 'search_skip:gate_blocked';
+    if (_audioBlock(s) != null ||
+        s.activity == Activity.inVehicle ||
+        _velocity.length > config.fastWalkingMps ||
+        _crossingAhead() ||
+        _pendingAlerts.isNotEmpty ||
+        _alertSpeaking(t)) {
+      return 'search_skip:gate_blocked';
+    }
+    return _qualityBlock(s);
+  }
+
+  /// エンジンが警報を読み上げている最中か。
+  bool _alertSpeaking(int t) =>
+      _engineSpeaking(t) && _seenAlerts.contains(_speaking!.targetId);
+
+  String? _qualityBlock(SensorFrame s) {
     final q = s.imageQuality;
     if (q == null ||
         q.blur < config.minBlur ||
@@ -764,7 +897,23 @@ class Engine {
     return null;
   }
 
-  void _capture(SensorFrame s, int t, String reason, List<Command> out) {
+  /// 自動でも「調べて」でも共通の見送りの条件。null なら撮ってよい。
+  String? _captureBlock(SensorFrame s, int t) {
+    final max = config.maxSearchesPerWalk;
+    if (max != null && _searchCount >= max) {
+      return 'search_skip:limit_reached';
+    }
+    if (_searchBlocked(s, t)) return 'search_skip:gate_blocked';
+    return _qualityBlock(s);
+  }
+
+  void _capture(
+    SensorFrame s,
+    int t,
+    String reason,
+    List<Command> out, {
+    bool requested = false,
+  }) {
     _searchSeq++;
     _searchCount++;
     final id = 's_${_searchSeq.toString().padLeft(6, '0')}';
@@ -778,6 +927,7 @@ class Engine {
       areaId: area?.id,
       position: _position,
       candidateIds: candidates.toSet(),
+      requested: requested,
     );
     _lastCaptureMs = t;
     _lastCapturePos = _position;
@@ -888,10 +1038,13 @@ class Engine {
         part: r.part!,
       );
       // other は部分を見分けられないので、全体の紹介が済んでいれば（＝ここに来れば必ず）話さない。
-      if (feature.part == 'other' || _toldObjects.any(feature.sameAs)) {
+      // 頼まれた検索は、同じ部分でももう一度話す（11/6 メンバー3決定。黙ると壊れて見えるため）。
+      if ((feature.part == 'other' || _toldObjects.any(feature.sameAs)) &&
+          !search.requested) {
         _logAnswer(out, t, 'answer:already_told', lm.id, r);
         return;
       }
+      _setPendingAnswer(t, out);
       _pendingAnswer = _VisualAnswer(
         search: search,
         reason: 'answer:landmark_feature',
@@ -923,10 +1076,11 @@ class Engine {
       part: r.part!,
       genericRadiusM: config.genericObjectDedupM,
     );
-    if (_toldObjects.any(object.sameAs)) {
+    if (_toldObjects.any(object.sameAs) && !search.requested) {
       _logAnswer(out, t, 'answer:already_told', search.id, r);
       return;
     }
+    _setPendingAnswer(t, out);
     _pendingAnswer = _VisualAnswer(
       search: search,
       reason: r.named ? 'answer:named_object' : 'answer:unlisted_object',
@@ -935,6 +1089,22 @@ class Engine {
       body: r.description!,
       toldObject: object,
       sources: r.sources,
+    );
+  }
+
+  /// 新しい答えを待たせる前に、まだ話していない古い答え（自動の検索の分）を捨てた記録を残す。
+  void _setPendingAnswer(int t, List<Command> out) {
+    final old = _pendingAnswer;
+    if (old == null) return;
+    _pendingAnswer = null;
+    _log(
+      out,
+      t,
+      'answer',
+      'answer:expired',
+      old.targetId,
+      priority: 6,
+      sources: old.sources.isEmpty ? null : old.sources,
     );
   }
 
@@ -972,11 +1142,13 @@ class Engine {
     }
   }
 
-  /// 待っている B の答えを話す。A のゲートを通ったあとに呼ぶ。
-  void _speakVisualAnswer(int t, List<Command> out) {
+  /// 待っている B の答えを話す。自動の分は A のゲートを通ったあとに呼ぶ。
+  /// 頼まれた分は警報のすぐ後に呼び、[interrupt] で今の話（警報以外）に割り込む。
+  void _speakVisualAnswer(int t, List<Command> out, {bool interrupt = false}) {
     final answer = _pendingAnswer;
     if (answer == null) return;
     _pendingAnswer = null;
+    final requested = answer.search.requested;
     // 論点10：過去形・方向つき。方向は撮ったときの視線と、いまの進行方向の差。
     final direction = directionWord(
       angleDiffDeg(answer.search.gazeAzDeg, _heading),
@@ -987,7 +1159,8 @@ class Engine {
         ? 'さっき$directionに見えたのは${answer.name}です。${answer.body}'
         : 'さっき$directionに見えたのは${answer.name}の$partです。${answer.body}';
     // B を話し終えて話題の間隔を空けると、直後の A が通り過ぎて話せなくなるなら B を見送る（仕様書 5章）。
-    if (_narrativeMissedAfter(_durationMs(text) + config.topicIntervalMs)) {
+    if (!requested &&
+        _narrativeMissedAfter(_durationMs(text) + config.topicIntervalMs)) {
       _log(
         out,
         t,
@@ -1007,8 +1180,10 @@ class Engine {
       targetId: answer.targetId,
       text: text,
       priority: 6,
-      interrupt: false,
+      interrupt: interrupt,
       pauseMusic: false,
+      // 定期の検索の答えは合図音を鳴らさない（頼まれた検索の答えだけ鳴らす）
+      chime: requested,
       narrative: false, // B は全体を話さないので、A で話した扱いにはしない
       toldObject: answer.toldObject,
       sources: answer.sources.isEmpty ? null : answer.sources,
@@ -1159,12 +1334,16 @@ final class NearbyLandmark {
 final class _Utterance {
   final String id, targetId;
   final bool narrative;
+
+  /// B の答えか。
+  final bool visual;
   final _ToldObject? toldObject;
   final int expectedEndMs;
   const _Utterance({
     required this.id,
     required this.targetId,
     required this.narrative,
+    required this.visual,
     required this.toldObject,
     required this.expectedEndMs,
   });
@@ -1193,6 +1372,10 @@ final class _Search {
 
   /// この検索で送った候補。一致の答えはこの中の ID だけ受け付ける。
   final Set<String> candidateIds;
+
+  /// 利用者が頼んだ検索（検索ボタン・「検索して」）。警報以外の話に割り込んで答え、
+  /// 同じ対象でももう一度話す（頼んだのに黙ると壊れて見えるため）。
+  final bool requested;
   const _Search({
     required this.id,
     required this.capturedMs,
@@ -1200,6 +1383,7 @@ final class _Search {
     required this.areaId,
     required this.position,
     required this.candidateIds,
+    this.requested = false,
   });
 }
 

@@ -10,8 +10,36 @@ if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
 
+// ずんだもんの声（VOICEVOX CORE）。tool/fetch_voicevox.sh で app/mobile/vendor/voicevox に取ってあるときだけ入れる。
+// 無ければ代わりの部品（src/novoicevox）が入り、端末の声（Google）で話す。大きいファイルは Git に入れない。
+val voicevoxDir = file("../../vendor/voicevox")
+val hasVoicevox = file("${voicevoxDir}/maven").isDirectory
+
+repositories {
+    if (hasVoicevox) {
+        maven { url = uri("${voicevoxDir}/maven") }
+    }
+}
+
 android {
     namespace = "jp.dfhack26.mobile"
+
+    sourceSets["main"].apply {
+        if (hasVoicevox) {
+            java.srcDir("src/voicevox/kotlin")
+            jniLibs.srcDir("${voicevoxDir}/jniLibs")
+            assets.srcDir("${voicevoxDir}/assets")
+        } else {
+            java.srcDir("src/novoicevox/kotlin")
+        }
+    }
+
+    packaging {
+        // VOICEVOX と Flutter の部品が同じ C++ の実行用ライブラリを持っている
+        jniLibs.pickFirsts += "**/libc++_shared.so"
+        // VOICEVOX が使う jakarta の部品どうしで、同じ名前の説明書きが重なる
+        resources.pickFirsts += listOf("META-INF/NOTICE.md", "META-INF/LICENSE.md")
+    }
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -41,6 +69,8 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // VOICEVOX のクラスを縮小で消さない（proguard-rules.pro）
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }
@@ -56,5 +86,8 @@ flutter {
 }
 
 dependencies {
+    if (hasVoicevox) {
+        implementation("jp.hiroshiba.voicevoxcore:voicevoxcore-android:0.17.1")
+    }
     testImplementation("junit:junit:4.13.2")
 }

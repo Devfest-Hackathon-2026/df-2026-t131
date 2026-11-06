@@ -4,6 +4,7 @@ import '../app/app_services.dart';
 import '../app/app_settings.dart';
 import '../config.dart';
 import '../dev/dev_settings_section.dart';
+import '../executors/voicevox_tts.dart';
 import '../logging/walk_log_store.dart';
 import '../info/info_kind.dart';
 import '../net/api_client.dart';
@@ -72,7 +73,12 @@ class SettingsScreen extends StatelessWidget {
                 color: s.voice == v ? AppColors.accent : null,
               ),
               title: Text(v.label),
-              subtitle: const Text('端末内の音声（通信なし）'),
+              // 声の利用規約で、クレジットの表示が必要
+              subtitle: Text(
+                VoicevoxTtsEngine.styleFor(v) == null
+                    ? '端末の日本語音声（通信なし）'
+                    : '端末の中で作る声（通信なし）・${VoicevoxTtsEngine.credit}',
+              ),
               onTap: () => services.updateSettings(s.copyWith(voice: v)),
               trailing: OutlinedButton.icon(
                 onPressed: () => services.previewVoice(v),
@@ -105,6 +111,15 @@ class SettingsScreen extends StatelessWidget {
             subtitle: Text(
               '正確な位置は端末の外に出しません（送るのは地図タイル番号だけ）。'
               '歩行ログは「計測開始」から「終了」までだけ、この端末に保存します。',
+            ),
+          ),
+          const ListTile(
+            leading: Icon(Icons.copyright_outlined),
+            title: Text('出典'),
+            subtitle: Text(
+              '地図データ（ランドマークの位置・横断歩道・信号）：© OpenStreetMap contributors（ODbL 1.0）\n'
+              '気象警報：出典 気象庁ホームページ（防災情報XML）。種類とレベルを取り出し、文に加工して作成\n'
+              'ランドマークの解説：富山県・富山市・各施設の公式サイトなどを参照（一覧はリポジトリの docs/attribution.md）',
             ),
           ),
           // 7回押すと開発者モードが出る（Android の「ビルド番号」と同じ）

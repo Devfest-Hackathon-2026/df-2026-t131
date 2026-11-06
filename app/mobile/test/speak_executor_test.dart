@@ -7,6 +7,9 @@ import 'package:mobile/executors/speak_executor.dart';
 
 /// 話し終わりをテストが決める偽の TTS。
 class FakeTts implements TtsEngine {
+  @override
+  void prepare(String text) {}
+
   final spoken = <String>[];
   final stops = <int>[];
   Completer<void>? _now;
@@ -122,6 +125,7 @@ void main() {
     expect(tts.stops, isNotEmpty);
     expect(tts.spoken, ['案内', '大雨の危険警報です']);
     expect(focus.log.last, 'pause'); // 警報は音楽を一時停止
+    expect(chime.count, 2); // 警報の割り込みでも合図音を鳴らす（切り替わりが分かるように）
     tts.finish();
     await settle();
     tts.finish();
@@ -266,6 +270,48 @@ void main() {
       expect(tts.spoken, ['alert', 'landmark']);
     });
 
+    test('警報でない発話には、割り込みの依頼は優先度が低くても割り込む。今の文を話し終えてから止め、残りは話さない', () async {
+      x.execute(
+        const SpeakRequest(utteranceId: 'landmark', text: '一つめの文です。二つめの文です。'),
+      );
+      await settle();
+      expect(tts.spoken, ['一つめの文です。']);
+      x.execute(req('visual', priority: 6, interrupt: true));
+      await settle();
+      expect(tts.stops, isEmpty); // 文の途中では切らない
+      expect(finished, ['landmark']);
+      tts.finish(); // 一つめの文を話し終える
+      await settle();
+      expect(tts.spoken, ['一つめの文です。', 'visual']); // 二つめの文は話さない
+      expect(chime.count, 2); // 割り込みでも合図音を鳴らす
+    });
+
+    test('合図音を鳴らさない依頼（「検索します」）は、割り込みでも合図音を鳴らさない', () async {
+      x.execute(req('landmark'));
+      await settle();
+      x.execute(
+        const SpeakRequest(
+          utteranceId: 'ack',
+          text: '検索します。',
+          priority: 2,
+          interrupt: true,
+          chime: false,
+        ),
+      );
+      await settle();
+      tts.finish();
+      await settle();
+      expect(tts.spoken, ['landmark', '検索します。']);
+      expect(chime.count, 1);
+    });
+
+    test('文の区切り', () {
+      expect(splitSentences('右手に石碑があります。古い碑です。'), ['右手に石碑があります。', '古い碑です。']);
+      expect(splitSentences('区切りなし'), ['区切りなし']);
+      expect(splitSentences('本当？はい！'), ['本当？', 'はい！']);
+      expect(splitSentences('').join(), '');
+    });
+
     test('話す番が来たとき期限を過ぎていたら話さずに捨てる', () async {
       var nowMs = 1000;
       final timed = SpeakExecutor(
@@ -305,6 +351,9 @@ void main() {
 }
 
 class _ThrowingTts implements TtsEngine {
+  @override
+  void prepare(String text) {}
+
   @override
   Future<void> speak(
     String text, {

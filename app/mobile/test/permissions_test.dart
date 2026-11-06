@@ -5,9 +5,9 @@ import 'package:mobile/startup/permissions.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() {
-  test('マイクの権限は求めない', () {
+  test('マイクの権限を求める（「検索して」の聞き取り用）', () {
     final perms = requiredPermissions.map((p) => p.permission);
-    expect(perms, isNot(contains(Permission.microphone)));
+    expect(perms, contains(Permission.microphone));
   });
 
   test('拒否された権限だけを順番どおりに返す', () async {

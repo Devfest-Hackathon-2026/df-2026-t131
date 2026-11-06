@@ -163,6 +163,41 @@ class ApiClient {
   Future<({ApiCheck check, Object? json})> getTile(int x, int y) =>
       getJson('/v1/tiles/16/$x/$y', auth: true);
 
+  /// B の画像検索（`POST /v1/visual-search`）。[body] は schema の送信の形。
+  ///
+  /// 失敗は engine の `VisualError` の種類（`timeout`・`network`・`server`）で返す。
+  /// 送った画像も答えもログ・print に出さない。
+  Future<({Object? json, String? error})> postVisualSearch(
+    Map<String, dynamic> body,
+  ) async {
+    if (!hasUrl || !hasToken) return (json: null, error: 'network');
+    if (!limiter.tryAcquire()) return (json: null, error: 'server');
+    try {
+      final res = await _client
+          .post(
+            _uri('/v1/visual-search'),
+            headers: {
+              'X-App-Token': _token,
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(timeout);
+      if (res.statusCode != 200) return (json: null, error: 'server');
+      try {
+        return (json: jsonDecode(utf8.decode(res.bodyBytes)), error: null);
+      } on FormatException {
+        return (json: null, error: 'server');
+      }
+    } on TimeoutException {
+      return (json: null, error: 'timeout');
+    } on SocketException {
+      return (json: null, error: 'network');
+    } on http.ClientException {
+      return (json: null, error: 'network');
+    }
+  }
+
   /// 生存確認。サーバーが動いていて、ここまで通信が届くか。
   Future<ApiCheck> health() => _get('/health');
 

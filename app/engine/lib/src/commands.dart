@@ -8,12 +8,16 @@ final class Speak implements Command {
   final String utteranceId, text;
   final int priority;
   final bool interrupt, pauseMusic;
+
+  /// 話し始めに合図音を鳴らすか。「検索します」の返事は声そのものが合図なので鳴らさない。
+  final bool chime;
   const Speak({
     required this.utteranceId,
     required this.text,
     required this.priority,
     required this.interrupt,
     required this.pauseMusic,
+    this.chime = true,
   });
 }
 

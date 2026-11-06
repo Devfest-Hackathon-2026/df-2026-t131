@@ -175,6 +175,13 @@ class SessionController extends ChangeNotifier {
     });
   }
 
+  /// engine に渡したイベント1行（`eventToJson` の形そのまま）を残す。記録中だけ書く。
+  void recordRow(Map<String, Object?> row) {
+    final w = _writer;
+    if (_phase != SessionPhase.running || w == null) return;
+    w.write(row);
+  }
+
   /// アプリが裏に回ったときなど。すぐ書き出して失わないようにする。
   Future<void> flush() async => _writer?.flush();
 

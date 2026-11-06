@@ -1,15 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
+import 'package:engine/engine.dart' as eng;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../core/sensor_ticker.dart';
 import '../dev/fake_gps.dart';
+import '../engine/engine_runner.dart';
 import '../executors/speak_executor.dart';
 import '../executors/voice_catalog.dart';
+import '../executors/voicevox_tts.dart';
 import '../info/alert_list_fetcher.dart';
 import '../info/alert_message.dart';
 import '../info/fcm_alerts.dart';
@@ -27,7 +32,10 @@ import '../sources/audio_state_source.dart';
 import '../sources/camera_source.dart';
 import '../sources/gaze_source.dart';
 import '../sources/location_source.dart';
+import '../sources/voice_command_source.dart';
 import '../ui/glass_overlay.dart';
+import '../vision/face_detector.dart';
+import '../vision/visual_searcher.dart';
 import 'app_mode.dart';
 import 'app_settings.dart';
 import 'session_controller.dart';
@@ -47,6 +55,8 @@ class AppServices {
     this.useFcm = false,
     this.heardStore,
     this.tileCache,
+    this.faceFinder,
+    this.voiceCommands,
     ApiClient? api,
     AppSettings initialSettings = const AppSettings(),
   }) : api =
@@ -71,18 +81,17 @@ class AppServices {
         this.speaker.subtitle.value,
       ),
     );
-    // 読み上げの終わりを歩行ログへ（試し聞きは engine の発話ではないので残さない）
-    _finishedSub = this.speaker.finished.listen((id) {
-      if (!id.startsWith(previewPrefix) && !id.startsWith(devPrefix)) {
-        session.recordTtsFinished(id);
-      }
-    });
+    // 読み上げの終わりは、engine の発話の分だけ EngineRunner が歩行ログと engine に渡す
     // 声の設定を読み上げに反映する
     settings.addListener(() => this.speaker.useVoice(settings.value.voice));
+    // 起動時に保存してあった声も当てておく（設定を変えるまで声1のままにならないように）
+    unawaited(this.speaker.useVoice(settings.value.voice));
     // 外から届く情報（警報・気象・交通・イベント）。今は警報だけ中身があり、ほかは骨組み
     info = InfoHub(
       heard: heardStore,
-      sink: DirectSpeakSink(this.speaker),
+      // 計測中は engine に渡し（話すか・割り込むかは engine が決める）。
+      // 計測していないときは読まずに預かり、計測を始めたときに渡す
+      sink: _alertSink = _AlertSink(this),
       now: () => DateTime.now().toUtc().millisecondsSinceEpoch,
       onAccepted: (item) {
         if (item.kind == InfoKind.alert) {
@@ -103,6 +112,16 @@ class AppServices {
       onData: alerts.receive,
     );
     tiles = TileFetcher(api: this.api, cache: tileCache);
+    final faces = faceFinder;
+    searcher = faces == null
+        ? null
+        : VisualSearcher(
+            camera: camera,
+            faces: faces,
+            post: this.api.postVisualSearch,
+          );
+    // 画像検索をオフにしたら、声の聞き取りも止める
+    settings.addListener(_syncVoice);
     // 歩き始めに警報の一覧を取りに行き、歩いている間は15分ごとに取り直す（FCM の取りこぼしの保険）
     session.addListener(_onSessionChanged);
   }
@@ -120,6 +139,11 @@ class AppServices {
     _lastPhase = phase;
     _alertListTimer?.cancel();
     _alertListTimer = null;
+    if (phase == SessionPhase.running) {
+      _startEngine();
+    } else {
+      unawaited(_stopEngine());
+    }
     if (phase == SessionPhase.running && useFcm) {
       unawaited(refreshAlerts());
       _alertListTimer = Timer.periodic(
@@ -149,8 +173,11 @@ class AppServices {
     // 声の選択と読み上げで同じ TTS を使う（flutter_tts の通知の受け口は1つのため）
     final tts = FlutterTts();
     final voices = VoiceCatalog(tts);
+    // 声はすべてずんだもん（端末の中で作る）。声のファイルが無いビルドでは端末の声で話す
+    final zunda = VoicevoxTtsEngine(fallback: FlutterTtsEngine(voices, tts));
+    unawaited(zunda.warmUp()); // 初回は声のファイルを写すので、起動時に始めておく
     final speaker = SpeakExecutor(
-      tts: FlutterTtsEngine(voices, tts),
+      tts: zunda,
       focus: SessionAudioFocus(),
       chime: const ToneChime(),
     );
@@ -173,6 +200,11 @@ class AppServices {
         ),
       ),
       camera: camera,
+      faceFinder: MlKitFaceFinder(),
+      voiceCommands: SpeechVoiceCommandSource(
+        currentSpeech: () => speaker.subtitle.value,
+        beeps: const BeepMuter(),
+      ),
       ticker: SensorTicker(
         locationSource: fakeGps.location,
         gazeSource: fakeGps.gaze,
@@ -258,52 +290,108 @@ class AppServices {
   /// A の地図タイルを取りに行く部品と、端末に残す所（テストでは残さない）。
   late final TileFetcher tiles;
   final TileCache? tileCache;
-  StreamSubscription<Object?>? _tileSub;
 
-  /// 画面に出す A の候補の範囲と件数。
-  static const candidateRadiusM = 500.0;
-  static const maxCandidates = 5;
+  /// 計測中だけ動く判断エンジンの係（計測していないときは null）。
+  EngineRunner? get runner => _runner;
+  EngineRunner? _runner;
+  StreamSubscription<SensorSnapshot>? _engineSub;
 
-  /// 位置が届くたびに、要るタイルを頼み、画面の A の候補を更新する。
-  /// TODO(engine)：engine をつないだら、タイルは engine の `FetchTiles` で頼み、
-  /// 届いたタイルを `TilesLoaded` で engine へ渡す。候補も engine の判断から出す。
-  void _onSnapshot(SensorSnapshot s) {
-    final loc = s.location;
-    tiles.request(
-      tilesAhead(
-        lat: loc.lat,
-        lon: loc.lon,
-        speedMps: loc.speedMps,
-        courseDeg: loc.courseDeg,
-      ),
+  /// 判断の理由コードの説明（schema/reason_codes.json の写し）。
+  Map<String, String> reasonText = const {};
+
+  void _startEngine() {
+    final r = _runner = EngineRunner(
+      speaker: speaker,
+      tiles: tiles,
+      record: session.recordRow,
+      searcher: searcher,
+      searchEnabled: () => settings.value.visualSearchEnabled,
     );
-    final near = <CandidateMark>[];
-    for (final t in tiles.tiles) {
-      for (final lm in t.landmarks) {
-        final d = haversineM(loc.lat, loc.lon, lm.lat, lm.lon);
-        if (d > candidateRadiusM || near.any((c) => c.name == lm.name)) {
-          continue;
-        }
-        near.add(
-          CandidateMark(
-            name: lm.name,
-            bearingDeg: bearingBetween(loc.lat, loc.lon, lm.lat, lm.lon),
-            distanceM: d,
-          ),
-        );
-      }
+    _engineSub = ticker.snapshots.listen((s) {
+      _lastGazeAz = s.gaze.azDeg;
+      r.onSnapshot(s);
+    });
+    void update() => _updateOverlayFromEngine(r);
+    r.view.addListener(update);
+    r.lastDecision.addListener(update);
+    _syncVoice();
+    // 計測前に届いていた警報は、ここで engine に渡す（話すかは engine が決める）
+    _alertSink.releaseHeld(DateTime.now().toUtc().millisecondsSinceEpoch);
+  }
+
+  late final _AlertSink _alertSink;
+
+  // ---- B：検索のきっかけ（定期は engine、ボタンと声はここから engine へ） ----
+
+  /// 送る前に顔を見つける係（ML Kit）。テストでは null（撮らない）。
+  final FaceFinder? faceFinder;
+
+  /// 「検索して」の聞き取り。テストでは null。
+  final VoiceCommandSource? voiceCommands;
+
+  /// B の撮影と送信の係（[faceFinder] が無ければ null）。
+  late final VisualSearcher? searcher;
+  StreamSubscription<void>? _voiceSub;
+
+  /// 検索ボタン・「検索して」の声。計測中で画像検索がオンのときだけ engine に頼む。
+  /// 撮るかどうか（読み上げ中・横断歩道の手前などで見送るか）は engine が決める。
+  bool requestSearch() {
+    final r = _runner;
+    if (r == null || !settings.value.visualSearchEnabled) return false;
+    r.requestSearch();
+    return true;
+  }
+
+  /// 計測中かつ画像検索オンのときだけマイクで聞く。
+  void _syncVoice() {
+    final v = voiceCommands;
+    if (v == null) return;
+    final want = _runner != null && settings.value.visualSearchEnabled;
+    if (want && _voiceSub == null) {
+      _voiceSub = v.requests.listen((_) => requestSearch());
+      unawaited(v.start());
+    } else if (!want && _voiceSub != null) {
+      unawaited(_voiceSub!.cancel());
+      _voiceSub = null;
+      unawaited(v.stop());
     }
-    near.sort((a, b) => a.distanceM.compareTo(b.distanceM));
-    final list = near.take(maxCandidates).toList();
-    final cur = overlay.value.candidates;
-    final same =
-        cur.length == list.length &&
-        [
-          for (var i = 0; i < list.length; i++)
-            cur[i].name == list[i].name &&
-                (cur[i].distanceM - list[i].distanceM).abs() < 10,
-        ].every((b) => b);
-    if (!same) overlay.value = overlay.value.withCandidates(list);
+  }
+
+  Future<void> _stopEngine() async {
+    await _engineSub?.cancel();
+    _engineSub = null;
+    final r = _runner;
+    _runner = null;
+    _syncVoice();
+    await r?.dispose();
+    overlay.value = GlassOverlay(subtitle: overlay.value.subtitle);
+  }
+
+  double _lastGazeAz = 0;
+
+  /// engine の「いまの状態」を、グラス視点の画面の表示に直す。
+  void _updateOverlayFromEngine(EngineRunner r) {
+    final v = r.view.value;
+    final d = r.lastDecision.value;
+    final skip = v?.searchSkipReason;
+    overlay.value = GlassOverlay(
+      candidates: [
+        for (final n in v?.nearby ?? const <eng.NearbyLandmark>[])
+          CandidateMark(
+            name: n.told ? '${n.name}（話した）' : n.name,
+            bearingDeg: (_lastGazeAz + n.relativeBearingDeg) % 360,
+            distanceM: n.distanceM,
+          ),
+      ],
+      decision: d?.reason,
+      reason: d == null ? null : (reasonText[d.reason] ?? d.reason),
+      subtitle: overlay.value.subtitle,
+      areaName: v?.currentArea?.name,
+      nextSearchIn: v?.nextSearchInMs == null
+          ? null
+          : Duration(milliseconds: v!.nextSearchInMs!),
+      lastSearch: skip == null ? null : (reasonText[skip] ?? skip),
+    );
   }
 
   /// 聞いた警報の ID を起動し直しても覚えておく所（テストでは null）。
@@ -323,9 +411,9 @@ class AppServices {
 
   Future<void> start() async {
     settings.value = await settingsStore.load();
+    reasonText = await loadReasonText();
     await speaker.useVoice(settings.value.voice);
     ticker.start();
-    _tileSub = ticker.snapshots.listen(_onSnapshot);
     await info.start();
     if (useFcm) {
       // 起動を待たせないよう、裏でつなぐ。つながらなくてもアプリは動く
@@ -388,7 +476,9 @@ class AppServices {
 
   Future<void> dispose() async {
     await _finishedSub?.cancel();
-    await _tileSub?.cancel();
+    await _stopEngine();
+    settings.removeListener(_syncVoice);
+    await searcher?.close();
     await tiles.dispose();
     _lifecycle?.dispose();
     _alertListTimer?.cancel();
@@ -408,5 +498,56 @@ class AppServices {
     await camera.stop();
     settings.dispose();
     overlay.dispose();
+  }
+}
+
+/// 警報などの行き先：計測中は engine（`AlertReceived`）。警報以外の種類は直接読み上げる。
+/// **計測していないときは読み上げない**（音を出すのは試し聞きだけ）。画面の帯には出し、
+/// 受け取った分は預かって、計測を始めたときに渡す（期限の切れたものは捨てる）。
+class _AlertSink implements InfoSink {
+  _AlertSink(this.services);
+
+  final AppServices services;
+  late final DirectSpeakSink _direct = DirectSpeakSink(services.speaker);
+  final List<InfoItem> _held = [];
+
+  @override
+  void deliver(InfoItem item) {
+    final r = services.runner;
+    if (r == null) {
+      _held.add(item);
+    } else if (item.kind == InfoKind.alert) {
+      r.onAlert(item);
+    } else {
+      _direct.deliver(item);
+    }
+  }
+
+  /// 計測を始めたとき：預かっていた分を、来た順に渡す。
+  void releaseHeld(int nowMs) {
+    final items = List.of(_held);
+    _held.clear();
+    for (final item in items) {
+      final exp = item.expiresMs;
+      if (exp != null && nowMs > exp) continue;
+      deliver(item);
+    }
+  }
+}
+
+/// 理由コードの説明（assets/reason_codes.json）を読む。読めなければ空（コードのまま出す）。
+Future<Map<String, String>> loadReasonText() async {
+  try {
+    final m = jsonDecode(
+      await rootBundle.loadString('assets/reason_codes.json'),
+    );
+    final codes = (m as Map)['codes'] as Map;
+    return {
+      for (final e in codes.entries)
+        if (e.key is String && e.value is String)
+          e.key as String: e.value as String,
+    };
+  } catch (_) {
+    return const {};
   }
 }

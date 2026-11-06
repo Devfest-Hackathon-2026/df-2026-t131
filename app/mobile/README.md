@@ -14,3 +14,13 @@
 設定画面の「バージョン」を7回押すと出る。フェイク GPS（デモルート・歩行ログ・GPX などの検証用データ）を使える。
 警報はサーバーから届いたものだけを読み、文もサーバー（cloud/alert-job）がテンプレートで作った全文をそのまま読む（アプリでは文を作らない）。デモの模擬の警報も、サーバーの `/mock-alert` から送る。
 検証用データは `adb push 〇〇.gpx /sdcard/Android/data/jp.dfhack26.mobile/files/test_tracks/` で置く。自宅付近のデータはコミットしない。
+
+## 歩行ログを人が読める形にする
+
+```sh
+cd app/mobile
+dart run tool/walk_report.dart <歩行ログ.jsonl> <出力.md>
+```
+
+歩行ログを engine にもう一度流し、話したこと・黙った理由・判断の数を表にする（端末で動いた判断と同じになる）。緯度経度は出さない。
+端末の歩行ログは `adb pull /sdcard/Android/data/jp.dfhack26.mobile/files/walks/` で取り出せる（自宅付近のログは人に渡さない）。
