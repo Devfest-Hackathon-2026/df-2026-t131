@@ -31,8 +31,8 @@ class CameraView extends StatelessWidget {
         fit: BoxFit.cover,
         child: SizedBox(
           // previewSize はセンサーの向き（横長）で届く。横持ち固定なのでそのまま使う
-          width: size?.width ?? 720,
-          height: size?.height ?? 480,
+          width: size?.width ?? 1280,
+          height: size?.height ?? 720,
           child: CameraPreview(c),
         ),
       ),

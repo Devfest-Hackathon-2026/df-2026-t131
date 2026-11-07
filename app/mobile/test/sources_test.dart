@@ -99,4 +99,53 @@ void main() {
     expect(trimNv21(bytes, 720, 480).length, 518400);
     expect(trimNv21(Uint8List(100), 10, 10).length, 100);
   });
+
+  group('AI などに渡す1枚の縮小', () {
+    CameraFrame frame(
+      int w,
+      int h, {
+      int? stride,
+      int y = 100,
+      int v = 150,
+      int u = 90,
+    }) {
+      final s = stride ?? w;
+      final bytes = Uint8List(s * h + s * (h ~/ 2));
+      bytes.fillRange(0, s * h, y);
+      for (var i = s * h; i + 1 < bytes.length; i += 2) {
+        bytes[i] = v;
+        bytes[i + 1] = u;
+      }
+      return CameraFrame(
+        nv21: bytes,
+        width: w,
+        height: h,
+        yRowStride: s,
+        sensorOrientation: 90,
+      );
+    }
+
+    test('1280×720 は横720に縮め、色と明るさを保つ', () {
+      final out = downscaleNv21Frame(frame(1280, 720));
+      expect(out.width, 720);
+      expect(out.height, 404); // 405 を偶数にそろえる（切り捨て）
+      expect(out.yRowStride, 720);
+      expect(out.nv21.length, 720 * 404 * 3 ~/ 2);
+      expect(out.nv21.sublist(0, 720 * 404).every((b) => b == 100), isTrue);
+      expect(out.nv21[720 * 404], 150); // V
+      expect(out.nv21[720 * 404 + 1], 90); // U
+      expect(out.nv21.last, 90);
+    });
+
+    test('行の余り（stride）があっても読める', () {
+      final out = downscaleNv21Frame(frame(1280, 720, stride: 1344));
+      expect(out.width, 720);
+      expect(out.nv21.sublist(0, 720 * 404).every((b) => b == 100), isTrue);
+    });
+
+    test('もともと小さい1枚はそのまま', () {
+      final f = frame(720, 480);
+      expect(identical(downscaleNv21Frame(f), f), isTrue);
+    });
+  });
 }

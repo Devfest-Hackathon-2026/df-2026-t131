@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/foundation.dart' show compute;
 
 /// メモリ上の1枚（NV21）。ファイルには書かない。
 class CameraFrame {
@@ -30,6 +32,79 @@ Uint8List trimNv21(Uint8List bytes, int width, int height) {
   final expected = width * height * 3 ~/ 2;
   if (bytes.length <= expected) return bytes;
   return Uint8List.sublistView(bytes, 0, expected);
+}
+
+/// AI・画質の計算・顔の検出に渡す1枚の横幅。
+///
+/// プレビューを見やすくするためにカメラは 1280×720 で動かすが、プラグイン（CameraX）は
+/// プレビューと画像の取り出しに同じ解像度を使うので、取り出した1枚だけ端末内で縮める。
+/// 横720px は以前の設定（720×480）と同じ横幅で、ぶれの値（隣の画素との差）の大きさを変えないため。
+const int analysisFrameWidth = 720;
+
+/// NV21（Y 面のあとに VU が交互に並ぶ）を、横 [targetWidth] に縮める。
+/// Y は範囲の平均（縮めたときにぶれの値が鋭く出すぎないように）、VU は近いものを拾う。
+/// 返す画像は行の幅＝横幅（余りなし）。もともと [targetWidth] 以下ならそのまま返す。
+CameraFrame downscaleNv21Frame(
+  CameraFrame f, {
+  int targetWidth = analysisFrameWidth,
+}) {
+  if (f.width <= targetWidth) return f;
+  final w = f.width, h = f.height, stride = f.yRowStride;
+  final ow = targetWidth & ~1; // VU は2画素で1組なので偶数にそろえる
+  final oh = math.max(2, ((h * ow / w).round()) & ~1);
+  final src = f.nv21;
+  final out = Uint8List(ow * oh * 3 ~/ 2);
+  final sx = w / ow, sy = h / oh;
+
+  // 出力の各列が元のどの範囲にあたるか（先に計算しておく）
+  final x0s = List<int>.generate(ow, (x) => (x * sx).floor());
+  final x1s = List<int>.generate(
+    ow,
+    (x) => math.max((x * sx).floor() + 1, math.min(w, ((x + 1) * sx).floor())),
+  );
+  for (var oy = 0; oy < oh; oy++) {
+    final y0 = (oy * sy).floor();
+    final y1 = math.max(y0 + 1, math.min(h, ((oy + 1) * sy).floor()));
+    final outRow = oy * ow;
+    for (var ox = 0; ox < ow; ox++) {
+      final x0 = x0s[ox], x1 = x1s[ox];
+      var sum = 0;
+      for (var y = y0; y < y1; y++) {
+        final row = y * stride;
+        for (var x = x0; x < x1; x++) {
+          sum += src[row + x];
+        }
+      }
+      out[outRow + ox] = sum ~/ ((y1 - y0) * (x1 - x0));
+    }
+  }
+
+  final uvStart = stride * h;
+  final outUv = ow * oh;
+  final maxIndex = src.length - 2;
+  for (var oy = 0; oy < oh ~/ 2; oy++) {
+    final syRow = math.min((h - 1) >> 1, ((oy * 2) * sy).floor() >> 1);
+    final inRow = uvStart + syRow * stride;
+    final outRow = outUv + oy * ow;
+    for (var ox = 0; ox < ow; ox += 2) {
+      final sxCol = math.min(w - 2, (ox * sx).floor() & ~1);
+      final i = inRow + sxCol;
+      if (i <= maxIndex) {
+        out[outRow + ox] = src[i]; // V
+        out[outRow + ox + 1] = src[i + 1]; // U
+      } else {
+        out[outRow + ox] = 128;
+        out[outRow + ox + 1] = 128;
+      }
+    }
+  }
+  return CameraFrame(
+    nv21: out,
+    width: ow,
+    height: oh,
+    yRowStride: ow,
+    sensorOrientation: f.sensorOrientation,
+  );
 }
 
 abstract class CameraSource {
@@ -73,7 +148,8 @@ class PhoneCameraSource implements CameraSource {
     _sensorOrientation = back.sensorOrientation;
     final controller = CameraController(
       back,
-      ResolutionPreset.medium,
+      // 画面で人が見るプレビューのため 1280×720。AI などに渡す1枚は [downscaleNv21Frame] で縮める
+      ResolutionPreset.high,
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.nv21,
     );
@@ -95,24 +171,34 @@ class PhoneCameraSource implements CameraSource {
         .startImageStream((image) {
           if (got) return;
           got = true;
+          _stopStream(c); // 1枚あれば足りるので、次の1枚が届く前に閉じる
           final plane = image.planes.first;
-          final frame = CameraFrame(
+          final full = CameraFrame(
             nv21: trimNv21(plane.bytes, image.width, image.height),
             width: image.width,
             height: image.height,
             yRowStride: plane.bytesPerRow,
             sensorOrientation: _sensorOrientation,
           );
-          _latest = frame;
-          _finish(c, done, frame);
+          // 縮小は1回 10ms 前後かかり、画面の1コマ（16ms）を落とすので裏の isolate で行う
+          compute(_downscale, full).then((frame) {
+            if (!identical(_controller, c)) return _finish(c, done, null);
+            _latest = frame;
+            _finish(c, done, frame);
+          }, onError: (Object _) => _finish(c, done, null));
         })
         .catchError((Object _) => _finish(c, done, null));
-    // 1秒待っても届かなければあきらめる
-    Future<void>.delayed(
-      const Duration(seconds: 1),
-      () => _finish(c, done, null),
-    );
+    // 1秒待っても届かなければあきらめる（届いたあとの縮小は待つ）
+    Future<void>.delayed(const Duration(seconds: 1), () {
+      if (!got) _finish(c, done, null);
+    });
     return done.future;
+  }
+
+  void _stopStream(CameraController c) {
+    if (c.value.isStreamingImages) {
+      c.stopImageStream().catchError((Object _) {});
+    }
   }
 
   void _finish(
@@ -122,10 +208,8 @@ class PhoneCameraSource implements CameraSource {
   ) {
     if (done.isCompleted) return;
     done.complete(f);
-    _pending = null;
-    if (c.value.isStreamingImages) {
-      c.stopImageStream().catchError((Object _) {});
-    }
+    if (identical(_pending, done)) _pending = null;
+    _stopStream(c);
   }
 
   @override
@@ -146,3 +230,6 @@ class PhoneCameraSource implements CameraSource {
   @override
   CameraFrame? latestFrame() => _latest;
 }
+
+/// [compute] に渡す（トップレベルの関数でないと isolate に送れない）。
+CameraFrame _downscale(CameraFrame f) => downscaleNv21Frame(f);
