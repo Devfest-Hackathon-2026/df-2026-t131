@@ -9,9 +9,18 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(const ViewerApp(showMapTiles: false));
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 300)),
-    );
+    // 同梱のログは大きい（実機の15分）ので、読み込みは別のスレッドで進む。
+    // 本物の時間を少し進めては画面を更新し、読み込み中の表示が消えるまで待つ
+    for (
+      var i = 0;
+      i < 40 && find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
+      i++
+    ) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 250)),
+      );
+      await tester.pump();
+    }
     await tester.pumpAndSettle();
 
     expect(find.text('判断画面（歩行ログの再生）'), findsOneWidget);

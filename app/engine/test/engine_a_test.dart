@@ -1026,7 +1026,7 @@ void main() {
       expect(back.shape!.type, 'polygon');
       expect(back.shape!.parts.single, hasLength(4));
       expect(back.shape!.marginM, 0);
-      expect(() => LandmarkShape.fromJson({'type': 'circle', 'parts': [], 'margin_m': 0}), throwsFormatException);
+      expect(() => LandmarkShape.fromJson({'type': 'circle', 'parts': <Object?>[], 'margin_m': 0}), throwsFormatException);
     });
 
     test('線分までの距離と多角形の内外', () {
