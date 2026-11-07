@@ -51,14 +51,18 @@ const extraLicenses = <(String, String)>[
     'MIT License\n\nCopyright (c) 2021 Hiroshiba Kazuyuki\n$_mit',
   ),
   (
-    'ONNX Runtime (VOICEVOX build)',
-    'MIT License\n\nCopyright (c) Microsoft Corporation\n$_mit',
+    'VOICEVOX ONNX Runtime',
+    'VOICEVOX ONNX Runtime 利用規約に従って使っています（商用・非商用で利用可、'
+        'アプリへの組み込みと再配布可、VOICEVOX を使ったことが分かるクレジットの表記が必要）。\n'
+        'https://github.com/VOICEVOX/onnxruntime-builder\n\n'
+        'もとの ONNX Runtime：MIT License\n\nCopyright (c) Microsoft Corporation\n$_mit',
   ),
   (
     'Open JTalk dictionary (open_jtalk_dic_utf_8-1.11)',
     'Modified BSD License\n\n'
         'Copyright (c) 2009, Nara Institute of Science and Technology, Japan.\n'
-        'Copyright (c) 2011-2017 Nagoya Institute of Technology, Department of Computer Science\n'
+        'Copyright (c) 2011-2017, The UniDic Consortium\n'
+        'Copyright (c) 2008-2016 Nagoya Institute of Technology, Department of Computer Science\n'
         '$_bsd3',
   ),
   (
