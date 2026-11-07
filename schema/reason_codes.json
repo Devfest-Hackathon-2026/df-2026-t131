@@ -6,6 +6,7 @@
     "speak:no_camera_zone_entered": "カメラで調べない区域に入ったので、画像での案内を止めると知らせた",
     "speak:no_camera_zone_exited": "カメラで調べない区域を出たので、画像での案内を再開すると知らせた",
     "speak:after_crossing": "A：横断歩道を渡り終えたので、渡っている間に延期した話を話す",
+    "speak:demo_landmark": "A（デモ）：撮影のためワンタップで頼んだランドマークの案内。本物の案内と同じ順番待ちを通る",
     "speak:long_version_still": "A：立ち止まったので長い版",
     "speak:alert_interrupt": "警報レベル4以上で割り込み",
     "speak:alert": "警報（割り込みなし）",
@@ -47,6 +48,7 @@
     "speak:search_ack": "B：検索を頼まれたので「検索します」と返事した",
     "skip:awaiting_search": "B：頼まれた検索の答えを待っている",
     "skip:interrupted": "検索で止めた話。一度離れてからまた近づいたら最初から話す",
+    "skip:demo_no_landmark": "A（デモ）：頼まれたが、持っているランドマークか位置が無いので見送った",
     "fetch:prefetch_tiles": "先読みのためにタイルを要求"
   }
 }

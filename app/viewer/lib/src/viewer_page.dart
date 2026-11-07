@@ -415,12 +415,21 @@ class _StatePanel extends StatelessWidget {
             if (last == null)
               const Text('まだありません')
             else ...[
-              Text(_kindLabel(last.kind), style: text.titleMedium),
+              Row(
+                children: [
+                  Text(_kindLabel(last.kind), style: text.titleMedium),
+                  if (isDemoDecision(last)) ...[
+                    const SizedBox(width: 8),
+                    const _DemoBadge(),
+                  ],
+                ],
+              ),
               Text(
                 last.reason,
                 style: const TextStyle(fontFamily: 'monospace'),
               ),
               if (reasonLabels[last.reason] case final label?) Text(label),
+              if (isDemoDecision(last)) const Text(_demoNote, style: _demoStyle),
             ],
           ]),
           section('読み上げ中', [Text(frame.speaking?.text ?? '（なし）')]),
@@ -531,7 +540,15 @@ class _DecisionList extends StatelessWidget {
                 return ListTile(
                   dense: true,
                   leading: _KindBadge(kind: d.kind),
-                  title: Text(reasonLabels[d.reason] ?? d.reason),
+                  title: Text.rich(
+                    TextSpan(
+                      children: [
+                        if (isDemoDecision(d))
+                          const TextSpan(text: '［デモ］', style: _demoStyle),
+                        TextSpan(text: reasonLabels[d.reason] ?? d.reason),
+                      ],
+                    ),
+                  ),
                   subtitle: Text(
                     [
                       clock(d.tMs),
@@ -549,6 +566,27 @@ class _DecisionList extends StatelessWidget {
       ),
     );
   }
+}
+
+/// デモ撮影のためにワンタップで流したもの（11/7）。本物の警報・案内と同じ場所に出し、デモと添える。
+const _demoNote = 'デモ：撮影のためにアプリからワンタップで流したものです（実際の警報・案内の場面ではありません）。'
+    '流れ（割り込み・順番待ち・記録）は本物と同じです。';
+const _demoStyle = TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold);
+
+class _DemoBadge extends StatelessWidget {
+  const _DemoBadge();
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+    decoration: BoxDecoration(
+      border: Border.all(color: Colors.deepOrange),
+      borderRadius: BorderRadius.circular(4),
+    ),
+    child: const Text(
+      'デモ',
+      style: TextStyle(fontSize: 12, color: Colors.deepOrange),
+    ),
+  );
 }
 
 class _KindBadge extends StatelessWidget {

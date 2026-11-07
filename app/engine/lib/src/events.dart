@@ -108,6 +108,27 @@ final class SearchRequested implements EngineEvent {
   });
 }
 
+/// デモ撮影用：ランドマークの案内をワンタップで頼んだ（11/7。アプリは押してから15秒後に渡す）。
+///
+/// 本物の案内と同じ順番待ち・文脈ゲートを通って、A の案内として話す（理由コード `speak:demo_landmark`）。
+/// [landmarkId] が null なら、持っているランドマーク（エリアを除く）のうち、いちばん近いもの。
+/// 判断画面では「デモ」と分かるように出す（[isDemoDecision]）。
+final class DemoLandmarkRequested implements EngineEvent {
+  @override
+  final int tMs;
+  @override
+  final String schemaVersion;
+  final String? landmarkId;
+  const DemoLandmarkRequested({
+    required this.tMs,
+    this.landmarkId,
+    this.schemaVersion = currentSchemaVersion,
+  });
+}
+
+/// デモの警報の ID の頭（11/7）。デモの警報は本物と同じ入口（[AlertReceived]）から流し、ID だけで見分ける。
+const demoAlertIdPrefix = 'demo_';
+
 final class AlertReceived implements EngineEvent {
   @override
   final int tMs;
@@ -239,6 +260,14 @@ EngineEvent eventFromJson(Map<String, dynamic> json) {
     case 'search_request':
       wireKeys(data, const [], const []);
       return SearchRequested(tMs: t, schemaVersion: version);
+    case 'demo_landmark':
+      wireKeys(data, const [], const ['landmark_id']);
+      final id = data['landmark_id'];
+      return DemoLandmarkRequested(
+        tMs: t,
+        schemaVersion: version,
+        landmarkId: id == null ? null : wireString(id, 'landmark_id'),
+      );
     case 'alert':
       const alertKeys = ['alert_id', 'level', 'kind', 'area_name', 'text'];
       wireKeys(data, alertKeys, alertKeys);
@@ -288,6 +317,12 @@ Map<String, dynamic> eventToJson(EngineEvent event) {
       <String, dynamic>{'search_id': e.searchId, 'error': e.error},
     ),
     SearchRequested() => ('search_request', <String, dynamic>{}),
+    DemoLandmarkRequested e => (
+      'demo_landmark',
+      <String, dynamic>{
+        if (e.landmarkId != null) 'landmark_id': e.landmarkId,
+      },
+    ),
     AlertReceived e => (
       'alert',
       <String, dynamic>{
@@ -309,3 +344,12 @@ Map<String, dynamic> eventToJson(EngineEvent event) {
   eventFromJson(json);
   return json;
 }
+
+/// デモ撮影のためにワンタップで流したものの判断か（11/7）。
+///
+/// デモの案内（`speak:demo_landmark`・`skip:demo_no_landmark`）と、ID が [demoAlertIdPrefix] で
+/// 始まる警報。判断画面・グラス視点の画面は、本物と同じ場所に出したうえで「デモ」と添える。
+bool isDemoDecision(Decision d) =>
+    d.reason.endsWith(':demo_landmark') ||
+    d.reason.endsWith(':demo_no_landmark') ||
+    (d.targetId?.startsWith(demoAlertIdPrefix) ?? false);

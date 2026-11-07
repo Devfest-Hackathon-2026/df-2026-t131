@@ -200,6 +200,7 @@ final visualParts = visualPartLabels.keys.toList(growable: false);
 const reasonCodes = <String>{
   'speak:closest_approach',
   'speak:after_crossing',
+  'speak:demo_landmark',
   'speak:area_entered',
   'speak:no_camera_zone_entered',
   'speak:no_camera_zone_exited',
@@ -244,5 +245,6 @@ const reasonCodes = <String>{
   'speak:search_ack',
   'skip:awaiting_search',
   'skip:interrupted',
+  'skip:demo_no_landmark',
   'fetch:prefetch_tiles',
 };

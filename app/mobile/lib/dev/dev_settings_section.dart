@@ -75,6 +75,7 @@ class _DevSettingsSectionState extends State<DevSettingsSection> {
       listenable: gps,
       builder: (context, _) => Column(
         children: [
+          _DemoTapSection(services: widget.services),
           SwitchListTile(
             value: gps.enabled,
             onChanged: gps.setEnabled,
@@ -333,5 +334,90 @@ class _TrackTile extends StatelessWidget {
     title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
     subtitle: Text(subtitle),
     onTap: onTap,
+  );
+}
+
+/// デモ撮影のワンタップ（11/7）。押してから15秒後に、本物と同じ入口から流す
+/// （操作している画面を動画から切れるように）。計測中だけ使える。
+class _DemoTapSection extends StatelessWidget {
+  const _DemoTapSection({required this.services});
+
+  final AppServices services;
+
+  static const _labels = {
+    DemoTap.landmark: 'ランドマークの案内',
+    DemoTap.alert: 'デモの警報（レベル4）',
+    DemoTap.landmarkThenAlert: '案内の途中に警報（割り込み）',
+  };
+
+  void _tap(BuildContext context, DemoTap kind) {
+    final ok = services.scheduleDemo(kind);
+    final sec = AppServices.demoTapDelay.inSeconds;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ok
+              ? '${_labels[kind]}を $sec 秒後に流します。グラス視点の画面に戻ってください'
+              : '計測を開始してから押してください',
+        ),
+      ),
+    );
+  }
+
+  String _clock(DateTime t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}:'
+      '${t.second.toString().padLeft(2, '0')}';
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const ListTile(
+        leading: Icon(Icons.movie_creation_outlined),
+        title: Text('デモ撮影のワンタップ'),
+        subtitle: Text(
+          '押してから15秒後に流します（操作している画面を動画から切れるように）。'
+          '本物の警報・案内と同じ入口を通るので、割り込み・順番待ち・記録も本物と同じです。'
+          '歩行ログと判断画面には「デモ」と残ります。案内は、いちばん近いランドマーク（エリアを除く）を'
+          '話した履歴に関係なく話します。計測中だけ使えます。',
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(72, 0, 16, 0),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            for (final kind in [
+              DemoTap.landmark,
+              DemoTap.alert,
+              DemoTap.landmarkThenAlert,
+            ])
+              OutlinedButton(
+                onPressed: () => _tap(context, kind),
+                child: Text(_labels[kind]!),
+              ),
+          ],
+        ),
+      ),
+      ValueListenableBuilder(
+        valueListenable: services.demoTaps,
+        builder: (context, taps, _) => taps.isEmpty
+            ? const SizedBox(height: 8)
+            : ListTile(
+                leading: const Icon(Icons.timer_outlined),
+                title: Text(
+                  [
+                    for (final e in taps.entries)
+                      '${_labels[e.key]}：${_clock(e.value)} に流す',
+                  ].join('\n'),
+                ),
+                trailing: TextButton(
+                  onPressed: services.cancelDemoTaps,
+                  child: const Text('取り消す'),
+                ),
+              ),
+      ),
+    ],
   );
 }

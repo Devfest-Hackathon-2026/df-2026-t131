@@ -79,6 +79,10 @@ class Engine {
   /// 文脈ゲートで待たせている対象。条件から外れたら `skip:expired` を記録する。
   final Set<String> _waiting = {};
 
+  // ---- デモ撮影用（11/7）----
+  /// ワンタップで頼まれた、まだ話していないランドマークの案内。A の候補の先頭に置く。
+  _Candidate? _demoNarration;
+
   // ---- 警報 ----
   final Set<String> _seenAlerts = {};
   final List<AlertReceived> _pendingAlerts = [];
@@ -278,6 +282,9 @@ class Engine {
         _onVisualError(event, out);
       case SearchRequested():
         _onSearchRequested(event, out);
+      case DemoLandmarkRequested():
+        _onDemoLandmark(event, out);
+        _tryNext(event.tMs, out);
     }
     return out;
   }
@@ -692,8 +699,13 @@ class Engine {
       return;
     }
 
-    // 5. A：ランドマークとエリア
-    final candidates = _narrativeCandidates(t, out);
+    // 5. A：ランドマークとエリア（デモで頼まれた案内は、本物の候補より先。同じ文脈ゲートを通る）
+    final demo = _demoNarration;
+    final candidates = [
+      if (demo != null) demo,
+      for (final c in _narrativeCandidates(t, out))
+        if (c.landmark.id != demo?.landmark.id) c,
+    ];
     // 話題の間隔は B の前後だけ。A → A・警報 → A は短く空ける。
     final gate = _narrativeGate(
       s,
@@ -704,6 +716,7 @@ class Engine {
     if (gate != null) {
       for (final c in candidates) {
         _skipOnce(out, t, c.landmark.id, gate, 5);
+        if (identical(c, demo)) continue; // デモの案内は話せるまで待つ（期限切れにしない）
         _waiting.add(c.landmark.id);
         if (gate == 'skip:crossing_ahead') _crossingDeferred.add(c.landmark.id);
       }
@@ -711,6 +724,7 @@ class Engine {
     }
     if (candidates.isNotEmpty) {
       final c = candidates.first;
+      if (identical(c, demo)) _demoNarration = null;
       _crossingDeferred.remove(c.landmark.id);
       _speak(
         out,
@@ -731,6 +745,39 @@ class Engine {
     final end = _lastSpeechEndMs;
     if (end != null && t - end < config.topicIntervalMs) return;
     _speakVisualAnswer(t, out);
+  }
+
+  /// デモ撮影用：ワンタップで頼まれたランドマークの案内を、A の候補の先頭に置く（11/7）。
+  ///
+  /// 話した履歴にあっても話す（撮り直しのため）。方向は今の位置と向きから付ける（遠くても
+  /// 嘘にならないよう「〜の方に」）。ランドマークを持っていない・位置が無ければ見送る。
+  void _onDemoLandmark(DemoLandmarkRequested e, List<Command> out) {
+    final hasPosition = _projection != null && _sensor != null;
+    Landmark? lm = e.landmarkId == null ? null : _landmarks[e.landmarkId];
+    if (lm == null && e.landmarkId == null && hasPosition) {
+      double best = double.infinity;
+      for (final c in _landmarks.values) {
+        if (c.kind == 'area') continue;
+        final d = (_local(c.lat, c.lon) - _position).length;
+        if (d < best) {
+          best = d;
+          lm = c;
+        }
+      }
+    }
+    if (lm == null || !hasPosition) {
+      _log(out, e.tMs, 'skip', 'skip:demo_no_landmark', e.landmarkId, priority: 5);
+      return;
+    }
+    final rel = _local(lm.lat, lm.lon) - _position;
+    final word = directionWord(angleDiffDeg(rel.bearingDeg, _heading), config);
+    _lastSkipReason.remove(lm.id);
+    _demoNarration = _Candidate(
+      lm,
+      0,
+      'speak:demo_landmark',
+      '$wordの方に${lm.name}があります。${lm.scriptShort}',
+    );
   }
 
   /// 横断歩道で延期した A の話のうち、もう範囲を出たもの（渡っている間に通り過ぎた）を話す。

@@ -134,6 +134,11 @@ class EngineRunner {
     );
   }
 
+  /// デモ撮影用：ランドマークの案内を頼む（11/7）。歩行ログにも残す（判断画面で再生できるように）。
+  /// どのランドマークを・いつ話すかは engine が決める（本物の案内と同じ順番待ち）。
+  void requestDemoLandmark({String? landmarkId}) =>
+      _push(eng.DemoLandmarkRequested(tMs: _t(), landmarkId: landmarkId));
+
   /// 利用者が検索を頼んだ（検索ボタン・「検索して」の声）。
   ///
   /// 撮るかどうかは engine が決める。読み上げ中・横断歩道の手前などで撮れないときは、

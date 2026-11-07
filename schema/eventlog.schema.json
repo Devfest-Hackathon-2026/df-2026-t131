@@ -290,7 +290,8 @@
           ],
           "properties": {
             "alert_id": {
-              "type": "string"
+              "type": "string",
+              "description": "demo_ で始まるものは、デモ撮影のためにアプリの開発者モードからワンタップで流したデモの警報（11/7。本物と同じ入口を通る）"
             },
             "level": {
               "type": "integer",
@@ -335,6 +336,38 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {}
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "t_ms",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "common.schema.json#/$defs/schema_version"
+        },
+        "t_ms": {
+          "$ref": "common.schema.json#/$defs/t_ms"
+        },
+        "type": {
+          "const": "demo_landmark",
+          "description": "デモ撮影用（11/7）：ランドマークの案内をワンタップで頼んだ（アプリは押してから15秒後に渡す）。engine は本物の案内と同じ順番待ちを通して話す（speak:demo_landmark）。判断画面は「デモ」と添えて出す"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "landmark_id": {
+              "$ref": "common.schema.json#/$defs/landmark_id",
+              "description": "無ければ、持っているランドマーク（エリアを除く）のうちいちばん近いもの"
+            }
+          }
         }
       }
     }

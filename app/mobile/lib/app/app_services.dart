@@ -324,6 +324,7 @@ class AppServices {
   void _startEngine() {
     _demoAlertArmed = false;
     _demoAlertTimer?.cancel();
+    cancelDemoTaps();
     final r = _runner = EngineRunner(
       speaker: speaker,
       tiles: tiles,
@@ -509,6 +510,7 @@ class AppServices {
 
   Future<void> _stopEngine() async {
     _demoAlertTimer?.cancel();
+    cancelDemoTaps();
     await _engineSub?.cancel();
     _engineSub = null;
     final r = _runner;
@@ -552,20 +554,86 @@ class AppServices {
     _demoAlertArmed = true;
     _demoAlertTimer = Timer(demoAlertDelay, () {
       if (_runner == null) return;
-      final now = DateTime.now().toUtc().millisecondsSinceEpoch;
-      alerts.receive({
-        'schema_version': '0.3',
-        'type': 'alert',
-        'alert_id': 'demo_lovers_$now',
-        'level': '4',
-        'kind': '大雨危険警報（デモ）',
-        'area_code': '1620100',
-        'area_name': '富山市',
-        'text':
-            'これは確認用のデモの警報です。実際の警報ではありません。'
-            '警戒レベル4の警報は、話している途中でも割り込んでお知らせします。',
-      });
+      _sendDemoAlert('lovers');
     });
+  }
+
+  /// デモの警報（レベル4）を、本物の警報と同じ入口（[AlertSource.receive]）から流す。
+  /// ID は [eng.demoAlertIdPrefix] で始める（判断画面がデモと分かるように）。文の中でも「実際の警報ではありません」と言う。
+  void _sendDemoAlert(String tag) {
+    final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+    alerts.receive({
+      'schema_version': '0.3',
+      'type': 'alert',
+      'alert_id': '${eng.demoAlertIdPrefix}${tag}_$now',
+      'level': '4',
+      'kind': '大雨危険警報（デモ）',
+      'area_code': '1620100',
+      'area_name': '富山市',
+      'text':
+          'これは確認用のデモの警報です。実際の警報ではありません。'
+          '警戒レベル4の警報は、話している途中でも割り込んでお知らせします。',
+    });
+  }
+
+  // ---- 開発者モード：デモ撮影のワンタップ（11/7） ----
+  // 動画では本物の警報も、横断歩道などで案内が止まる場面もまず起きないので、ワンタップで流す。
+  // 押してから [demoTapDelay] 後に流す（操作している画面を動画から切れるように）。
+  // 本物と同じ入口（警報は AlertSource、案内は engine の DemoLandmarkRequested）を通るので、
+  // 割り込み・順番待ち・記録は本物と同じ。判断画面は「デモ」と添えて出す。
+
+  static const demoTapDelay = Duration(seconds: 15);
+
+  /// 「案内の途中に警報」で、案内のあと警報を流すまでの間（案内が話し始めてから割り込むように）。
+  static const demoInterruptGap = Duration(seconds: 5);
+
+  /// 予約中のデモと、流す時刻。画面の表示用。
+  final ValueNotifier<Map<DemoTap, DateTime>> demoTaps = ValueNotifier(const {});
+  final Map<DemoTap, Timer> _demoTapTimers = {};
+
+  /// デモを予約する。計測中でなければ false（何もしない）。同じ種類をもう一度押したら予約し直す。
+  bool scheduleDemo(DemoTap kind) {
+    if (_runner == null) return false;
+    switch (kind) {
+      case DemoTap.alert:
+        _scheduleDemo(DemoTap.alert, demoTapDelay, () => _sendDemoAlert('tap'));
+      case DemoTap.landmark:
+        _scheduleDemo(
+          DemoTap.landmark,
+          demoTapDelay,
+          () => _runner?.requestDemoLandmark(),
+        );
+      case DemoTap.landmarkThenAlert:
+        _scheduleDemo(DemoTap.landmarkThenAlert, demoTapDelay, () {
+          _runner?.requestDemoLandmark();
+        });
+        _scheduleDemo(
+          DemoTap.alert,
+          demoTapDelay + demoInterruptGap,
+          () => _sendDemoAlert('tap'),
+        );
+    }
+    return true;
+  }
+
+  void _scheduleDemo(DemoTap kind, Duration delay, void Function() fire) {
+    _demoTapTimers.remove(kind)?.cancel();
+    _demoTapTimers[kind] = Timer(delay, () {
+      _demoTapTimers.remove(kind);
+      demoTaps.value = {...demoTaps.value}..remove(kind);
+      if (_runner == null) return;
+      fire();
+    });
+    demoTaps.value = {...demoTaps.value, kind: DateTime.now().add(delay)};
+  }
+
+  /// 予約したデモをすべて取り消す（計測の開始・終了でも取り消す）。
+  void cancelDemoTaps() {
+    for (final t in _demoTapTimers.values) {
+      t.cancel();
+    }
+    _demoTapTimers.clear();
+    if (demoTaps.value.isNotEmpty) demoTaps.value = const {};
   }
 
   void _updateOverlayFromEngine(EngineRunner r) {
@@ -708,6 +776,7 @@ class AppServices {
   }
 
   Future<void> dispose() async {
+    cancelDemoTaps();
     await _finishedSub?.cancel();
     await _stopEngine();
     settings.removeListener(_syncVoice);
@@ -796,4 +865,16 @@ Future<Map<String, String>> loadReasonText() async {
   } catch (_) {
     return const {};
   }
+}
+
+/// デモ撮影のワンタップの種類（11/7）。
+enum DemoTap {
+  /// デモの警報（レベル4。話している途中なら割り込む）
+  alert,
+
+  /// いちばん近いランドマークの案内
+  landmark,
+
+  /// ランドマークの案内を流し、その5秒後にデモの警報で割り込む
+  landmarkThenAlert,
 }

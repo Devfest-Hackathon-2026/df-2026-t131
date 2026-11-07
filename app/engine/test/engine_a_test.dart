@@ -758,4 +758,132 @@ void main() {
       );
     });
   });
+
+  group('デモ撮影のワンタップ（11/7）', () {
+    DemoLandmarkRequested demo(num sec, {String? id}) =>
+        DemoLandmarkRequested(tMs: ms(sec), landmarkId: id);
+    AlertReceived alert(num sec, String id) => AlertReceived(
+      tMs: ms(sec),
+      alertId: id,
+      level: 4,
+      kind: '大雨危険警報（デモ）',
+      areaName: '富山市',
+      text: 'これはデモの警報です。実際の警報ではありません。',
+    );
+
+    test('遠くのランドマークでも、頼まれたら A の案内として方向つきで話す', () {
+      final lm = landmark('lm_0001', -400, 300);
+      final sim = Sim()
+        ..run(
+          30,
+          extra: {
+            1: [
+              tiles(1, [lm]),
+            ],
+            5: [demo(5)],
+          },
+        );
+      final d = sim.withReason('speak:demo_landmark').single;
+      expect(d.targetId, 'lm_0001');
+      expect(sim.secOf(d.tMs), 5);
+      final speak = sim.speaks.single.$2;
+      expect(speak.priority, 5);
+      expect(speak.interrupt, isFalse);
+      expect(speak.text, contains('の方に見本lm_0001があります。'));
+      expect(speak.text, endsWith(lm.scriptShort));
+      expect(isDemoDecision(d), isTrue);
+      expect(sim.engine.toldIds, contains('lm_0001'));
+    });
+
+    test('いちばん近いランドマークを選び、エリアは選ばない', () {
+      final sim = Sim()
+        ..run(
+          20,
+          extra: {
+            1: [
+              tiles(1, [
+                landmark('lm_0001', -400, 300),
+                landmark('lm_0002', 200, 100),
+                landmark('lm_0003', 0, 10, kind: 'area', radiusM: 5),
+              ]),
+            ],
+            5: [demo(5)],
+          },
+        );
+      expect(sim.withReason('speak:demo_landmark').single.targetId, 'lm_0002');
+    });
+
+    test('話した履歴にあるランドマークも、頼まれればもう一度話す', () {
+      final sim = Sim()
+        ..run(
+          90,
+          extra: {
+            1: [
+              tiles(1, [landmark('lm_0001', -60, -18)]),
+            ],
+            70: [demo(70, id: 'lm_0001')],
+          },
+        );
+      expect(sim.withReason('speak:closest_approach'), hasLength(1));
+      expect(sim.withReason('speak:demo_landmark'), hasLength(1));
+      expect(sim.speaks, hasLength(2));
+    });
+
+    test('読み上げ中なら待ち（期限切れにしない）、話し終えてから話す', () {
+      final sim = Sim()
+        ..run(
+          40,
+          extra: {
+            1: [
+              tiles(1, [landmark('lm_0001', -400, 300)]),
+            ],
+            5: [demo(5)],
+          },
+          ttsSpeaking: (sec) => sec < 15,
+        );
+      expect(sim.withReason('skip:tts_busy').first.targetId, 'lm_0001');
+      final d = sim.withReason('speak:demo_landmark').single;
+      expect(sim.secOf(d.tMs), greaterThanOrEqualTo(15));
+      expect(sim.withReason('skip:expired'), isEmpty);
+    });
+
+    test('ランドマークを持っていなければ見送る', () {
+      final sim = Sim()..run(10, extra: {5: [demo(5)]});
+      expect(sim.withReason('skip:demo_no_landmark'), hasLength(1));
+      expect(sim.speaks, isEmpty);
+    });
+
+    test('デモの警報は本物と同じく案内に割り込み、判断はデモと分かる', () {
+      final sim = Sim()
+        ..run(
+          12,
+          extra: {
+            1: [
+              tiles(1, [landmark('lm_0001', -400, 300, short: 'あ' * 60)]),
+            ],
+            5: [demo(5)],
+            8: [alert(8, '${demoAlertIdPrefix}alert_1')],
+          },
+        );
+      final d = sim.withReason('speak:alert_interrupt').single;
+      expect(sim.speaks.last.$2.interrupt, isTrue);
+      expect(isDemoDecision(d), isTrue);
+      final real = Sim()
+        ..run(10, extra: {5: [alert(5, 'al_1')]});
+      expect(
+        isDemoDecision(real.withReason('speak:alert_interrupt').single),
+        isFalse,
+      );
+    });
+
+    test('歩行ログの形に書いて読み直せる', () {
+      for (final e in [demo(1), demo(2, id: 'lm_0001')]) {
+        final json = eventToJson(e);
+        expect(json['type'], 'demo_landmark');
+        final back = eventFromJson(json) as DemoLandmarkRequested;
+        expect(back.landmarkId, e.landmarkId);
+      }
+      expect(eventToJson(demo(1))['data'], isEmpty);
+    });
+  });
 }
