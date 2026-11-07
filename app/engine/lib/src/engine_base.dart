@@ -977,7 +977,7 @@ class Engine {
         final window = _windowFor(lm, rel, v);
         if (window != null &&
             window.closestS <= config.proximityHorizonMs / 1000) {
-          final useLong = still && rel.length <= r;
+          final useLong = still && outside == 0;
           final lead = _directionLead(lm, rel, window);
           // 長い版 → 短い版 → 方向と名前だけ、の順に、範囲を出る前に話し終えられるものを選ぶ。
           final texts = [
