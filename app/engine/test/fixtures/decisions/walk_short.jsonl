@@ -2,10 +2,12 @@
 {"schema_version":"0.3","t_ms":1793836800000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57747/25576","text":null,"priority":null}
 {"schema_version":"0.3","t_ms":1793836800000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57746/25577","text":null,"priority":null}
 {"schema_version":"0.3","t_ms":1793836800000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57747/25577","text":null,"priority":null}
-{"schema_version":"0.3","t_ms":1793836820000,"kind":"search_skip","reason":"search_skip:gate_blocked","target_id":null,"text":null,"priority":6}
+{"schema_version":"0.3","t_ms":1793836820000,"kind":"search_skip","reason":"search_skip:narrative_soon","target_id":null,"text":null,"priority":6}
+{"schema_version":"0.3","t_ms":1793836825000,"kind":"search_skip","reason":"search_skip:interval_restarted","target_id":null,"text":null,"priority":6}
 {"schema_version":"0.3","t_ms":1793836827000,"kind":"skip","reason":"skip:tts_busy","target_id":"lm_0001","text":null,"priority":5}
 {"schema_version":"0.3","t_ms":1793836830000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57746/25577","text":null,"priority":null}
 {"schema_version":"0.3","t_ms":1793836830000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57747/25577","text":null,"priority":null}
 {"schema_version":"0.3","t_ms":1793836830000,"kind":"fetch","reason":"fetch:prefetch_tiles","target_id":"16/57747/25576","text":null,"priority":null}
 {"schema_version":"0.3","t_ms":1793836833000,"kind":"speak","reason":"speak:closest_approach","target_id":"lm_0001","text":"左前方に見本の石碑があります。右手の石碑は、見本のために置いた架空の石碑です。","priority":5}
+{"schema_version":"0.3","t_ms":1793836845000,"kind":"search_skip","reason":"search_skip:topic_interval","target_id":null,"text":null,"priority":6}
 {"schema_version":"0.3","t_ms":1793836848000,"kind":"search_skip","reason":"search_skip:low_quality","target_id":null,"text":null,"priority":6}

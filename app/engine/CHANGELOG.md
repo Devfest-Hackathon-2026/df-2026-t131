@@ -34,3 +34,4 @@
 - 立ち止まりの前倒しの「前に撮ってから」を30秒から10秒に下げた（間隔20秒より長く、前倒しにならなかったため）。
 - 今の町丁目 `Engine.currentTown`・`EngineView.currentTown` を追加：持っているタイルの町丁目のうち、いちばん近い代表点（距離が同じなら ID の小さい方）。`townMaxDistanceM`（800m）より遠ければ null。決め方は cloud/data/scripts/town_lookup.py と同じ。
 - カメラで調べない区域（メンバー1の決定・11/7）：`Zone`・`TileResponse.zones`（無い古いタイルも読める）。区域の中では B を撮らず、「調べて」は決まった文で断り、入る前に撮った答えは捨てる。入った・出たを決まった文で知らせる。`EngineView.noCameraZone`、定数 `zoneExitMarginM`（15m）・`zoneAnnounceCooldownMs`（60秒）、理由コード4つを追加。
+- B の「文脈ゲートで止めた」（`search_skip:gate_blocked`）を理由ごとのコードに分けた（11/7 夜）：`tts_speaking`・`interval_restarted`・`topic_interval`・`crossing_ahead`・`narrative_soon`・`waiting_turn`・`moving_or_no_audio`。撮るか・撮らないかの判断（順番と条件）は変えていない。`gate_blocked` は、位置や向きがまだ取れていないときの「調べて」だけに残す。実機ログ（16:10）では、止めた時間の約3分の2が「定期の時刻に読み上げ中なので数え直した」（`interval_restarted`）だった。

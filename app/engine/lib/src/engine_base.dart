@@ -1087,7 +1087,7 @@ class Engine {
       // 次の間隔まで数え直す（読み上げの直後に続けて撮って話さないため）
       if (_engineSpeaking(t) || s.ttsSpeaking) {
         _intervalRestartMs = t;
-        _searchSkipOnce(out, t, 'search_skip:gate_blocked');
+        _searchSkipOnce(out, t, 'search_skip:interval_restarted');
         return;
       }
     } else {
@@ -1132,7 +1132,7 @@ class Engine {
     if (s == null) {
       skip = 'search_skip:gate_blocked'; // 位置や向きがまだ取れていない
     } else if (_inflight != null) {
-      skip = 'search_skip:gate_blocked'; // 前の検索が終わっていない
+      skip = 'search_skip:waiting_turn'; // 前の検索が終わっていない
     } else {
       skip = _requestedCaptureBlock(s, e.tMs);
     }
@@ -1192,11 +1192,12 @@ class Engine {
     }
     if (_audioBlock(s) != null ||
         s.activity == Activity.inVehicle ||
-        _velocity.length > config.fastWalkingMps ||
-        _crossingAhead() ||
-        _pendingAlerts.isNotEmpty ||
-        _alertSpeaking(t)) {
-      return 'search_skip:gate_blocked';
+        _velocity.length > config.fastWalkingMps) {
+      return 'search_skip:moving_or_no_audio';
+    }
+    if (_crossingAhead()) return 'search_skip:crossing_ahead';
+    if (_pendingAlerts.isNotEmpty || _alertSpeaking(t)) {
+      return 'search_skip:waiting_turn';
     }
     return _qualityBlock(s);
   }
@@ -1221,7 +1222,8 @@ class Engine {
     if (max != null && _searchCount >= max) {
       return 'search_skip:limit_reached';
     }
-    if (_searchBlocked(s, t)) return 'search_skip:gate_blocked';
+    final blocked = _searchBlock(s, t);
+    if (blocked != null) return blocked;
     return _qualityBlock(s);
   }
 
@@ -1264,21 +1266,28 @@ class Engine {
   }
 
   /// B の計測の文脈ゲート（CLAUDE.md 5章の B の列と、論点3・4・11）。
-  bool _searchBlocked(SensorFrame s, int t) {
-    if (_audioBlock(s) != null) return true;
-    if (s.activity == Activity.inVehicle) return true;
-    if (_velocity.length > config.fastWalkingMps) return true;
-    if (_crossingAhead()) return true;
-    if (_engineSpeaking(t) || s.ttsSpeaking) return true;
-    if (_pendingAlerts.isNotEmpty || _pendingAnswer != null) return true;
+  /// B の文脈ゲート。撮ってよければ null、止めるなら理由コード（11/7：理由ごとにコードを分けた。
+  /// 前はすべて search_skip:gate_blocked。判断の順番と条件は同じ）。
+  String? _searchBlock(SensorFrame s, int t) {
+    if (_audioBlock(s) != null ||
+        s.activity == Activity.inVehicle ||
+        _velocity.length > config.fastWalkingMps) {
+      return 'search_skip:moving_or_no_audio';
+    }
+    if (_crossingAhead()) return 'search_skip:crossing_ahead';
+    if (_engineSpeaking(t) || s.ttsSpeaking) return 'search_skip:tts_speaking';
+    if (_pendingAlerts.isNotEmpty || _pendingAnswer != null) {
+      return 'search_skip:waiting_turn';
+    }
     // 論点3：答えが届くころに話題の間隔が終わっていなければ撮らない。
     final end = _lastSpeechEndMs;
     if (end != null &&
         t < end + config.topicIntervalMs - config.visualExpectedLatencyMs) {
-      return true;
+      return 'search_skip:topic_interval';
     }
     // 論点4：まもなく A が話し始めるなら、A を優先して撮らない。
-    return _narrativeSoon();
+    if (_narrativeSoon()) return 'search_skip:narrative_soon';
+    return null;
   }
 
   /// 候補：先読み済みのランドマーク（エリアを除く）のうち、一定距離内で視線の左右一定角度内のもの。
@@ -1617,7 +1626,7 @@ final class EngineView {
   /// 結果待ち・上限到達・センサー未着のときは null。
   final int? nextSearchInMs;
 
-  /// B を止めている理由。判断ログの reason と同じ理由コード（例：search_skip:gate_blocked）。
+  /// B を止めている理由。判断ログの reason と同じ理由コード（例：search_skip:tts_speaking）。
   /// 撮ったら null に戻る。止められていなければ null。
   final String? searchSkipReason;
 

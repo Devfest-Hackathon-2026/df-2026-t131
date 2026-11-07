@@ -43,7 +43,7 @@
 | 1件ずつ（5） | 結果か失敗が来るまで次を出さない。撮ってから15秒たっても来なければ諦め（`answer:error`）、あとから届いた結果は期限切れ | `answer:error`、`answer:expired` |
 | 「調べて」（共有/visual-search-spec.md 2章） | アプリが `SearchRequested`（歩行ログでは `search_request`）を送ると、計測間隔と同じ場所を見ずに、その場で一度だけ撮る。ほかの見送りの条件は自動と同じ。撮れなければ理由を毎回記録して終わり、あとで勝手に撮らない。結果待ちの間も見送る | `search:user_requested`、`search_skip:*` |
 | 上限 | 既定ではなし（`maxSearchesPerWalk` に値を入れたときだけ、その回数まで） | `search_skip:limit_reached` |
-| 文脈ゲート（3・4・11） | 音声出力なし・通話中・乗り物・早歩き・横断歩道の手前・読み上げ中・警報やBの答えが待っている・**前の話の終わり＋話題の間隔20秒−答えの見込み5秒より前**・**15秒以内にAが話し始めそう**、のどれかなら撮らない | `search_skip:gate_blocked` |
+| 文脈ゲート（3・4・11） | 次の順に確かめ、当たった理由で記録する（11/7 夜に理由ごとのコードに分けた。前はすべて `search_skip:gate_blocked`）：音声出力なし・通話中・乗り物・早歩き（`moving_or_no_audio`）→ 横断歩道の手前（`crossing_ahead`）→ 読み上げ中（`tts_speaking`）→ 警報やBの答えが待っている（`waiting_turn`）→ **前の話の終わり＋話題の間隔20秒−答えの見込み5秒より前**（`topic_interval`）→ **15秒以内にAが話し始めそう**（`narrative_soon`）。定期の時刻に読み上げ中なら、その時刻から間隔を数え直す（`interval_restarted`。次に撮るまで画面の理由はこのまま）。「調べて」で前の検索の答えを待っているときは `waiting_turn`、位置や向きがまだ取れていないときだけ `gate_blocked` | `search_skip:moving_or_no_audio`・`crossing_ahead`・`tts_speaking`・`waiting_turn`・`topic_interval`・`narrative_soon`・`interval_restarted`・`gate_blocked` |
 | 画質（7） | `image_quality` が null、blur が0.5未満、brightness が0.2未満なら撮らない | `search_skip:low_quality` |
 | 同じ場所 | 前に撮った位置から20m以内かつ視線の差30°以内なら撮らない | `search_skip:same_place` |
 | 送るもの | 平滑化した位置のタイル、10°単位に丸めた視線、候補 ID（150m以内・視線の左右30°以内・近い順に10件・エリアは除く・**話したものも入れる**（8））、エリアの中なら `area` | — |

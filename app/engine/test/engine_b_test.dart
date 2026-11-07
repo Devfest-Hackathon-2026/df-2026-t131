@@ -237,6 +237,34 @@ void main() {
       expect(sim.searchSecs, [20, 40, 60]);
     });
 
+    test('定期の時刻に読み上げ中なら数え直し、待っている間も理由（interval_restarted）と残り秒を出す', () {
+      // 18〜22秒はアプリが読み上げ中。20秒の撮影を見送り、そこから20秒（40秒）まで待つ
+      final sim = Sim(const EngineConfig(), answer(unknownFor));
+      sim.run(
+        30,
+        quality: goodQuality,
+        ttsSpeaking: (sec) => sec >= 18 && sec <= 22,
+        extra: {
+          0: [tiles(0, const [])],
+        },
+      );
+      expect(
+        sim
+            .withReason('search_skip:interval_restarted')
+            .map((d) => sim.secOf(d.tMs)),
+        [20],
+      );
+      // 読み上げが終わったあとの待ちでも、理由は数え直しのまま（文脈ゲートとは出さない）
+      expect(
+        sim.engine.view.searchSkipReason,
+        'search_skip:interval_restarted',
+      );
+      expect(sim.engine.view.nextSearchInMs, 10000);
+      sim.run(50, from: 31, quality: goodQuality);
+      expect(sim.searchSecs, [40]);
+      expect(sim.withReason('search_skip:gate_blocked'), isEmpty);
+    });
+
     test('既定では回数の上限がなく、31回目以降も撮る', () {
       final sim = Sim(
         const EngineConfig(visualIntervalMs: 20000),
@@ -367,9 +395,9 @@ void main() {
         },
       );
       expect(sim.searches, isEmpty);
-      final skip = sim.withReason('search_skip:gate_blocked').single;
+      final skip = sim.withReason('search_skip:crossing_ahead').single;
       expect(sim.secOf(skip.tMs), 5);
-      expect(sim.engine.view.searchSkipReason, 'search_skip:gate_blocked');
+      expect(sim.engine.view.searchSkipReason, 'search_skip:crossing_ahead');
     });
 
     Landmark longLandmark() => landmark(
@@ -512,7 +540,7 @@ void main() {
       );
       expect(sim.withReason('search:user_requested'), isEmpty);
       expect(
-        sim.withReason('search_skip:gate_blocked').map((d) => sim.secOf(d.tMs)),
+        sim.withReason('search_skip:waiting_turn').map((d) => sim.secOf(d.tMs)),
         contains(12),
       );
     });
@@ -553,7 +581,7 @@ void main() {
       );
       expect(sim.searchSecs, [60]);
       expect(
-        sim.withReason('search_skip:gate_blocked').map((d) => sim.secOf(d.tMs)),
+        sim.withReason('search_skip:waiting_turn').map((d) => sim.secOf(d.tMs)),
         [62],
       );
     });
@@ -576,7 +604,7 @@ void main() {
           },
         );
         expect(sim.searches, isEmpty);
-        expect(sim.withReason('search_skip:gate_blocked'), hasLength(1));
+        expect(sim.withReason('search_skip:moving_or_no_audio'), hasLength(1));
       }
     });
 
@@ -603,7 +631,13 @@ void main() {
       // 52＋20−5＝67秒より前は撮らない
       final alert = sim.speaks.first;
       expect(sim.secOf(alert.$1), 50);
-      expect(sim.withReason('search_skip:gate_blocked'), hasLength(1));
+      expect(
+        [
+          for (final d in sim.decisions)
+            if (d.kind == 'search_skip') (sim.secOf(d.tMs), d.reason),
+        ],
+        [(60.0, 'search_skip:topic_interval')],
+      );
       expect(sim.searchSecs.first, 67);
       // 答えは70秒に届き、話題の間隔（52＋20＝72秒）が空いたら話す
       final b = sim.withReason('answer:unlisted_object').single;
@@ -628,7 +662,7 @@ void main() {
       final a = sim.withReason('speak:closest_approach').single;
       expect(sim.secOf(a.tMs), 65);
       expect(
-        sim.secOf(sim.withReason('search_skip:gate_blocked').first.tMs),
+        sim.secOf(sim.withReason('search_skip:narrative_soon').first.tMs),
         60,
       );
       expect(sim.searchSecs.first, greaterThan(65));
@@ -1404,7 +1438,7 @@ void main() {
         },
       );
       final view = sim.engine.view;
-      expect(view.searchSkipReason, 'search_skip:gate_blocked');
+      expect(view.searchSkipReason, 'search_skip:moving_or_no_audio');
       expect(view.currentArea?.id, 'lm_0001');
       expect(view.nextSearchInMs, 0);
     });
