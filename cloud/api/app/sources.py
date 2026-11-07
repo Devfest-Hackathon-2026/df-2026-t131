@@ -61,13 +61,16 @@ class SqliteTileSource:
     - カメラで調べない区域：円＋出る判定の幅がかかるタイルすべてに返す。include_zones（TILE_ZONES=on）のときだけ、
       区域のあるタイルにだけ zones のキーを付ける（無いタイルにはキーごと付けない）。
       engine が zones を読めるようになるまでは off（engine は知らないキーがあるとタイルを読めないため）
+    - ランドマークの形（shape。11/7）：形のあるランドマークは、形がかかるタイルすべてに返す。shape のキーは
+      include_shapes（TILE_SHAPES=on）のときだけ残す（形を読めない古い engine のため。off なら外して前と同じ形で返す）
     R*Tree は座標を少し外側に丸めるので、点は位置から計算したタイル番号でもう一度確かめる。
     """
 
     _KEYS = {"landmark": "landmarks", "stop": "stops", "crossing": "crossings", "event": "events", "town": "towns"}
 
-    def __init__(self, path, include_zones: bool = False) -> None:
+    def __init__(self, path, include_zones: bool = False, include_shapes: bool = False) -> None:
         self._include_zones = include_zones
+        self._include_shapes = include_shapes
         self._uri = f"file:{Path(path).resolve().as_posix()}?mode=ro&immutable=1"
         with self._connect() as con:  # 起動時に開けるか・版が合うかを確かめる
             meta = dict(con.execute("SELECT key, value FROM meta"))
@@ -99,6 +102,8 @@ class SqliteTileSource:
             item = json.loads(js)
             if not area and tile_of(item["lat"], item["lon"]) != (x, y):
                 continue
+            if kind == "landmark" and not self._include_shapes:
+                item.pop("shape", None)
             out[self._KEYS[kind]].append(item)
         # 区域のあるタイルにだけ zones を付ける（11/7）。zones を読めない古い engine のアプリでも、
         # 区域の無いタイルは今までどおり読めるようにするため（壊れるのは区域のあるタイルだけに限る）

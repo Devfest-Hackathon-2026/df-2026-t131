@@ -65,6 +65,7 @@ curl -H "X-App-Token: local-test" localhost:8080/v1/tiles/16/57746/25576
 | :---- | :---- | :---- |
 | `TILE_SOURCE` | `fake` | `sqlite` で SQLite から返す（reviewed のランドマークがそろったら切り替える） |
 | `TILE_ZONES` | `off` | `on` でタイルの応答に `zones`（カメラで調べない区域）を付ける。**engine が `zones` を読めるようになってから `on` にする**（engine は知らないキーがあるとタイルを読めないため）。区域のあるタイルにだけ付ける（古いアプリが壊れるのは区域のあるタイルだけ）。11/7 に追加 |
+| `TILE_SHAPES` | `off` | `on` でタイルのランドマークに `shape`（実際の形。公園・建物は輪郭、通り・川は線と判定の幅）を付ける。**形を読める engine のアプリ（11/7 以降の main）が入ってから `on` にする**（古い engine は知らないキーでタイルを読めないため）。`off` でも形のあるランドマークは形がかかるタイルすべてに入る（キーは外す）。11/7 に追加 |
 | `TILES_DB_PATH` | `cloud/data/build/tiles.sqlite` | SQLite の場所 |
 | `EVENT_STATUS` | `file` | `firestore` でイベントの開催状態を Firestore の `event_status/<ID>.status`（`scheduled`・`held`・`cancelled`）で上書き。30秒ごとに読み直す。デモで「中止」に切り替えるとき用 |
 | `APP_TOKEN` | 空 | `X-App-Token` の値。空だと `/v1/` はすべて 401。Cloud Run では Secret Manager から渡す |

@@ -103,6 +103,7 @@ class _MapViewState extends State<MapView> {
           lat: lm.lat,
           lon: lm.lon,
           radiusM: lm.radiusM,
+          shape: lm.shape,
         ),
     };
     final crossings = <String, MapPlace>{
@@ -149,9 +150,60 @@ class _MapViewState extends State<MapView> {
                 maxNativeZoom: 18,
                 userAgentPackageName: 'jp.dfhack26.viewer',
               ),
+            // 形のあるランドマーク（11/7）：判定の幅を m 単位の太い線で、形そのものを輪郭・線で描く
+            PolylineLayer(
+              polylines: [
+                for (final p in places.values)
+                  if (p.shape case final sh?)
+                    for (final part in sh.parts)
+                      if (sh.marginM > 0)
+                        Polyline(
+                          points: _shapePoints(part, sh.type == 'polygon'),
+                          strokeWidth: sh.marginM * 2,
+                          useStrokeWidthInMeter: true,
+                          strokeJoin: StrokeJoin.round,
+                          strokeCap: StrokeCap.round,
+                          color: _landmarkColor.withValues(
+                            alpha: told.contains(p.id) ? 0.05 : 0.12,
+                          ),
+                        ),
+              ],
+            ),
+            PolygonLayer(
+              polygons: [
+                for (final p in places.values)
+                  if (p.shape case final sh? when sh.type == 'polygon')
+                    for (final part in sh.parts)
+                      Polygon(
+                        points: _shapePoints(part, false),
+                        color: _landmarkColor.withValues(
+                          alpha: told.contains(p.id) ? 0.05 : 0.12,
+                        ),
+                        borderColor: told.contains(p.id)
+                            ? Colors.grey
+                            : _landmarkColor,
+                        borderStrokeWidth: 1,
+                      ),
+              ],
+            ),
+            PolylineLayer(
+              polylines: [
+                for (final p in places.values)
+                  if (p.shape case final sh? when sh.type == 'line')
+                    for (final part in sh.parts)
+                      Polyline(
+                        points: _shapePoints(part, false),
+                        strokeWidth: 2,
+                        color: told.contains(p.id)
+                            ? Colors.grey
+                            : _landmarkColor,
+                      ),
+              ],
+            ),
             CircleLayer(
               circles: [
                 for (final p in places.values)
+                  if (p.shape == null)
                   CircleMarker(
                     point: LatLng(p.lat, p.lon),
                     radius: p.radiusM ?? 25,
@@ -308,6 +360,15 @@ class _MapViewState extends State<MapView> {
       ],
     );
   }
+
+  /// 形の部品を地図の点の並びにする。[close] なら最初の点で閉じる（輪郭の幅を線で描くとき）。
+  static List<LatLng> _shapePoints(
+    List<({double lat, double lon})> part,
+    bool close,
+  ) => [
+    for (final p in part) LatLng(p.lat, p.lon),
+    if (close && part.isNotEmpty) LatLng(part.first.lat, part.first.lon),
+  ];
 
   static CircleMarker _dot(LatLng p, Color c, {double radius = 7}) =>
       CircleMarker(

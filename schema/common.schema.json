@@ -94,6 +94,57 @@
           "type": "string"
         }
       }
+    },
+    "landmark_shape": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "parts",
+        "margin_m"
+      ],
+      "description": "ランドマークの実際の形（11/7 追加。OpenStreetMap の輪郭・線）。形から margin_m 以内（polygon は中も）を範囲とし、radius_m の円の代わりに使う。形を知らない古い engine のため radius_m も残す",
+      "properties": {
+        "type": {
+          "enum": [
+            "polygon",
+            "line"
+          ],
+          "description": "polygon＝輪郭（公園・建物・橋）、line＝線（通り・川）"
+        },
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "description": "形の部品（建物が2棟なら2つ）。各部品は [緯度, 経度] の並び。polygon は閉じなくてよい（最後と最初を結ぶ）",
+          "items": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/lat"
+                },
+                {
+                  "$ref": "#/$defs/lon"
+                }
+              ]
+            }
+          }
+        },
+        "margin_m": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "形からこの距離までを範囲に入れる（建物の外の歩道を歩いても入るように）。公園は 0（輪郭の中だけ）"
+        },
+        "source": {
+          "type": "string",
+          "description": "形の出どころ（OpenStreetMap の way の番号など）"
+        }
+      }
     }
   }
 }

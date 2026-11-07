@@ -64,6 +64,18 @@ python cloud/data/scripts/build_sqlite.py --examples # 見本から（お試し�
 
 `reviewed` のランドマークだけが入ります。データが schema に合わないと、どのファイルの何件目のどこが違うかを表示して止まります。Cloud Run のコンテナを作るときにも自動で動きます。
 
+## ランドマークの形（11/7。メンバー1）
+
+円（中心＋`radius_m`）だけだと、環水公園の外を歩いてもエリアに入るなど、実際の場所とずれるため、
+ランドマークに実際の形 `shape` を足した（形は `schema/common.schema.json` の `landmark_shape`）。
+
+* 公園（エリア）：OpenStreetMap の公園の輪郭。輪郭の中だけが範囲（`margin_m` 0）
+* 建物・橋：建物の輪郭から `margin_m`（駅舎 30m、美術館・オーバード・ホール・YKK AP ARENA 25m、桜橋 15m）以内
+* 通り・川：線から `margin_m`（ブールバール 25m、松川べり 30m）以内。ブールバールは富山駅北線の北緯36.7085まで、松川べりは中心から350m 以内の川筋
+* ラバーズ像は像1点なので形を付けない（中心から25m の円のまま）
+* 形の出どころ（way の番号）は各ファイルの `shape.source`。`radius_m` は形を読めない古いアプリのために残す
+* 形を直したら、viewer の地図（`app/viewer/assets/map.json`）も作り直す（`dart run tool/build_map.dart`）
+
 ## カメラで調べない区域（11/7。メンバー1）
 
 建物の中など、B（画像での案内）で撮らない場所。`cloud/data/manual/zones/<ID>.json` に1件1ファイル（形は `schema/zone_entry.schema.json`）。

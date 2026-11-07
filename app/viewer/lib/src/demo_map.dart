@@ -13,6 +13,9 @@ final class MapPlace {
   final String id, name, kind;
   final double lat, lon;
   final double? radiusM;
+
+  /// ランドマークの実際の形（11/7）。あれば円の代わりに形と判定の幅を描く。
+  final LandmarkShape? shape;
   const MapPlace({
     required this.id,
     required this.name,
@@ -20,6 +23,7 @@ final class MapPlace {
     required this.lat,
     required this.lon,
     this.radiusM,
+    this.shape,
   });
 
   factory MapPlace.fromJson(Map<String, dynamic> j) => MapPlace(
@@ -29,6 +33,9 @@ final class MapPlace {
     lat: (j['lat'] as num).toDouble(),
     lon: (j['lon'] as num).toDouble(),
     radiusM: (j['radius_m'] as num?)?.toDouble(),
+    shape: j['shape'] == null
+        ? null
+        : LandmarkShape.fromJson(j['shape'] as Map<String, dynamic>),
   );
 
   Map<String, dynamic> toJson() => {
@@ -38,6 +45,7 @@ final class MapPlace {
     'lat': lat,
     'lon': lon,
     if (radiusM != null) 'radius_m': radiusM,
+    if (shape != null) 'shape': shape!.toJson(),
   };
 }
 
@@ -103,6 +111,7 @@ final class DemoMap {
             lat: r.lat,
             lon: r.lon,
             radiusM: r.radiusM,
+            shape: r.shape,
           ),
     ]..sort((a, b) => a.id.compareTo(b.id));
     final crossings = <MapPlace>[

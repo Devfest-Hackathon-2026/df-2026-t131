@@ -293,6 +293,77 @@ final class LocalEvent {
   };
 }
 
+/// ランドマークの実際の形（11/7。schema の common の landmark_shape）。
+///
+/// polygon は輪郭（公園・建物・橋）、line は線（通り・川）。形から [marginM] 以内（polygon は中も）を範囲とする。
+final class LandmarkShape {
+  final String type;
+
+  /// 形の部品。各部品は (緯度, 経度) の並び。polygon は最後と最初を結ぶ。
+  final List<List<({double lat, double lon})>> parts;
+  final double marginM;
+  final String? source;
+  LandmarkShape._({
+    required this.type,
+    required this.parts,
+    required this.marginM,
+    required this.source,
+  });
+  factory LandmarkShape({
+    required String type,
+    required List<List<({double lat, double lon})>> parts,
+    required double marginM,
+    String? source,
+  }) => LandmarkShape.fromJson({
+    "type": type,
+    "parts": [
+      for (final part in parts)
+        [
+          for (final p in part) [p.lat, p.lon],
+        ],
+    ],
+    "margin_m": marginM,
+    if (source != null) "source": source,
+  });
+  factory LandmarkShape.fromJson(Map<String, dynamic> json) {
+    wireKeys(
+      json,
+      ["type", "parts", "margin_m"],
+      ["type", "parts", "margin_m", "source"],
+    );
+    return LandmarkShape._(
+      type: wireString(json["type"], "type", values: ["polygon", "line"]),
+      parts: wireList(
+        json["parts"],
+        "parts",
+        (part) => wireList(part, "parts", (p) {
+          final xy = wireList(p, "parts", (v) => v, min: 2, max: 2);
+          return (
+            lat: wireDouble(xy[0], "lat", min: -90, max: 90),
+            lon: wireDouble(xy[1], "lon", min: -180, max: 180),
+          );
+        }, min: 2),
+        min: 1,
+      ),
+      marginM: wireDouble(json["margin_m"], "margin_m", min: 0, max: 100),
+      source: json["source"] == null
+          ? null
+          : wireString(json["source"], "source"),
+    );
+  }
+  Map<String, dynamic> toJson() => {
+    "type": type,
+    "parts": [
+      for (final part in parts)
+        [
+          for (final p in part) [p.lat, p.lon],
+        ],
+    ],
+    "margin_m": marginM,
+    if (source != null) "source": source,
+  };
+}
+
 final class Landmark {
   final String id;
   final String name;
@@ -301,6 +372,9 @@ final class Landmark {
   final double lon;
   final String kind;
   final double? radiusM;
+
+  /// 実際の形（任意。11/7）。あれば radius_m の円の代わりに範囲の判定に使う。
+  final LandmarkShape? shape;
   final String scriptShort;
   final String scriptLong;
   final String visualHint;
@@ -316,6 +390,7 @@ final class Landmark {
     required this.lon,
     required this.kind,
     required this.radiusM,
+    required this.shape,
     required this.scriptShort,
     required this.scriptLong,
     required this.visualHint,
@@ -332,6 +407,7 @@ final class Landmark {
     required double lon,
     required String kind,
     double? radiusM,
+    LandmarkShape? shape,
     required String scriptShort,
     required String scriptLong,
     required String visualHint,
@@ -346,6 +422,7 @@ final class Landmark {
     "lon": lon,
     "kind": kind,
     if (radiusM != null) "radius_m": radiusM,
+    if (shape != null) "shape": shape.toJson(),
     "script_short": scriptShort,
     "script_long": scriptLong,
     "visual_hint": visualHint,
@@ -376,6 +453,7 @@ final class Landmark {
         "lon",
         "kind",
         "radius_m",
+        "shape",
         "script_short",
         "script_long",
         "visual_hint",
@@ -411,6 +489,9 @@ final class Landmark {
       radiusM: json["radius_m"] == null
           ? null
           : wireDouble(json["radius_m"], "radius_m", exclusiveMin: 0),
+      shape: json["shape"] == null
+          ? null
+          : LandmarkShape.fromJson(wireMap(json["shape"], "shape")),
       scriptShort: wireString(
         json["script_short"],
         "script_short",
@@ -456,6 +537,7 @@ final class Landmark {
     "lon": lon,
     "kind": kind,
     if (_presentKeys.contains("radius_m")) "radius_m": radiusM,
+    if (shape != null) "shape": shape!.toJson(),
     "script_short": scriptShort,
     "script_long": scriptLong,
     "visual_hint": visualHint,
@@ -476,6 +558,9 @@ final class LandmarkRecord {
   final double lon;
   final String kind;
   final double? radiusM;
+
+  /// 実際の形（任意。11/7）。あれば radius_m の円の代わりに範囲の判定に使う。
+  final LandmarkShape? shape;
   final String scriptShort;
   final String scriptLong;
   final String visualHint;
@@ -492,6 +577,7 @@ final class LandmarkRecord {
     required this.lon,
     required this.kind,
     required this.radiusM,
+    required this.shape,
     required this.scriptShort,
     required this.scriptLong,
     required this.visualHint,
@@ -509,6 +595,7 @@ final class LandmarkRecord {
     required double lon,
     required String kind,
     double? radiusM,
+    LandmarkShape? shape,
     required String scriptShort,
     required String scriptLong,
     required String visualHint,
@@ -524,6 +611,7 @@ final class LandmarkRecord {
     "lon": lon,
     "kind": kind,
     if (radiusM != null) "radius_m": radiusM,
+    if (shape != null) "shape": shape.toJson(),
     "script_short": scriptShort,
     "script_long": scriptLong,
     "visual_hint": visualHint,
@@ -556,6 +644,7 @@ final class LandmarkRecord {
         "lon",
         "kind",
         "radius_m",
+        "shape",
         "script_short",
         "script_long",
         "visual_hint",
@@ -592,6 +681,9 @@ final class LandmarkRecord {
       radiusM: json["radius_m"] == null
           ? null
           : wireDouble(json["radius_m"], "radius_m", exclusiveMin: 0),
+      shape: json["shape"] == null
+          ? null
+          : LandmarkShape.fromJson(wireMap(json["shape"], "shape")),
       scriptShort: wireString(
         json["script_short"],
         "script_short",
@@ -647,6 +739,7 @@ final class LandmarkRecord {
     "lon": lon,
     "kind": kind,
     if (_presentKeys.contains("radius_m")) "radius_m": radiusM,
+    if (shape != null) "shape": shape!.toJson(),
     "script_short": scriptShort,
     "script_long": scriptLong,
     "visual_hint": visualHint,

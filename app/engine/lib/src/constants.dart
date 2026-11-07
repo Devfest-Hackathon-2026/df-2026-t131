@@ -109,6 +109,9 @@ final class EngineConfig {
   /// 検索で止めたランドマークは、半径＋この距離より離れてから、また近づいたときに話す。
   final double revisitMarginM;
 
+  /// ランドマークの形（11/7）：先の位置を確かめる間隔（秒）と、発話判定の先読みより先まで見る時間（秒）。
+  final double shapeStepS, shapeLookaheadS;
+
   /// 開発者モードの検証用（11/7）：話したランドマーク・エリアから（半径＋[revisitMarginM]）より離れたら、
   /// 話した履歴から外して、もう一度近づいたら話す。既定は false（同じ話は2回しない決まり）。
   final bool retellOnRevisit;
@@ -171,6 +174,8 @@ final class EngineConfig {
     this.narrativeChainGapMs = 3000,
     this.longVersionStillMs = 5000,
     this.revisitMarginM = 10,
+    this.shapeStepS = 0.5,
+    this.shapeLookaheadS = 60,
     this.retellOnRevisit = false,
     this.townMaxDistanceM = 800,
     this.zoneExitMarginM = 15,

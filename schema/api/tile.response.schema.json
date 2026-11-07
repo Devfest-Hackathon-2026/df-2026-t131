@@ -75,6 +75,10 @@
             "exclusiveMinimum": 0,
             "description": "ジオフェンス半径。area のときはエリアの範囲（必須）。null なら定数の既定値"
           },
+          "shape": {
+            "$ref": "../common.schema.json#/$defs/landmark_shape",
+            "description": "実際の形（任意。11/7 追加）。API は TILE_SHAPES=on のときだけ付ける（形を知らない古い engine はタイルを読めなくなるため）"
+          },
           "script_short": {
             "type": "string",
             "maxLength": 80,

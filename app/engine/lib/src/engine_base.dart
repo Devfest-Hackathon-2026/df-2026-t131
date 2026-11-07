@@ -176,8 +176,8 @@ class Engine {
     var bestD = double.infinity;
     for (final lm in _landmarks.values) {
       if (lm.kind == 'area') continue;
+      if (_outsideBy(lm) > 0) continue;
       final d = (_local(lm.lat, lm.lon) - _position).length;
-      if (d > _radius(lm)) continue;
       if (d < bestD || (d == bestD && lm.id.compareTo(best!.id) < 0)) {
         best = lm;
         bestD = d;
@@ -421,6 +421,7 @@ class Engine {
     _tilesLoaded.add(tileKey(e.tile.tile));
     for (final lm in e.tile.landmarks) {
       _landmarks[lm.id] = lm;
+      _shapeLocal.remove(lm.id);
     }
     for (final c in e.tile.crossings) {
       _crossings[c.id] = c;
@@ -474,13 +475,78 @@ class Engine {
 
   double _radius(Landmark lm) => lm.radiusM ?? config.defaultRadiusM;
 
+  // ---- ランドマークの形（11/7）----
+  // 形（shape）のあるランドマークは、円の代わりに「形から margin_m 以内（polygon は中も）」を範囲とする。
+  // 形の無いもの（ラバーズ像など・古いタイル）は今までどおり中心から radius_m の円。
+
+  /// 形を地面の座標（m）に直したもの（ランドマークの ID ごと。射影は最初の位置で決まり変わらない）。
+  final Map<String, List<List<Vec2>>> _shapeLocal = {};
+
+  List<List<Vec2>> _shapeParts(Landmark lm) => _shapeLocal.putIfAbsent(
+    lm.id,
+    () => [
+      for (final part in lm.shape!.parts)
+        [for (final p in part) _local(p.lat, p.lon)],
+    ],
+  );
+
+  /// 形からの距離（m）。polygon の中なら 0。
+  double _shapeDistance(Landmark lm, Vec2 p) {
+    final polygon = lm.shape!.type == 'polygon';
+    var best = double.infinity;
+    for (final part in _shapeParts(lm)) {
+      if (polygon && part.length >= 3 && insidePolygon(part, p)) return 0;
+      final n = part.length;
+      for (var i = 0; i < (polygon ? n : n - 1); i++) {
+        best = math.min(best, segmentDistance(p, part[i], part[(i + 1) % n]));
+      }
+    }
+    return best;
+  }
+
+  /// 範囲の外側までの距離（m）。範囲の中なら 0。[at] が無ければ今の位置。
+  double _outsideBy(Landmark lm, [Vec2? at]) {
+    final p = at ?? _position;
+    final shape = lm.shape;
+    if (shape == null) {
+      return math.max(0.0, (_local(lm.lat, lm.lon) - p).length - _radius(lm));
+    }
+    return math.max(0.0, _shapeDistance(lm, p) - shape.marginM);
+  }
+
+  /// 等速で進んだとき、範囲の中にいる時間帯。形が無ければ円（[_geofenceWindow]）。
+  ///
+  /// 形のときは [EngineConfig.shapeStepS] 秒ごとに先の位置を確かめる（決定論的）。
+  /// 最も近づく時刻は「範囲に入る時刻」とする（大きな建物・長い通りでは中心への最接近に意味が無いため）。
+  _Window? _windowFor(Landmark lm, Vec2 rel, Vec2 v) {
+    if (lm.shape == null) return _geofenceWindow(rel, v, _radius(lm));
+    final p0 = _position;
+    final now = _outsideBy(lm, p0);
+    if (v.length == 0) {
+      return now == 0 ? const _Window(0, 0, double.infinity) : null;
+    }
+    final maxS =
+        config.proximityHorizonMs / 1000 + config.shapeLookaheadS;
+    if (now > v.length * maxS) return null; // 先読みの間に届かない
+    double? entry;
+    for (var t = 0.0; t <= maxS; t += config.shapeStepS) {
+      final inside = t == 0 ? now == 0 : _outsideBy(lm, p0 + v * t) == 0;
+      if (entry == null) {
+        if (inside) entry = t;
+      } else if (!inside) {
+        return _Window(entry, entry, t);
+      }
+    }
+    return entry == null ? null : _Window(entry, entry, double.infinity);
+  }
+
   void _updateArea() {
     String? best;
     var bestDist = double.infinity;
     for (final lm in _landmarks.values) {
       if (lm.kind != 'area') continue;
       final d = (_local(lm.lat, lm.lon) - _position).length;
-      if (d <= _radius(lm) && d < bestDist) {
+      if (_outsideBy(lm) == 0 && d < bestDist) {
         best = lm.id;
         bestDist = d;
       }
@@ -788,8 +854,7 @@ class Engine {
       _crossingDeferred.remove(id);
       final lm = _landmarks[id];
       if (lm == null || _told.contains(id)) continue;
-      final d = (_local(lm.lat, lm.lon) - _position).length;
-      if (d > _radius(lm) + config.crossingDeferMarginM) {
+      if (_outsideBy(lm) > config.crossingDeferMarginM) {
         _log(out, t, 'skip', 'skip:expired', id, priority: 5);
         continue;
       }
@@ -887,9 +952,9 @@ class Engine {
         stoppedSince != null && t - stoppedSince >= config.longVersionStillMs;
     for (final lm in _landmarks.values) {
       final rel = _local(lm.lat, lm.lon) - _position;
-      final r = _radius(lm);
+      final outside = _outsideBy(lm);
       if (_heldUntilLeft.contains(lm.id)) {
-        if (rel.length > r + config.revisitMarginM) {
+        if (outside > config.revisitMarginM) {
           _heldUntilLeft.remove(lm.id); // 離れた。次に近づいたら最初から話す
         } else {
           _skipOnce(out, t, lm.id, 'skip:interrupted', 5);
@@ -898,18 +963,18 @@ class Engine {
       }
       // 開発者モードの検証用：離れたら話した履歴から外す（もう一度近づいたら話す）
       if (config.retellOnRevisit &&
-          rel.length > r + config.revisitMarginM &&
+          outside > config.revisitMarginM &&
           _told.remove(lm.id)) {
         _crossingDeferred.remove(lm.id);
       }
       _Candidate? candidate;
       String? notPossible;
       if (lm.kind == 'area') {
-        if (rel.length <= r) {
+        if (outside == 0) {
           candidate = _Candidate(lm, 0, 'speak:area_entered', lm.scriptShort);
         }
       } else {
-        final window = _geofenceWindow(rel, v, r);
+        final window = _windowFor(lm, rel, v);
         if (window != null &&
             window.closestS <= config.proximityHorizonMs / 1000) {
           final useLong = still && rel.length <= r;
@@ -1003,11 +1068,7 @@ class Engine {
     final yieldS = config.visualYieldToNarrativeMs / 1000;
     for (final lm in _landmarks.values) {
       if (_told.contains(lm.id)) continue;
-      final window = _geofenceWindow(
-        _local(lm.lat, lm.lon) - _position,
-        v,
-        _radius(lm),
-      );
+      final window = _windowFor(lm, _local(lm.lat, lm.lon) - _position, v);
       if (window == null) continue;
       if (lm.kind == 'area') {
         if (window.entryS <= yieldS) return true;
@@ -1032,7 +1093,7 @@ class Engine {
     for (final lm in _landmarks.values) {
       if (_told.contains(lm.id)) continue;
       final rel = _local(lm.lat, lm.lon) - _position;
-      final window = _geofenceWindow(rel, v, _radius(lm));
+      final window = _windowFor(lm, rel, v);
       if (window == null) continue;
       final text = lm.kind == 'area'
           ? lm.scriptShort

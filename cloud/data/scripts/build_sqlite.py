@@ -150,14 +150,32 @@ def load_zone_dir(d: Path, reg: Registry) -> tuple[list[dict], list[str], bytes]
 
 
 def bbox(kind: str, item: dict) -> tuple[float, float, float, float]:
-    """(min_lat, max_lat, min_lon, max_lon)。エリアは半径の分だけ広げる。"""
+    """(min_lat, max_lat, min_lon, max_lon)。エリアは半径の分だけ広げる。
+
+    形（shape。11/7）のあるランドマークは、円と、形を判定の幅（margin_m）だけ広げた範囲の両方を覆う
+    （形を読む engine にも読まない古い engine にも、かかるタイルすべてで届くように）。
+    """
     lat, lon = item["lat"], item["lon"]
+    box = (lat, lat, lon, lon)
     if (kind == "landmark" and item.get("kind") == "area") or kind == "zone":
         r = float(item["radius_m"]) + (ZONE_EXIT_MARGIN_M if kind == "zone" else 0.0)
         dlat = r / M_PER_DEG_LAT
         dlon = r / (M_PER_DEG_LAT * math.cos(math.radians(lat)))
-        return lat - dlat, lat + dlat, lon - dlon, lon + dlon
-    return lat, lat, lon, lon
+        box = (lat - dlat, lat + dlat, lon - dlon, lon + dlon)
+    shape = item.get("shape") if kind == "landmark" else None
+    if shape:
+        pts = [p for part in shape["parts"] for p in part]
+        m = float(shape["margin_m"])
+        dlat = m / M_PER_DEG_LAT
+        dlon = m / (M_PER_DEG_LAT * math.cos(math.radians(lat)))
+        box = (min(box[0], min(p[0] for p in pts) - dlat), max(box[1], max(p[0] for p in pts) + dlat),
+               min(box[2], min(p[1] for p in pts) - dlon), max(box[3], max(p[1] for p in pts) + dlon))
+    return box
+
+
+def spans_tiles(kind: str, item: dict) -> bool:
+    """かかるタイルすべてに返すもの（エリア・区域・形のあるランドマーク）。それ以外は位置のタイルだけ。"""
+    return (kind == "landmark" and (item.get("kind") == "area" or bool(item.get("shape")))) or kind == "zone"
 
 
 def build(out: Path, use_examples: bool = False) -> int:
@@ -257,7 +275,7 @@ def build(out: Path, use_examples: bool = False) -> int:
             if got:
                 con.execute("INSERT INTO landmark_towns VALUES (?,?,?)", (ident, got["id"], got["distance_m"]))
         for i, (kind, ident, js, (a, b, c, d)) in enumerate(rows, 1):
-            is_area = int((kind == "landmark" and json.loads(js).get("kind") == "area") or kind == "zone")
+            is_area = int(spans_tiles(kind, json.loads(js)))
             con.execute("INSERT INTO features VALUES (?,?,?,?,?)", (i, kind, ident, is_area, js))
             con.execute("INSERT INTO features_rtree VALUES (?,?,?,?,?)", (i, a, b, c, d))
         schema_version = _load(SCHEMA / "examples" / "tile_response.json")["schema_version"]

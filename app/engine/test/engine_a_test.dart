@@ -886,4 +886,155 @@ void main() {
       expect(eventToJson(demo(1))['data'], isEmpty);
     });
   });
+
+  group('ランドマークの形（11/7）', () {
+    // 南へ歩く（東 0m の線上）。形は (北, 東) の m で書く
+    List<({double lat, double lon})> pts(List<(double, double)> ne) => [
+      for (final (n, e) in ne) (lat: latAt(n), lon: lonAt(e)),
+    ];
+    Landmark shaped(
+      String id,
+      String kind,
+      double north,
+      double east, {
+      required double radiusM,
+      required String type,
+      required List<(double, double)> points,
+      required double marginM,
+    }) => Landmark(
+      id: id,
+      name: '見本$id',
+      nameKana: 'みほん',
+      lat: latAt(north),
+      lon: lonAt(east),
+      kind: kind,
+      radiusM: radiusM,
+      shape: LandmarkShape(type: type, parts: [pts(points)], marginM: marginM),
+      scriptShort: '見本の原稿です。',
+      scriptLong: '見本の原稿の長い版です。',
+      visualHint: '',
+    );
+    Landmark park(double west) => shaped(
+      'lm_0001',
+      'area',
+      -175,
+      150,
+      radiusM: 200,
+      type: 'polygon',
+      points: [(-50, west), (-50, 300), (-300, 300), (-300, west)],
+      marginM: 0,
+    );
+
+    test('公園の輪郭の外は、前の円の中でもエリアに入らない', () {
+      final sim = Sim()
+        ..run(
+          250,
+          extra: {
+            1: [
+              tiles(1, [park(5)]),
+            ],
+          },
+        );
+      expect(sim.withReason('speak:area_entered'), isEmpty);
+      expect(sim.engine.currentArea, isNull);
+    });
+
+    test('公園の輪郭に入ったらエリアに入る', () {
+      final sim = Sim()
+        ..run(
+          120,
+          extra: {
+            1: [
+              tiles(1, [park(-5)]),
+            ],
+          },
+        );
+      final d = sim.withReason('speak:area_entered').single;
+      expect(sim.secOf(d.tMs), inInclusiveRange(38, 45)); // 北 -50m に着くのは約38秒後
+      expect(sim.engine.currentArea?.id, 'lm_0001');
+    });
+
+    test('建物は輪郭から幅の内側を通れば話し、外なら話さない', () {
+      Landmark building(double margin) => shaped(
+        'lm_0002',
+        'building',
+        -120,
+        60,
+        radiusM: 100,
+        type: 'polygon',
+        points: [(-100, 40), (-100, 80), (-140, 80), (-140, 40)],
+        marginM: margin,
+      );
+      final far = Sim()
+        ..run(
+          200,
+          extra: {
+            1: [
+              tiles(1, [building(25)]),
+            ],
+          },
+        );
+      expect(far.speaks, isEmpty); // 前の円（100m）なら話していた
+      final near = Sim()
+        ..run(
+          200,
+          extra: {
+            1: [
+              tiles(1, [building(45)]),
+            ],
+          },
+        );
+      expect(near.withReason('speak:closest_approach').single.targetId, 'lm_0002');
+    });
+
+    test('通りは線から幅の内側を歩けば話す', () {
+      Landmark street(double margin) => shaped(
+        'lm_0003',
+        'street',
+        -200,
+        30,
+        radiusM: 60,
+        type: 'line',
+        points: [(-100, 30), (-300, 30)],
+        marginM: margin,
+      );
+      final out = Sim()
+        ..run(
+          200,
+          extra: {
+            1: [
+              tiles(1, [street(25)]),
+            ],
+          },
+        );
+      expect(out.speaks, isEmpty);
+      final inside = Sim()
+        ..run(
+          200,
+          extra: {
+            1: [
+              tiles(1, [street(35)]),
+            ],
+          },
+        );
+      expect(inside.withReason('speak:closest_approach'), hasLength(1));
+    });
+
+    test('形は JSON に書いて読み直せる（タイルの形）', () {
+      final lm = park(5);
+      final back = Landmark.fromJson(lm.toJson());
+      expect(back.shape!.type, 'polygon');
+      expect(back.shape!.parts.single, hasLength(4));
+      expect(back.shape!.marginM, 0);
+      expect(() => LandmarkShape.fromJson({'type': 'circle', 'parts': [], 'margin_m': 0}), throwsFormatException);
+    });
+
+    test('線分までの距離と多角形の内外', () {
+      expect(segmentDistance(const Vec2(0, 5), const Vec2(-10, 0), const Vec2(10, 0)), closeTo(5, 1e-9));
+      expect(segmentDistance(const Vec2(13, 4), const Vec2(-10, 0), const Vec2(10, 0)), closeTo(5, 1e-9));
+      const sq = [Vec2(0, 0), Vec2(10, 0), Vec2(10, 10), Vec2(0, 10)];
+      expect(insidePolygon(sq, const Vec2(5, 5)), isTrue);
+      expect(insidePolygon(sq, const Vec2(15, 5)), isFalse);
+    });
+  });
 }

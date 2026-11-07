@@ -74,3 +74,25 @@ TileId tileAt(double lat, double lon, {int z = 16}) {
 
 /// 判断ログの target_id に使うタイルの表記（例 16/57746/25576）。
 String tileKey(TileId tile) => '${tile.z}/${tile.x}/${tile.y}';
+
+/// 点 [p] から線分 [a]-[b] までの距離（m）。
+double segmentDistance(Vec2 p, Vec2 a, Vec2 b) {
+  final ab = b - a;
+  final len2 = ab.dot(ab);
+  if (len2 == 0) return (p - a).length;
+  final t = ((p - a).dot(ab) / len2).clamp(0.0, 1.0);
+  return (p - (a + ab * t)).length;
+}
+
+/// 点 [p] が多角形 [ring]（最後と最初を結ぶ）の中にあるか（レイキャスト）。
+bool insidePolygon(List<Vec2> ring, Vec2 p) {
+  var inside = false;
+  for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    final a = ring[i], b = ring[j];
+    if ((a.y > p.y) != (b.y > p.y) &&
+        p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}

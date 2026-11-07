@@ -249,3 +249,55 @@ def test_build_stops_when_zone_filename_and_id_differ(tmp_path, monkeypatch, cap
     monkeypatch.setattr(build_sqlite, "ZONES", (str(d), str(d)))
     assert build_sqlite.build(tmp_path / "t.sqlite") == 1
     assert "ファイル名（zn_0002）と id（zn_0901）" in capsys.readouterr().out
+
+
+# ---- ランドマークの形（shape。11/7）----
+
+def _real(tmp_path):
+    out = tmp_path / "real.sqlite"
+    assert build_sqlite.build(out) == 0
+    return out
+
+
+def _tiles_with(src, lm_id, x0, x1, y0, y1):
+    return {(x, y) for x in range(x0, x1 + 1) for y in range(y0, y1 + 1)
+            if any(lm["id"] == lm_id for lm in src.get_tile(x, y)["landmarks"])}
+
+
+def test_shapes_are_off_by_default(tmp_path):
+    """TILE_SHAPES=off（既定）なら shape のキーを外す（形を読めない古い engine のため）。"""
+    src = SqliteTileSource(_real(tmp_path))
+    tile = src.get_tile(*tile_of(36.709696, 137.212295))
+    assert tile["landmarks"] and all("shape" not in lm for lm in tile["landmarks"])
+    assert not list(contracts.validator(contracts.TILE_RESPONSE).iter_errors(tile))
+
+
+def test_shapes_on_returns_shape_in_every_tile_it_touches(tmp_path):
+    """形のある建物（富山駅の駅舎は2枚のタイルにかかる）は、かかるタイルすべてで形つきで届く。"""
+    src = SqliteTileSource(_real(tmp_path), include_shapes=True)
+    station = home_tile({"lat": 36.701609, "lon": 137.212874})
+    got = _tiles_with(src, "lm_0002", station[0] - 1, station[0] + 1, station[1] - 1, station[1] + 1)
+    assert station in got and len(got) >= 2
+    lm = next(x for x in src.get_tile(*station)["landmarks"] if x["id"] == "lm_0002")
+    assert lm["shape"]["type"] == "polygon" and lm["shape"]["margin_m"] == 30
+    assert lm["radius_m"] == 80   # 古い engine 用の円も残す
+    # 形の無いラバーズ像は、今までどおり位置のタイルだけ
+    lovers = home_tile({"lat": 36.70318, "lon": 137.214206})
+    assert _tiles_with(src, "lm_0006", lovers[0] - 1, lovers[0] + 1, lovers[1] - 1, lovers[1] + 1) == {lovers}
+
+
+def test_api_serves_shapes_only_when_tile_shapes_on(tmp_path):
+    out = _real(tmp_path)
+    x, y = tile_of(36.709696, 137.212295)
+    for flag, has in (("off", False), ("on", True)):
+        s = Settings(gemini_mode="fake", app_token="t", tile_source="sqlite", tiles_db_path=str(out), tile_shapes=flag)
+        res = TestClient(create_app(settings=s)).get(f"/v1/tiles/16/{x}/{y}", headers={"X-App-Token": "t"})
+        assert res.status_code == 200
+        assert not list(contracts.validator(contracts.TILE_RESPONSE).iter_errors(res.json()))
+        park = next(lm for lm in res.json()["landmarks"] if lm["id"] == "lm_0001")
+        assert ("shape" in park) is has
+
+
+def test_tile_shapes_setting_is_checked():
+    with pytest.raises(ValueError):
+        Settings(tile_shapes="yes").check()
