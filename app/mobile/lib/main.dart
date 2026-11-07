@@ -6,6 +6,7 @@ import 'app/app_services.dart';
 import 'startup/permissions.dart';
 import 'ui/home_shell.dart';
 import 'ui/layout.dart';
+import 'ui/licenses.dart';
 import 'ui/style.dart';
 
 Future<void> main() async {
@@ -18,6 +19,8 @@ Future<void> main() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   // 歩行中は画面を消さない
   await WakelockPlus.enable();
+  // pub.dev 以外のライセンスと出典を、ライセンスの一覧に足す
+  registerExtraLicenses();
   runApp(const MobileApp());
 }
 

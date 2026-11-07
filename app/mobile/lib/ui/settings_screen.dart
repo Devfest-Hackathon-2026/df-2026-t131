@@ -9,6 +9,7 @@ import '../logging/walk_log_store.dart';
 import '../info/info_kind.dart';
 import '../net/api_client.dart';
 import 'caption.dart';
+import 'licenses.dart';
 import 'style.dart';
 
 /// 設定画面。開始前でも記録中でも開ける（記録は裏で続き、変えた設定はすぐ効く）。
@@ -113,14 +114,17 @@ class SettingsScreen extends StatelessWidget {
               '歩行ログは「計測開始」から「終了」までだけ、この端末に保存します。',
             ),
           ),
-          const ListTile(
-            leading: Icon(Icons.copyright_outlined),
-            title: Text('出典'),
-            subtitle: Text(
-              '地図データ（ランドマークの位置・横断歩道・信号）：© OpenStreetMap contributors（ODbL 1.0）\n'
-              '気象警報：出典 気象庁ホームページ（防災情報XML）。種類とレベルを取り出し、文に加工して作成\n'
-              'ランドマークの解説：富山県・富山市・各施設の公式サイトなどを参照（一覧はリポジトリの docs/attribution.md）',
-            ),
+          ListTile(
+            leading: const Icon(Icons.copyright_outlined),
+            title: const Text('出典'),
+            subtitle: Text(dataAttributions.join('\n')),
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('ライセンス'),
+            subtitle: const Text('使っているライブラリ・声・データのライセンスの一覧'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => showAppLicenses(context),
           ),
           // 7回押すと開発者モードが出る（Android の「ビルド番号」と同じ）
           _UnlockTile(
