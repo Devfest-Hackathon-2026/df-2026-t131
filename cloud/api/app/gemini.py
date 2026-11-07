@@ -130,13 +130,18 @@ def context_place(req: dict) -> str:
     return f"富山市{town}付近" if town else "富山市内"
 
 
-def context_rules(req: dict) -> str:
-    """撮影の手がかり（context）をプロンプトの行にする。無い項目は書かない（古いアプリは送らない）。"""
+def context_rules(req: dict, candidates: list[dict] | None = None) -> str:
+    """撮影の手がかり（context）をプロンプトの行にする。無い項目は書かない（古いアプリは送らない）。
+
+    範囲の中のランドマークの名前は、アプリから届いた名前ではなく、サーバーの DB（人が確認した
+    ランドマーク）の名前を使う。DB に無い ID なら書かない（11/7、メンバー1）。
+    """
     ctx = req.get("context") or {}
     out = ""
     near = ctx.get("near_landmark")
-    if near:
-        out += NEAR_RULE.format(name=near["name"], id=near["id"])
+    known = {c["id"]: c for c in candidates or []}
+    if near and near.get("id") in known:
+        out += NEAR_RULE.format(name=known[near["id"]]["name"], id=near["id"])
     at = ctx.get("captured_at")
     if at:
         from datetime import date
@@ -243,7 +248,7 @@ class GeminiVisualSearch:
         ) or "  - （なし）"
         area = req.get("area")
         return PROMPT.format(
-            place=context_place(req), context=context_rules(req),
+            place=context_place(req), context=context_rules(req, candidates),
             tile=f"16/{req['tile']['x']}/{req['tile']['y']}", lat=(s + n) / 2, lon=(w + e) / 2,
             gaze=req["gaze_az_deg"], candidates=cand, max_chars=self._s.description_max_chars,
             parts="／".join(f"{k}（{v}）" for k, v in PARTS.items()),
