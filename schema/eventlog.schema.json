@@ -121,6 +121,12 @@
                       "type": "number",
                       "minimum": 0,
                       "maximum": 1
+                    },
+                    "crosswalk": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "画像の下の方（路面）に横断歩道の縞模様が写っている度合い（任意。11/7 追加）。端末の中で計算し、画像は残さない。古いログには無い"
                     }
                   }
                 }

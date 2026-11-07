@@ -245,3 +245,35 @@ def test_response_schema_asks_commonplace_first():
     from app.gemini import RESPONSE_SCHEMA
     assert "commonplace" in RESPONSE_SCHEMA["required"]
     assert RESPONSE_SCHEMA["propertyOrdering"][0] == "commonplace"
+
+
+# ---- 撮影の手がかり（context。11/7）----
+
+def test_prompt_uses_context_town_time_near_and_trigger():
+    c = FakeClient(ans(result="matched", landmark_id="lm_0002", part="sign", description="看板の文字が筆の字です。"))
+    req = request(area=None, candidate_ids=["lm_0001"]) | {"context": {
+        "captured_at": "2026-11-07T18:30+09:00", "trigger": "voice", "town": "見本町一丁目",
+        "near_landmark": {"id": "lm_0002", "name": "見本の通り"},
+    }}
+    r = valid(GeminiVisualSearch(S, FakeTileSource(), client=c).search(req))
+    prompt = c.calls[0].contents[1]
+    assert "富山市見本町一丁目付近" in prompt
+    assert "「見本の通り」の付近" in prompt and "lm_0002：見本の通り" in prompt   # 視線の外でも候補に入れる
+    assert "11月7日（土）18時30分" in prompt
+    assert "調べるよう頼んだ" in prompt
+    assert r["result"] == "matched" and r["landmark_id"] == "lm_0002"
+
+
+def test_prompt_without_context_is_unchanged():
+    c = FakeClient(ans())
+    req = request(area=None)
+    del req["context"]   # 古いアプリは context を送らない
+    GeminiVisualSearch(S, FakeTileSource(), client=c).search(req)
+    prompt = c.calls[0].contents[1]
+    assert "富山市内" in prompt and "付近（中央のもの" not in prompt and "撮影の日時" not in prompt
+
+
+def test_http_rejects_bad_context():
+    client = TestClient(create_app(Settings(app_token="t")))
+    body = request(context={"trigger": "timer"})
+    assert client.post("/v1/visual-search", json=body, headers={"X-App-Token": "t"}).status_code == 400

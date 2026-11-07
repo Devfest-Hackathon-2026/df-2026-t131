@@ -17,5 +17,14 @@
     "name": "見本の公園",
     "summary": "ここは見本のための架空の公園です。",
     "google_place_id": null
+  },
+  "context": {
+    "captured_at": "2026-11-07T14:05+09:00",
+    "trigger": "auto",
+    "town": "見本町一丁目",
+    "near_landmark": {
+      "id": "lm_0001",
+      "name": "見本の石碑"
+    }
   }
 }

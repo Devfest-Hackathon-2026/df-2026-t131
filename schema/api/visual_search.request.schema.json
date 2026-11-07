@@ -82,6 +82,60 @@
         }
       ],
       "description": "利用者がエリアの中にいるときだけ。エリアの判定は端末で行う"
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "撮影の手がかり（任意。11/7 追加）。正確な座標は入れない。古いアプリは送らない",
+      "properties": {
+        "captured_at": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}\\+09:00$",
+          "description": "撮影の日時（日本時間・分まで）。昼夜・季節の見え方の手がかり"
+        },
+        "trigger": {
+          "enum": [
+            "auto",
+            "stopped",
+            "button",
+            "voice"
+          ],
+          "description": "撮ったきっかけ。auto＝間隔ごと、stopped＝立ち止まり、button＝検索ボタン、voice＝「調べて」の声"
+        },
+        "town": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "description": "おおまかな住所（町丁目名。市区町村名は付けない）。端末が先読みした町丁目の代表点から選ぶ"
+        },
+        "near_landmark": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "../common.schema.json#/$defs/landmark_id"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          ],
+          "description": "ランドマーク（エリアを除く）の範囲の中で撮ったとき、そのランドマーク（「〇〇付近」と伝える）。範囲の外なら null"
+        }
+      }
     }
   }
 }

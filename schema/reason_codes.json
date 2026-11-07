@@ -5,6 +5,7 @@
     "speak:area_entered": "A：エリア（公園など）に入ったので定型文",
     "speak:no_camera_zone_entered": "カメラで調べない区域に入ったので、画像での案内を止めると知らせた",
     "speak:no_camera_zone_exited": "カメラで調べない区域を出たので、画像での案内を再開すると知らせた",
+    "speak:after_crossing": "A：横断歩道を渡り終えたので、渡っている間に延期した話を話す",
     "speak:long_version_still": "A：立ち止まったので長い版",
     "speak:alert_interrupt": "警報レベル4以上で割り込み",
     "speak:alert": "警報（割り込みなし）",

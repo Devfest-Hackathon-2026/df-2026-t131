@@ -57,9 +57,9 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 （凝った飾り・珍しい形・素材の特徴など）を1つ見つけて答えてください。建物などの全体の紹介は別の機能が行うので、全体ではなく部分を探します。
 
 # 手がかり
-- おおよその場所：富山市内（地図タイル {tile}、中心は北緯{lat:.3f}・東経{lon:.3f}付近）
+- おおよその場所：{place}（地図タイル {tile}、中心は北緯{lat:.3f}・東経{lon:.3f}付近）
 - 見ている方向：真北から時計回りに {gaze} 度
-{area}- 近くにある、登録済みの場所（中央のものがどの場所のものかを書くための手がかり。当てることが目的ではない）：
+{context}{area}- 近くにある、登録済みの場所（中央のものがどの場所のものかを書くための手がかり。当てることが目的ではない）：
 {candidates}
 
 # 答え方
@@ -96,6 +96,14 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 """
 
 AREA_RULE = "- 利用者はエリア「{name}」の中にいる（{summary}）。エリアの中にある、名前の付いた建物・橋・道・広場などを特定して答える\n"
+NEAR_RULE = (
+    "- 撮影したのは登録した場所「{name}」の付近（中央のものが「{name}」の一部とは限らない。"
+    "「{name}」のものなら result=\"matched\"・landmark_id に {id}）\n"
+)
+TIME_RULE = "- 撮影の日時：{when}（日本時間）。光の具合や季節の見え方（夜の明かり・雪・紅葉など）の手がかりにする\n"
+REQUESTED_RULE = "- 利用者が自分で「これは何？」と調べるよう頼んだ。中央のものについて答える（答え方の決まりは同じ）\n"
+WEEKDAYS = "月火水木金土日"
+
 GROUNDING_RULE = "- 名前は Google マップの場所のデータで確かめる。確かめられない名前は named=false にする\n"
 
 RESPONSE_SCHEMA = {
@@ -114,6 +122,31 @@ RESPONSE_SCHEMA = {
     "required": ["commonplace", "result", "landmark_id", "object_name", "named", "description", "part", "confidence"],
     "propertyOrdering": ["commonplace", "result", "landmark_id", "object_name", "named", "part", "description", "confidence"],
 }
+
+
+def context_place(req: dict) -> str:
+    """おおまかな住所（町丁目名があれば「富山市〇〇付近」）。"""
+    town = (req.get("context") or {}).get("town")
+    return f"富山市{town}付近" if town else "富山市内"
+
+
+def context_rules(req: dict) -> str:
+    """撮影の手がかり（context）をプロンプトの行にする。無い項目は書かない（古いアプリは送らない）。"""
+    ctx = req.get("context") or {}
+    out = ""
+    near = ctx.get("near_landmark")
+    if near:
+        out += NEAR_RULE.format(name=near["name"], id=near["id"])
+    at = ctx.get("captured_at")
+    if at:
+        from datetime import date
+
+        y, mo, d = int(at[0:4]), int(at[5:7]), int(at[8:10])
+        wd = WEEKDAYS[date(y, mo, d).weekday()]
+        out += TIME_RULE.format(when=f"{mo}月{d}日（{wd}）{int(at[11:13])}時{at[14:16]}分")
+    if ctx.get("trigger") in ("button", "voice"):
+        out += REQUESTED_RULE
+    return out
 
 
 def unknown(search_id: str, confidence: float = 0.0) -> dict:
@@ -210,6 +243,7 @@ class GeminiVisualSearch:
         ) or "  - （なし）"
         area = req.get("area")
         return PROMPT.format(
+            place=context_place(req), context=context_rules(req),
             tile=f"16/{req['tile']['x']}/{req['tile']['y']}", lat=(s + n) / 2, lon=(w + e) / 2,
             gaze=req["gaze_az_deg"], candidates=cand, max_chars=self._s.description_max_chars,
             parts="／".join(f"{k}（{v}）" for k, v in PARTS.items()),
@@ -258,8 +292,11 @@ class GeminiVisualSearch:
             image = base64.b64decode(request["image_jpeg_base64"], validate=True)
         except (binascii.Error, ValueError):
             raise ApiError(400, "bad_request")
-        known = self._tiles.landmarks_by_id(request["candidate_ids"])
-        candidates = [known[i] for i in request["candidate_ids"] if i in known]
+        # 範囲の中にいるランドマーク（context.near_landmark）も、視線の外でも候補に入れる（「〇〇付近」で撮ったため）
+        near = ((request.get("context") or {}).get("near_landmark") or {}).get("id")
+        ids = list(request["candidate_ids"]) + ([near] if near and near not in request["candidate_ids"] else [])
+        known = self._tiles.landmarks_by_id(ids)
+        candidates = [known[i] for i in ids if i in known]
         try:
             res = self._client.models.generate_content(
                 model=self._s.gemini_model,
