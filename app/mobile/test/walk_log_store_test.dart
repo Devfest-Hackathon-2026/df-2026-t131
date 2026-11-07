@@ -61,4 +61,21 @@ void main() {
     expect(await store.delete(logs.firstWhere(store.isInUse)), isFalse);
     await dir.delete(recursive: true);
   });
+
+  test('歩行ログを消すと、隣の送った画像のフォルダ（walk_〇〇_images）も消える', () async {
+    final dir = await Directory.systemTemp.createTemp('walklogs');
+    final log = File('${dir.path}/walk_20261107T010000Z.jsonl')
+      ..writeAsStringSync('{}\n');
+    final images = sentImagesDir(log);
+    expect(images.path, '${dir.path}/walk_20261107T010000Z_images');
+    images.createSync();
+    File('${images.path}/s_000001.jpg').writeAsBytesSync([1, 2, 3]);
+    final store = WalkLogStore(() async => dir);
+    expect((await store.list()).map((l) => l.name), [
+      'walk_20261107T010000Z.jsonl',
+    ]); // 画像のフォルダは歩行ログとして数えない
+    await store.delete((await store.list()).single);
+    expect(images.existsSync(), isFalse);
+    await dir.delete(recursive: true);
+  });
 }

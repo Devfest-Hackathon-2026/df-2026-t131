@@ -306,9 +306,37 @@ class Engine {
     _prefetch(s.tMs, out);
     _updateArea();
     _updateZones(s.tMs);
+    _updateCrosswalkSeen(s);
     _tryNext(s.tMs, out);
     _maybeSearch(s, out);
   }
+
+  /// 画像の縞模様（横断歩道）を見た時刻と、見えない状態が続いている始まりを更新する（11/7）。
+  ///
+  /// 使うのは、画質が足りて（ぶれ・明るさ）、カメラで調べない区域の外で、縞模様の値がある画像だけ。
+  /// 使えない画像のときは「見えない」の数え始めを消す（暗い・ぶれた画像で「無い」と決めつけない）。
+  void _updateCrosswalkSeen(SensorFrame s) {
+    final q = s.imageQuality;
+    final score = q?.crosswalk;
+    final usable =
+        score != null && !_inNoCameraZone && _qualityBlock(s) == null;
+    if (!usable) {
+      _crosswalkClearSinceMs = null;
+      return;
+    }
+    if (score >= config.crossingVisualMinScore) {
+      _crosswalkSeenMs = s.tMs;
+      _crosswalkClearSinceMs = null;
+    } else {
+      _crosswalkClearSinceMs ??= s.tMs;
+    }
+  }
+
+  /// 最後に縞模様（横断歩道）が写った時刻。
+  int? _crosswalkSeenMs;
+
+  /// 使える画像で縞模様が写らない状態が続いている始まり。
+  int? _crosswalkClearSinceMs;
 
   void _updatePosition(SensorFrame s, int? lastMs) {
     final projection = _projection ??= LocalProjection(s.lat, s.lon);
@@ -589,7 +617,11 @@ class Engine {
   void _tryNext(int t, List<Command> out) {
     final s = _sensor;
     if (s == null) return;
-    _expireVisual(t, out);
+    // 横断歩道を渡っている間（手前を含む）は、警報以外の新しい話を始めない。今の話は止めない。
+    // 延期した話は渡り終えてから流す（A は _crossingDeferred、B の答えは鮮度を渡り終えた時刻から数える）。
+    final crossing = _crossingAhead();
+    if (crossing) _lastCrossingMs = t;
+    _expireVisual(t, out, crossing: crossing);
     final busy = _engineSpeaking(t) || s.ttsSpeaking;
 
     // 1. 警報。話題の間隔・横断歩道・乗り物では止めない。
@@ -625,7 +657,7 @@ class Engine {
 
     // カメラで調べない区域の知らせ：警報の次、A より先。割り込まず、話し終えるのを待つ。
     if (_zoneNotices.isNotEmpty) {
-      if (_audioBlock(s) != null || busy) return;
+      if (_audioBlock(s) != null || busy || crossing) return;
       final n = _zoneNotices.removeAt(0);
       if (n.entered) _zoneEntryAnnounced.add(n.zoneId);
       _speak(
@@ -673,11 +705,13 @@ class Engine {
       for (final c in candidates) {
         _skipOnce(out, t, c.landmark.id, gate, 5);
         _waiting.add(c.landmark.id);
+        if (gate == 'skip:crossing_ahead') _crossingDeferred.add(c.landmark.id);
       }
       return; // B の答えも同じゲートで待つ（鮮度期限を過ぎたら _expireVisual で捨てる）
     }
     if (candidates.isNotEmpty) {
       final c = candidates.first;
+      _crossingDeferred.remove(c.landmark.id);
       _speak(
         out,
         t: t,
@@ -691,12 +725,48 @@ class Engine {
       );
       return;
     }
+    if (_speakAfterCrossing(t, out)) return;
 
     // 6. B の答え。前の話の終わりから話題の間隔を空ける（B が続けて話し続けないように）。
     final end = _lastSpeechEndMs;
     if (end != null && t - end < config.topicIntervalMs) return;
     _speakVisualAnswer(t, out);
   }
+
+  /// 横断歩道で延期した A の話のうち、もう範囲を出たもの（渡っている間に通り過ぎた）を話す。
+  /// 方向の一言は付けない（渡ったあとでは向きが変わっているため）。離れすぎたものは捨てる。
+  bool _speakAfterCrossing(int t, List<Command> out) {
+    while (_crossingDeferred.isNotEmpty) {
+      final id = _crossingDeferred.first;
+      _crossingDeferred.remove(id);
+      final lm = _landmarks[id];
+      if (lm == null || _told.contains(id)) continue;
+      final d = (_local(lm.lat, lm.lon) - _position).length;
+      if (d > _radius(lm) + config.crossingDeferMarginM) {
+        _log(out, t, 'skip', 'skip:expired', id, priority: 5);
+        continue;
+      }
+      _speak(
+        out,
+        t: t,
+        reason: 'speak:after_crossing',
+        targetId: id,
+        text: lm.scriptShort,
+        priority: 5,
+        interrupt: false,
+        pauseMusic: false,
+        narrative: true,
+      );
+      return true;
+    }
+    return false;
+  }
+
+  /// 横断歩道で延期した A の話（ランドマークの ID。延期した順）。
+  final Set<String> _crossingDeferred = <String>{};
+
+  /// 最後に横断歩道の手前（渡っている間を含む）だった時刻。B の答えの鮮度はここから数え直す。
+  int? _lastCrossingMs;
 
   /// 音声を出せない状態。警報もナラティブも待つ。
   String? _audioBlock(SensorFrame s) {
@@ -723,11 +793,36 @@ class Engine {
   }
 
   /// 横断歩道・信号が手前（一定距離内で、まだ渡っていない側）にあるか。
+  /// 横断歩道・信号の手前か（地図＋画像。11/7）。
+  ///
+  /// 1. 地図の横断歩道が [EngineConfig.crossingNearM]（8m）以内の前にある → 手前（画像に関係なく）
+  /// 2. 画像に縞模様が写ってから [EngineConfig.crossingVisualHoldMs]（3秒）以内 → 手前
+  ///    （地図に無い・位置がずれた横断歩道も拾う）
+  /// 3. 地図の横断歩道が [EngineConfig.crossingDistanceM]（15m）以内の前にある → 手前。
+  ///    ただし画質の足りる画像で縞模様が写らない状態が [EngineConfig.crossingVisualClearMs]（2秒）
+  ///    続いていれば、手前とはみなさない（GPS のずれで止まりすぎない）
+  ///
+  /// 縞模様の値が無い画像（古いログ・計算しない端末）だけなら、前と同じく地図の15m だけで決まる。
   bool _crossingAhead() {
+    if (_mapCrossingAhead(config.crossingNearM)) return true;
+    final t = _sensor?.tMs;
+    final seen = _crosswalkSeenMs;
+    if (t != null && seen != null && t - seen <= config.crossingVisualHoldMs) {
+      return true;
+    }
+    if (!_mapCrossingAhead(config.crossingDistanceM)) return false;
+    final clear = _crosswalkClearSinceMs;
+    return !(t != null &&
+        clear != null &&
+        t - clear >= config.crossingVisualClearMs);
+  }
+
+  /// 地図の横断歩道が [distanceM] 以内の前にあるか（止まっているときは向きを問わない）。
+  bool _mapCrossingAhead(double distanceM) {
     final v = _velocity;
     for (final c in _crossings.values) {
       final rel = _local(c.lat, c.lon) - _position;
-      if (rel.length > config.crossingDistanceM) continue;
+      if (rel.length > distanceM) continue;
       if (v.length == 0 || rel.dot(v) >= 0) return true;
     }
     return false;
@@ -753,6 +848,12 @@ class Engine {
           _skipOnce(out, t, lm.id, 'skip:interrupted', 5);
           continue;
         }
+      }
+      // 開発者モードの検証用：離れたら話した履歴から外す（もう一度近づいたら話す）
+      if (config.retellOnRevisit &&
+          rel.length > r + config.revisitMarginM &&
+          _told.remove(lm.id)) {
+        _crossingDeferred.remove(lm.id);
       }
       _Candidate? candidate;
       String? notPossible;
@@ -796,7 +897,10 @@ class Engine {
         continue;
       }
       if (_waiting.remove(lm.id)) {
-        _skipOnce(out, t, lm.id, 'skip:expired', 5);
+        // 横断歩道で延期したものは捨てない（渡り終えてから _speakAfterCrossing で話す）
+        if (!_crossingDeferred.contains(lm.id)) {
+          _skipOnce(out, t, lm.id, 'skip:expired', 5);
+        }
       } else if (notPossible != null) {
         _skipOnce(out, t, lm.id, notPossible, 5);
       }
@@ -1276,16 +1380,22 @@ class Engine {
   }
 
   /// B の期限：結果が来ない検索を諦め（論点5）、話せないまま鮮度期限を過ぎた答えを捨てる。
-  void _expireVisual(int t, List<Command> out) {
+  void _expireVisual(int t, List<Command> out, {bool crossing = false}) {
     final search = _inflight;
     if (search != null && t - search.capturedMs > config.visualFreshnessMs) {
       _inflight = null;
       _abandonedSearches.add(search.id);
       _log(out, t, 'answer', 'answer:error', search.id, priority: 6);
     }
+    // 答えを待たせている間に横断歩道を渡ったら、鮮度は渡り終えた時刻から数える（渡っている間は捨てない）
     final answer = _pendingAnswer;
-    if (answer != null &&
-        t - answer.search.capturedMs > config.visualFreshnessMs) {
+    final crossed = _lastCrossingMs;
+    final since = answer == null
+        ? 0
+        : (crossed != null && crossed > answer.search.capturedMs
+              ? crossed
+              : answer.search.capturedMs);
+    if (answer != null && !crossing && t - since > config.visualFreshnessMs) {
       _pendingAnswer = null;
       _log(
         out,

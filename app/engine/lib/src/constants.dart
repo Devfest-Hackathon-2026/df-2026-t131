@@ -57,6 +57,24 @@ final class EngineConfig {
   // ---- B の発火タイミング（伝言「B_発火タイミングの論点」で11/5に決めた。実機で調整する）----
 
   /// B の答えが届くまでの見込み（撮影→送信→Gemini 2〜3秒→受信）。
+  /// 横断歩道の判定（地図＋画像。11/7）。地図の横断歩道がこれ以内の前にあれば、画像に関係なく手前とみなす
+  /// （GPS がずれていても近いので安全側）。
+  final double crossingNearM;
+
+  /// 画像の縞模様（ImageQuality.crosswalk）がこれ以上なら「横断歩道が写っている」とみなす。
+  final double crossingVisualMinScore;
+
+  /// 縞模様が写ったあと、これだけの間は手前とみなし続ける（地図に無い・位置がずれた横断歩道も拾う）。
+  final int crossingVisualHoldMs;
+
+  /// 地図の横断歩道が [crossingNearM]〜[crossingDistanceM] にあっても、画質が足りる画像で
+  /// 縞模様が写らない状態がこれだけ続いたら、手前とはみなさない（GPS のずれで止まりすぎるのを防ぐ）。
+  final int crossingVisualClearMs;
+
+  /// 横断歩道で延期した A の話は、そのランドマークから（半径＋この距離）より離れたら話さずに捨てる
+  /// （渡り終えたあと、もう見えないものを話さないため）。
+  final double crossingDeferMarginM;
+
   /// 答えが届くころに話題の間隔が終わっているときだけ撮る（前の話の終わり＋話題の間隔−この値より前は撮らない）。
   final int visualExpectedLatencyMs;
 
@@ -91,6 +109,10 @@ final class EngineConfig {
   /// 検索で止めたランドマークは、半径＋この距離より離れてから、また近づいたときに話す。
   final double revisitMarginM;
 
+  /// 開発者モードの検証用（11/7）：話したランドマーク・エリアから（半径＋[revisitMarginM]）より離れたら、
+  /// 話した履歴から外して、もう一度近づいたら話す。既定は false（同じ話は2回しない決まり）。
+  final bool retellOnRevisit;
+
   /// 今の町丁目：持っているタイルの町丁目のうち、いちばん近い代表点。これより遠ければ「わからない」（m）。
   /// cloud/data/scripts/town_lookup.py の MAX_TOWN_DISTANCE_M と同じ値にする。
   final double townMaxDistanceM;
@@ -119,6 +141,11 @@ final class EngineConfig {
     this.maxSearchesPerWalk,
     this.fastWalkingMps = 1.8,
     this.crossingDistanceM = 15,
+    this.crossingNearM = 8,
+    this.crossingVisualMinScore = 0.5,
+    this.crossingVisualHoldMs = 3000,
+    this.crossingVisualClearMs = 2000,
+    this.crossingDeferMarginM = 100,
     this.minBlur = 0.5,
     this.minBrightness = 0.2,
     this.minMovingMps = 0.3,
@@ -144,6 +171,7 @@ final class EngineConfig {
     this.narrativeChainGapMs = 3000,
     this.longVersionStillMs = 5000,
     this.revisitMarginM = 10,
+    this.retellOnRevisit = false,
     this.townMaxDistanceM = 800,
     this.zoneExitMarginM = 15,
     this.zoneAnnounceCooldownMs = 60000,
@@ -171,6 +199,7 @@ final visualParts = visualPartLabels.keys.toList(growable: false);
 
 const reasonCodes = <String>{
   'speak:closest_approach',
+  'speak:after_crossing',
   'speak:area_entered',
   'speak:no_camera_zone_entered',
   'speak:no_camera_zone_exited',

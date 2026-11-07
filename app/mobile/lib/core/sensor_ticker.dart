@@ -9,6 +9,7 @@ import '../sources/camera_source.dart';
 import '../sources/gaze_source.dart';
 import '../sources/image_quality.dart';
 import '../sources/location_source.dart';
+import '../vision/face_detector.dart' show landscapeLeftRotation;
 
 /// 1秒分のセンサーの値をまとめたもの。
 /// TODO: engine の雛形が届いたら engine の SensorFrame（イベント）に変換して EngineRunner に渡す。
@@ -44,6 +45,7 @@ Future<ImageQuality> _measureFrame(CameraFrame f) =>
       f.width,
       f.height,
       rowStride: f.yRowStride,
+      rotationDeg: landscapeLeftRotation(f.sensorOrientation),
     );
 
 int _nowMs() => DateTime.now().toUtc().millisecondsSinceEpoch;

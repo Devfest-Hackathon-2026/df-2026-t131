@@ -107,6 +107,9 @@ class SessionController extends ChangeNotifier {
 
   /// 記録中のファイル名（設定画面で消せないようにする）。記録していなければ null。
   String? get recordingFileName => _writer?.file.uri.pathSegments.last;
+
+  /// 記録中の歩行ログのファイル。記録していなければ null。
+  File? get recordingFile => _writer?.file;
   double get distanceM => _distanceM;
   Duration get elapsed =>
       _startedAt == null ? Duration.zero : _now().difference(_startedAt!);

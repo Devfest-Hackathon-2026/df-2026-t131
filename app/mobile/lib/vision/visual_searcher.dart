@@ -48,7 +48,12 @@ class VisualSearcher {
     required this.faces,
     required this.post,
     JpegEncoder? encode,
+    this.onSend,
   }) : _encode = encode ?? _encodeInIsolate;
+
+  /// 送る直前に、送る画像（顔ぼかし後の JPEG）を渡す。開発者モードの「送った画像を保存」用。
+  /// 既定は null（何もしない＝画像はメモリの中だけ）。
+  final void Function(String searchId, Uint8List jpeg)? onSend;
 
   final CameraSource camera;
   final FaceFinder faces;
@@ -97,6 +102,11 @@ class VisualSearcher {
       context: context,
     ).toJson();
     onPhase?.call(SearchPhase.sending);
+    try {
+      onSend?.call(c.searchId, jpeg);
+    } catch (_) {
+      // 保存の失敗で検索を止めない
+    }
     final res = await post(body);
     if (res.error != null) return VisualFailed(res.error!);
     try {

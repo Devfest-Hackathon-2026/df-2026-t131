@@ -50,18 +50,40 @@ final class DataSource {
 final class ImageQuality {
   final double blur;
   final double brightness;
-  ImageQuality._({required this.blur, required this.brightness});
-  factory ImageQuality({required double blur, required double brightness}) =>
-      ImageQuality.fromJson({"blur": blur, "brightness": brightness});
+
+  /// 画像の下の方（路面）に横断歩道の縞模様が写っている度合い（0〜1。任意。11/7 追加）。
+  /// mobile が端末の中で計算する。古いログ・計算しない端末では null（地図だけで判定する）。
+  final double? crosswalk;
+  ImageQuality._({
+    required this.blur,
+    required this.brightness,
+    required this.crosswalk,
+  });
+  factory ImageQuality({
+    required double blur,
+    required double brightness,
+    double? crosswalk,
+  }) => ImageQuality.fromJson({
+    "blur": blur,
+    "brightness": brightness,
+    if (crosswalk != null) "crosswalk": crosswalk,
+  });
   factory ImageQuality.fromJson(Map<String, dynamic> json) {
-    wireKeys(json, ["blur", "brightness"], ["blur", "brightness"]);
+    wireKeys(json, ["blur", "brightness"], ["blur", "brightness", "crosswalk"]);
     final result = ImageQuality._(
       blur: wireDouble(json["blur"], "blur", min: 0, max: 1),
       brightness: wireDouble(json["brightness"], "brightness", min: 0, max: 1),
+      crosswalk: json.containsKey("crosswalk")
+          ? wireDouble(json["crosswalk"], "crosswalk", min: 0, max: 1)
+          : null,
     );
     return result;
   }
-  Map<String, dynamic> toJson() => {"blur": blur, "brightness": brightness};
+  Map<String, dynamic> toJson() => {
+    "blur": blur,
+    "brightness": brightness,
+    if (crosswalk != null) "crosswalk": crosswalk,
+  };
 }
 
 final class Departure {
@@ -1158,11 +1180,12 @@ final class SearchContext {
     this.nearLandmark,
   });
   factory SearchContext.fromJson(Map<String, dynamic> json) {
-    wireKeys(
-      json,
-      const [],
-      const ["captured_at", "trigger", "town", "near_landmark"],
-    );
+    wireKeys(json, const [], const [
+      "captured_at",
+      "trigger",
+      "town",
+      "near_landmark",
+    ]);
     return SearchContext(
       capturedAt: json["captured_at"] == null
           ? null

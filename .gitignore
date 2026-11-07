@@ -72,3 +72,6 @@ Thumbs.db
 # mobile のビルド設定（APP_TOKEN を含む。見本の real.example.json だけ管理する）
 app/mobile/env/*.json
 !app/mobile/env/*.example.json
+
+# 歩行ログ（位置を含む。コミットしない）
+docs/log/

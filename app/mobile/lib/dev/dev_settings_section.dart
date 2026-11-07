@@ -93,6 +93,52 @@ class _DevSettingsSectionState extends State<DevSettingsSection> {
             title: const Text('向きを進行方向に合わせる'),
             subtitle: const Text('オフにすると、端末の向き（本物のセンサー）を使います。'),
           ),
+          ValueListenableBuilder(
+            valueListenable: widget.services.settings,
+            builder: (context, s, _) => SwitchListTile(
+              value: s.demoAlertNearLovers,
+              onChanged: (v) => widget.services.updateSettings(
+                s.copyWith(demoAlertNearLovers: v),
+              ),
+              secondary: const Icon(Icons.warning_amber_outlined),
+              title: const Text('ラバーズ像に近づいたらデモの警報を流す（割り込みの確認用）'),
+              subtitle: const Text(
+                '計測中にラバーズ像の話が始まるか範囲に入ったら、3秒後に「デモの警報」（レベル4）を'
+                '本物の警報と同じ入口から流します。話している途中なら割り込みます。1回の計測で1回だけです。'
+                '文の中で「実際の警報ではありません」と言います。',
+              ),
+            ),
+          ),
+          ValueListenableBuilder(
+            valueListenable: widget.services.settings,
+            builder: (context, s, _) => SwitchListTile(
+              value: s.retellLandmarks,
+              onChanged: (v) => widget.services.updateSettings(
+                s.copyWith(retellLandmarks: v),
+              ),
+              secondary: const Icon(Icons.replay),
+              title: const Text('通ったランドマークをもう一度話す（検証用）'),
+              subtitle: const Text(
+                '一度話したランドマーク・エリアも、範囲から離れてもう一度近づいたら話します。'
+                '同じ道を往復して試すとき用です。次の「計測開始」から効きます。開発者モードを閉じると元に戻ります。',
+              ),
+            ),
+          ),
+          ValueListenableBuilder(
+            valueListenable: widget.services.settings,
+            builder: (context, s, _) => SwitchListTile(
+              value: s.saveSentImages,
+              onChanged: (v) =>
+                  widget.services.updateSettings(s.copyWith(saveSentImages: v)),
+              secondary: const Icon(Icons.photo_library_outlined),
+              title: const Text('AI に送った画像を保存する（検証用）'),
+              subtitle: const Text(
+                '計測中に画像検索で送った画像（顔をぼかしたあと）を、歩行ログの隣の '
+                'walk_〇〇_images/ に「検索 ID.jpg」で保存します。開発者モードを閉じると保存しません。'
+                '歩行ログを消すと一緒に消えます。人の写った画像は人に渡さないでください。',
+              ),
+            ),
+          ),
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Align(

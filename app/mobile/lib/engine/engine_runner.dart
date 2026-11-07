@@ -112,6 +112,7 @@ class EngineRunner {
             : eng.ImageQuality(
                 blur: q.blur.clamp(0.0, 1.0),
                 brightness: q.brightness.clamp(0.0, 1.0),
+                crosswalk: q.crosswalk?.clamp(0.0, 1.0),
               ),
       ),
       log: false, // sensor 行は SessionController が書いている

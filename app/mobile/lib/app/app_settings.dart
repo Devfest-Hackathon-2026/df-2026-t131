@@ -28,6 +28,9 @@ class AppSettings {
     this.visualSearchEnabled = true,
     this.voice = VoicePreset.zunda,
     this.developerMode = false,
+    this.saveSentImages = false,
+    this.retellLandmarks = false,
+    this.demoAlertNearLovers = false,
   });
 
   /// B（視界の定期検索：撮影して画像で調べる）を使うか。
@@ -38,14 +41,40 @@ class AppSettings {
   /// 開発者モード（フェイク GPS など）を設定画面に出すか。
   final bool developerMode;
 
+  /// 開発者モードのときだけ：AI に送った画像（顔ぼかし後）を、歩行ログの隣に保存する（検証用。11/7）。
+  /// 既定はオフ。開発者モードを閉じると保存しない。歩行ログを消すと一緒に消える。
+  final bool saveSentImages;
+
+  /// 開発者モードのときだけ：一度話したランドマークも、離れてからもう一度近づいたら話す（検証用。11/7）。
+  /// 計測開始のときの値を使う（計測中に変えたら、次の計測開始から効く）。
+  final bool retellLandmarks;
+
+  /// 開発者モードのときだけ：ラバーズ像（lm_0006）に近づいたら、デモの警報（レベル4）を流す
+  /// （割り込みの確認用。11/7）。1回の計測で1回だけ。
+  final bool demoAlertNearLovers;
+
+  bool get demoAlertingNearLovers => developerMode && demoAlertNearLovers;
+
+  /// 実際にもう一度話すか（開発者モードで、かつオンのとき）。
+  bool get retellingLandmarks => developerMode && retellLandmarks;
+
+  /// 実際に保存するか（開発者モードで、かつオンのとき）。
+  bool get savingSentImages => developerMode && saveSentImages;
+
   AppSettings copyWith({
     bool? visualSearchEnabled,
     VoicePreset? voice,
     bool? developerMode,
+    bool? saveSentImages,
+    bool? retellLandmarks,
+    bool? demoAlertNearLovers,
   }) => AppSettings(
     visualSearchEnabled: visualSearchEnabled ?? this.visualSearchEnabled,
     voice: voice ?? this.voice,
     developerMode: developerMode ?? this.developerMode,
+    saveSentImages: saveSentImages ?? this.saveSentImages,
+    retellLandmarks: retellLandmarks ?? this.retellLandmarks,
+    demoAlertNearLovers: demoAlertNearLovers ?? this.demoAlertNearLovers,
   );
 
   Map<String, Object?> toJson() => {
@@ -53,6 +82,9 @@ class AppSettings {
     'visual_search_enabled': visualSearchEnabled,
     'voice': voice.name,
     'developer_mode': developerMode,
+    'save_sent_images': saveSentImages,
+    'retell_landmarks': retellLandmarks,
+    'demo_alert_near_lovers': demoAlertNearLovers,
   };
 
   /// 壊れた値・知らない値は既定値に戻す（古い設定ファイルでも起動できるように）。
@@ -62,6 +94,9 @@ class AppSettings {
         : true,
     voice: VoicePreset.fromName(json['voice']),
     developerMode: json['developer_mode'] == true,
+    saveSentImages: json['save_sent_images'] == true,
+    retellLandmarks: json['retell_landmarks'] == true,
+    demoAlertNearLovers: json['demo_alert_near_lovers'] == true,
   );
 
   @override
@@ -69,10 +104,20 @@ class AppSettings {
       other is AppSettings &&
       other.visualSearchEnabled == visualSearchEnabled &&
       other.voice == voice &&
-      other.developerMode == developerMode;
+      other.developerMode == developerMode &&
+      other.saveSentImages == saveSentImages &&
+      other.retellLandmarks == retellLandmarks &&
+      other.demoAlertNearLovers == demoAlertNearLovers;
 
   @override
-  int get hashCode => Object.hash(visualSearchEnabled, voice, developerMode);
+  int get hashCode => Object.hash(
+    visualSearchEnabled,
+    voice,
+    developerMode,
+    saveSentImages,
+    retellLandmarks,
+    demoAlertNearLovers,
+  );
 }
 
 /// 設定の保存先。テストではメモリ版、アプリではファイル版を使う。

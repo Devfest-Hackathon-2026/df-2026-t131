@@ -46,9 +46,12 @@ class WalkLogStore {
   }
 
   /// 消したら true。記録中のファイルは消さない。
+  /// 開発者モードで保存した、送った画像のフォルダ（[sentImagesDir]）も一緒に消す。
   Future<bool> delete(WalkLogInfo log) async {
     if (isInUse(log)) return false;
     if (await log.file.exists()) await log.file.delete();
+    final images = sentImagesDir(log.file);
+    if (await images.exists()) await images.delete(recursive: true);
     return true;
   }
 
@@ -66,4 +69,14 @@ String formatBytes(int b) {
   if (b < 1024) return '$b B';
   if (b < 1024 * 1024) return '${(b / 1024).toStringAsFixed(0)} KB';
   return '${(b / 1024 / 1024).toStringAsFixed(1)} MB';
+}
+
+/// 歩行ログ `walk_〇〇.jsonl` に対応する、AI に送った画像（顔ぼかし後）の置き場所
+/// `walk_〇〇_images/`（開発者モードで保存をオンにしたときだけ作る）。画像の名前は `<検索 ID>.jpg`。
+Directory sentImagesDir(File walkLog) {
+  final path = walkLog.path;
+  final base = path.endsWith('.jsonl')
+      ? path.substring(0, path.length - '.jsonl'.length)
+      : path;
+  return Directory('${base}_images');
 }

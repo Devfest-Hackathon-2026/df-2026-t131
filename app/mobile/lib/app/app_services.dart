@@ -123,6 +123,7 @@ class AppServices {
             camera: camera,
             faces: faces,
             post: this.api.postVisualSearch,
+            onSend: _saveSentImage,
           );
     // 画像検索をオフにしたら、声の聞き取りも止める
     settings.addListener(_syncVoice);
@@ -321,12 +322,18 @@ class AppServices {
   Map<String, String> reasonText = const {};
 
   void _startEngine() {
+    _demoAlertArmed = false;
+    _demoAlertTimer?.cancel();
     final r = _runner = EngineRunner(
       speaker: speaker,
       tiles: tiles,
       record: session.recordRow,
       searcher: searcher,
       searchEnabled: () => settings.value.visualSearchEnabled,
+      // 開発者モードの「通ったランドマークをもう一度話す」は計測開始のときの値を使う
+      config: eng.EngineConfig(
+        retellOnRevisit: settings.value.retellingLandmarks,
+      ),
     );
     _engineSub = ticker.snapshots.listen((s) {
       _lastGazeAz = s.gaze.azDeg;
@@ -501,6 +508,7 @@ class AppServices {
   }
 
   Future<void> _stopEngine() async {
+    _demoAlertTimer?.cancel();
     await _engineSub?.cancel();
     _engineSub = null;
     final r = _runner;
@@ -520,7 +528,48 @@ class AppServices {
   double _lastGazeAz = 0;
 
   /// engine の「いまの状態」を、グラス視点の画面の表示に直す。
+  // ---- 開発者モード：ラバーズ像に近づいたらデモの警報（割り込みの確認用。11/7） ----
+
+  /// デモの警報を出すランドマーク（ラバーズ像）。
+  static const demoAlertLandmarkId = 'lm_0006';
+
+  /// 近づいてから警報を流すまでの間（A の話の途中で割り込むのを見るため）。
+  static const demoAlertDelay = Duration(seconds: 3);
+
+  /// この計測でデモの警報を出したか（出す予定を立てたか）。計測開始で戻す。
+  bool _demoAlertArmed = false;
+  Timer? _demoAlertTimer;
+
+  /// ラバーズ像の話が始まった、または範囲に入ったら、[demoAlertDelay] 後にデモの警報を流す。
+  /// 本物の警報と同じ入口（[AlertSource.receive]）から流すので、表示・記録・割り込みの判断も同じ。
+  void _maybeDemoAlert(EngineRunner r) {
+    if (_demoAlertArmed || !settings.value.demoAlertingNearLovers) return;
+    final d = r.lastDecision.value;
+    final speaking =
+        d != null && d.kind == 'speak' && d.targetId == demoAlertLandmarkId;
+    final near = r.engine.nearLandmark?.id == demoAlertLandmarkId;
+    if (!speaking && !near) return;
+    _demoAlertArmed = true;
+    _demoAlertTimer = Timer(demoAlertDelay, () {
+      if (_runner == null) return;
+      final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+      alerts.receive({
+        'schema_version': '0.3',
+        'type': 'alert',
+        'alert_id': 'demo_lovers_$now',
+        'level': '4',
+        'kind': '大雨危険警報（デモ）',
+        'area_code': '1620100',
+        'area_name': '富山市',
+        'text':
+            'これは確認用のデモの警報です。実際の警報ではありません。'
+            '警戒レベル4の警報は、話している途中でも割り込んでお知らせします。',
+      });
+    });
+  }
+
   void _updateOverlayFromEngine(EngineRunner r) {
+    _maybeDemoAlert(r);
     final v = r.view.value;
     final d = r.lastDecision.value;
     final wasZone = overlay.value.noCameraZoneName;
@@ -637,6 +686,21 @@ class AppServices {
 
   /// 試し聞きの group（新しい試し聞きが来たら古い方を捨てる）。
   static const previewGroup = 'preview';
+
+  /// 開発者モードで「送った画像を保存」がオンのとき、記録中の歩行ログの隣に保存する（検証用）。
+  /// 記録していないとき・オフのときは何もしない。保存に失敗しても検索は続ける。
+  void _saveSentImage(String searchId, Uint8List jpeg) {
+    if (!settings.value.savingSentImages) return;
+    final log = session.recordingFile;
+    if (log == null) return;
+    unawaited(() async {
+      try {
+        final dir = sentImagesDir(log);
+        await dir.create(recursive: true);
+        await File('${dir.path}/$searchId.jpg').writeAsBytes(jpeg, flush: true);
+      } catch (_) {}
+    }());
+  }
 
   Future<void> updateSettings(AppSettings next) async {
     settings.value = next;

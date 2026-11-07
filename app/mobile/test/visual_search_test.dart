@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show FileSystemException;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -204,6 +205,40 @@ void main() {
       expect(sent!['candidate_ids'], ['lm_0001']);
       final jpeg = base64Decode(sent!['image_jpeg_base64'] as String);
       expect(img.decodeJpg(jpeg), isNotNull);
+    });
+
+    test('onSend には、送るのと同じ画像（顔ぼかし後の JPEG）が送る前に渡る', () async {
+      String? savedId;
+      Uint8List? saved;
+      Map<String, dynamic>? sent;
+      final s = VisualSearcher(
+        camera: FakeCamera(noiseFrame(640, 480)),
+        faces: FakeFaces(faces: const [FaceBox(10, 10, 50, 50)]),
+        post: (body) async {
+          sent = body;
+          expect(saved, isNotNull); // 送る前に渡っている
+          return (json: unknownJson('s_1'), error: null);
+        },
+        encode: (input) async => encodeSearchJpeg(input),
+        onSend: (id, jpeg) {
+          savedId = id;
+          saved = jpeg;
+        },
+      );
+      await s.run(command());
+      expect(savedId, 's_1');
+      expect(base64Encode(saved!), sent!['image_jpeg_base64']);
+    });
+
+    test('onSend が失敗しても検索は続ける', () async {
+      final s = VisualSearcher(
+        camera: FakeCamera(noiseFrame(640, 480)),
+        faces: FakeFaces(),
+        post: (body) async => (json: unknownJson('s_1'), error: null),
+        encode: (input) async => encodeSearchJpeg(input),
+        onSend: (_, _) => throw const FileSystemException('full'),
+      );
+      expect(await s.run(command()), isA<VisualAnswered>());
     });
 
     test('撮影 → 顔ぼかし → 送信の順に、画面の札へ段階を知らせる', () async {

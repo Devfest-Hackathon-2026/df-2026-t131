@@ -27,6 +27,12 @@ $apk = 'build/app/outputs/flutter-apk/app-release.apk'
 Write-Host "できた APK: $apk"
 
 if ($Install) {
-  flutter install --release --use-application-binary=$apk
+  # flutter install は古い版を消してから入れる（設定・歩行ログも消える）ので、adb で上書きする
+  $adb = Join-Path $env:LOCALAPPDATA 'Android/Sdk/platform-tools/adb.exe'
+  if (-not (Test-Path $adb)) { $adb = 'adb' }
+  # 使える状態（device）の端末だけを選ぶ（オフラインのエミュレーターがあっても入れられるように）
+  $devices = @(& $adb devices | Select-Object -Skip 1 | Where-Object { $_ -match '	device$' } | ForEach-Object { ($_ -split '	')[0] })
+  if ($devices.Count -ne 1) { throw "使える端末が $($devices.Count) 台です。1台だけつないでください" }
+  & $adb -s $devices[0] install -r $apk
   if ($LASTEXITCODE -ne 0) { throw '端末に入れられませんでした' }
 }

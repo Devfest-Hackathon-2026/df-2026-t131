@@ -34,7 +34,11 @@ Map<String, Object?> sensorRowJson(SensorSnapshot s) {
       'tts_speaking': s.ttsSpeaking,
       'image_quality': q == null
           ? null
-          : {'blur': q.blur, 'brightness': q.brightness},
+          : {
+              'blur': q.blur,
+              'brightness': q.brightness,
+              if (q.crosswalk != null) 'crosswalk': q.crosswalk,
+            },
     },
   };
 }

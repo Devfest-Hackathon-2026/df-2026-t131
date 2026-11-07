@@ -599,4 +599,163 @@ void main() {
       expect(reasonCodes, contains(d.reason));
     }
   });
+
+  group('横断歩道：地図＋画像の縞模様・渡っている間の延期（11/7）', () {
+    ImageQuality clear(int _) =>
+        ImageQuality(blur: 1, brightness: 0.8, crosswalk: 0);
+    ImageQuality Function(int) stripes(int from, int to) =>
+        (sec) => ImageQuality(
+          blur: 1,
+          brightness: 0.8,
+          crosswalk: sec >= from && sec <= to ? 0.9 : 0,
+        );
+    final lm = landmark('lm_0001', -60, -18);
+
+    test('地図に無くても、画像に縞模様が写っている間（と3秒）は話さない', () {
+      final sim = Sim()
+        ..run(
+          120,
+          quality: stripes(20, 45),
+          extra: {
+            1: [
+              tiles(1, [lm]),
+            ],
+          },
+        );
+      expect(sim.withReason('skip:crossing_ahead'), isNotEmpty);
+      final (t, _) = sim.speaks.first;
+      expect(sim.secOf(t), greaterThanOrEqualTo(48));
+    });
+
+    test('地図の横断歩道が8〜15m 先でも、画像で縞模様が写らない状態が続けば止めない', () {
+      // 進む道から横へ10m の横断歩道（8m より近づかない）
+      final crossing = Crossing(
+        id: 'cr_0001',
+        lat: latAt(-45),
+        lon: lonAt(10),
+        kind: 'crossing',
+      );
+      Sim walk(ImageQuality? Function(int)? quality) => Sim()
+        ..run(
+          120,
+          quality: quality,
+          extra: {
+            1: [
+              tiles(1, [lm], crossings: [crossing]),
+            ],
+          },
+        );
+      // 縞模様の値が無い（古いログ）→ 前と同じく地図の15m で止まる
+      expect(walk(null).withReason('skip:crossing_ahead'), isNotEmpty);
+      expect(walk(clear).withReason('skip:crossing_ahead'), isEmpty);
+    });
+
+    test('地図の横断歩道が8m 以内の前にあれば、画像に写っていなくても止める', () {
+      final crossing = Crossing(
+        id: 'cr_0001',
+        lat: latAt(-40),
+        lon: lonAt(0),
+        kind: 'traffic_signals',
+      );
+      final sim = Sim()
+        ..run(
+          120,
+          quality: clear,
+          extra: {
+            1: [
+              tiles(1, [lm], crossings: [crossing]),
+            ],
+          },
+        );
+      expect(sim.withReason('skip:crossing_ahead'), isNotEmpty);
+    });
+
+    test('渡っている間に通り過ぎたランドマークは、捨てずに渡り終えてから話す（方向の一言なし）', () {
+      final sim = Sim()
+        ..run(
+          150,
+          quality: stripes(20, 80),
+          extra: {
+            1: [
+              tiles(1, [lm]),
+            ],
+          },
+        );
+      final after = sim.withReason('speak:after_crossing').toList();
+      expect(after, hasLength(1));
+      expect(sim.secOf(after.single.tMs), greaterThanOrEqualTo(83));
+      expect(after.single.text, lm.scriptShort);
+      expect(sim.withReason('skip:expired'), isEmpty);
+      expect(sim.speaks, hasLength(1)); // 2回は話さない
+    });
+
+    test('渡り終えたときに遠く離れすぎていたら、延期した話は捨てる', () {
+      final sim = Sim()
+        ..run(
+          200,
+          quality: stripes(20, 160),
+          extra: {
+            1: [
+              tiles(1, [lm]),
+            ],
+          },
+        );
+      expect(sim.withReason('speak:after_crossing'), isEmpty);
+      expect(sim.withReason('skip:expired'), hasLength(1));
+      expect(sim.speaks, isEmpty);
+    });
+
+    test('今流れている話は、横断歩道に来ても止めない', () {
+      // 最接近で話し始めた直後に縞模様が写る
+      final sim = Sim()
+        ..run(
+          120,
+          quality: stripes(35, 60),
+          extra: {
+            1: [
+              tiles(1, [lm]),
+            ],
+          },
+        );
+      expect(sim.speaks.every((s) => !s.$2.interrupt), isTrue);
+    });
+  });
+
+  group('開発者モード：通ったランドマークをもう一度話す（11/7）', () {
+    // 南へ80m 歩いて石碑を通り過ぎ、北へ戻って、また南へ通る
+    Pose there(int sec) {
+      if (sec <= 80)
+        return (north: -1.3 * sec, east: 0, speed: 1.3, course: 180);
+      if (sec <= 160) {
+        return (north: -104 + 1.3 * (sec - 80), east: 0, speed: 1.3, course: 0);
+      }
+      return (north: -1.3 * (sec - 160), east: 0, speed: 1.3, course: 180);
+    }
+
+    final lm = landmark('lm_0001', -60, -18);
+    int told(EngineConfig config) =>
+        (Sim(config)..run(
+              240,
+              pose: there,
+              extra: {
+                1: [
+                  tiles(1, [lm]),
+                ],
+              },
+            ))
+            .speaks
+            .where((s) => s.$2.text.contains(lm.scriptShort))
+            .length;
+
+    test('既定では2回目に近づいても話さない', () {
+      expect(told(const EngineConfig()), 1);
+    });
+
+    test('retellOnRevisit なら、離れてからもう一度近づくと話す', () {
+      expect(
+        told(const EngineConfig(retellOnRevisit: true)),
+        greaterThanOrEqualTo(2),
+      );
+    });
+  });
 }
