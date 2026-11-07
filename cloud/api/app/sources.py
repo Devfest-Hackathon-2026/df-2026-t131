@@ -102,8 +102,10 @@ class SqliteTileSource:
             item = json.loads(js)
             if not area and tile_of(item["lat"], item["lon"]) != (x, y):
                 continue
-            if kind == "landmark" and not self._include_shapes:
-                item.pop("shape", None)
+            if kind == "landmark":
+                item.pop("aliases", None)  # 別名は B の名前の照合だけに使う（サーバーの中だけ。engine は読まない）
+                if not self._include_shapes:
+                    item.pop("shape", None)
             out[self._KEYS[kind]].append(item)
         # 区域のあるタイルにだけ zones を付ける（11/7）。zones を読めない古い engine のアプリでも、
         # 区域の無いタイルは今までどおり読めるようにするため（壊れるのは区域のあるタイルだけに限る）

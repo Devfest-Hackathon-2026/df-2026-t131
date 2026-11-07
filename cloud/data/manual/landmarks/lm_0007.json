@@ -3,6 +3,10 @@
   "id": "lm_0007",
   "name": "YKK AP ARENA",
   "name_kana": "わいけーけーえーぴー ありーな",
+  "aliases": [
+    "富山市総合体育館",
+    "富山市まちなかアリーナ"
+  ],
   "lat": 36.70675,
   "lon": 137.214056,
   "kind": "building",

@@ -600,18 +600,26 @@ void main() {
     }
   });
 
-  group('横断歩道：地図＋画像の縞模様・渡っている間の延期（11/7）', () {
-    ImageQuality clear(int _) =>
-        ImageQuality(blur: 1, brightness: 0.8, crosswalk: 0);
+  group('横断歩道：地図だけで判定・渡っている間の延期（11/7）', () {
     ImageQuality Function(int) stripes(int from, int to) =>
         (sec) => ImageQuality(
           blur: 1,
           brightness: 0.8,
           crosswalk: sec >= from && sec <= to ? 0.9 : 0,
         );
+    // 南へ歩く道の上に、北 [from]〜[to] m の間 10m ごとに横断歩道を置く（その間ずっと「手前」になる）
+    List<Crossing> along(int from, int to) => [
+      for (var n = from, i = 1; n >= to; n -= 10, i++)
+        Crossing(
+          id: 'cr_${i.toString().padLeft(4, '0')}',
+          lat: latAt(n.toDouble()),
+          lon: lonAt(0),
+          kind: 'crossing',
+        ),
+    ];
     final lm = landmark('lm_0001', -60, -18);
 
-    test('地図に無くても、画像に縞模様が写っている間（と3秒）は話さない', () {
+    test('画像に縞模様が写っても、地図に横断歩道が無ければ止めない（11/7 夜に画像の判定を外した）', () {
       final sim = Sim()
         ..run(
           120,
@@ -622,35 +630,11 @@ void main() {
             ],
           },
         );
-      expect(sim.withReason('skip:crossing_ahead'), isNotEmpty);
-      final (t, _) = sim.speaks.first;
-      expect(sim.secOf(t), greaterThanOrEqualTo(48));
+      expect(sim.withReason('skip:crossing_ahead'), isEmpty);
+      expect(sim.withReason('speak:closest_approach'), hasLength(1));
     });
 
-    test('地図の横断歩道が8〜15m 先でも、画像で縞模様が写らない状態が続けば止めない', () {
-      // 進む道から横へ10m の横断歩道（8m より近づかない）
-      final crossing = Crossing(
-        id: 'cr_0001',
-        lat: latAt(-45),
-        lon: lonAt(10),
-        kind: 'crossing',
-      );
-      Sim walk(ImageQuality? Function(int)? quality) => Sim()
-        ..run(
-          120,
-          quality: quality,
-          extra: {
-            1: [
-              tiles(1, [lm], crossings: [crossing]),
-            ],
-          },
-        );
-      // 縞模様の値が無い（古いログ）→ 前と同じく地図の15m で止まる
-      expect(walk(null).withReason('skip:crossing_ahead'), isNotEmpty);
-      expect(walk(clear).withReason('skip:crossing_ahead'), isEmpty);
-    });
-
-    test('地図の横断歩道が8m 以内の前にあれば、画像に写っていなくても止める', () {
+    test('地図の横断歩道が15m 以内の前にあれば、画像に写っていなくても止める', () {
       final crossing = Crossing(
         id: 'cr_0001',
         lat: latAt(-40),
@@ -660,7 +644,6 @@ void main() {
       final sim = Sim()
         ..run(
           120,
-          quality: clear,
           extra: {
             1: [
               tiles(1, [lm], crossings: [crossing]),
@@ -674,16 +657,15 @@ void main() {
       final sim = Sim()
         ..run(
           150,
-          quality: stripes(20, 80),
           extra: {
             1: [
-              tiles(1, [lm]),
+              tiles(1, [lm], crossings: along(-40, -110)),
             ],
           },
         );
       final after = sim.withReason('speak:after_crossing').toList();
       expect(after, hasLength(1));
-      expect(sim.secOf(after.single.tMs), greaterThanOrEqualTo(83));
+      expect(sim.secOf(after.single.tMs), greaterThanOrEqualTo(80));
       expect(after.single.text, lm.scriptShort);
       expect(sim.withReason('skip:expired'), isEmpty);
       expect(sim.speaks, hasLength(1)); // 2回は話さない
@@ -693,10 +675,9 @@ void main() {
       final sim = Sim()
         ..run(
           200,
-          quality: stripes(20, 160),
           extra: {
             1: [
-              tiles(1, [lm]),
+              tiles(1, [lm], crossings: along(-40, -210)),
             ],
           },
         );
@@ -706,14 +687,12 @@ void main() {
     });
 
     test('今流れている話は、横断歩道に来ても止めない', () {
-      // 最接近で話し始めた直後に縞模様が写る
       final sim = Sim()
         ..run(
           120,
-          quality: stripes(35, 60),
           extra: {
             1: [
-              tiles(1, [lm]),
+              tiles(1, [lm], crossings: along(-55, -80)),
             ],
           },
         );

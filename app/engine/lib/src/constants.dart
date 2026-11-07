@@ -57,20 +57,6 @@ final class EngineConfig {
   // ---- B の発火タイミング（伝言「B_発火タイミングの論点」で11/5に決めた。実機で調整する）----
 
   /// B の答えが届くまでの見込み（撮影→送信→Gemini 2〜3秒→受信）。
-  /// 横断歩道の判定（地図＋画像。11/7）。地図の横断歩道がこれ以内の前にあれば、画像に関係なく手前とみなす
-  /// （GPS がずれていても近いので安全側）。
-  final double crossingNearM;
-
-  /// 画像の縞模様（ImageQuality.crosswalk）がこれ以上なら「横断歩道が写っている」とみなす。
-  final double crossingVisualMinScore;
-
-  /// 縞模様が写ったあと、これだけの間は手前とみなし続ける（地図に無い・位置がずれた横断歩道も拾う）。
-  final int crossingVisualHoldMs;
-
-  /// 地図の横断歩道が [crossingNearM]〜[crossingDistanceM] にあっても、画質が足りる画像で
-  /// 縞模様が写らない状態がこれだけ続いたら、手前とはみなさない（GPS のずれで止まりすぎるのを防ぐ）。
-  final int crossingVisualClearMs;
-
   /// 横断歩道で延期した A の話は、そのランドマークから（半径＋この距離）より離れたら話さずに捨てる
   /// （渡り終えたあと、もう見えないものを話さないため）。
   final double crossingDeferMarginM;
@@ -144,10 +130,6 @@ final class EngineConfig {
     this.maxSearchesPerWalk,
     this.fastWalkingMps = 1.8,
     this.crossingDistanceM = 15,
-    this.crossingNearM = 8,
-    this.crossingVisualMinScore = 0.5,
-    this.crossingVisualHoldMs = 3000,
-    this.crossingVisualClearMs = 2000,
     this.crossingDeferMarginM = 100,
     this.minBlur = 0.5,
     this.minBrightness = 0.2,

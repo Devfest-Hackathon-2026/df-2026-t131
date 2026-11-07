@@ -3,6 +3,9 @@
   "id": "lm_0004",
   "name": "富山県美術館",
   "name_kana": "とやまけんびじゅつかん",
+  "aliases": [
+    "TAD"
+  ],
   "lat": 36.710852,
   "lon": 137.210183,
   "kind": "building",

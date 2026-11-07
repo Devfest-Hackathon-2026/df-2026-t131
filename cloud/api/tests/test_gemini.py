@@ -48,7 +48,7 @@ class FakeClient:
 
 
 def ans(**kw):
-    return {"result": "unknown", "landmark_id": None, "object_name": None, "named": False,
+    return {"worth_telling": True, "result": "unknown", "landmark_id": None, "object_name": None, "named": False,
             "description": None, "confidence": 0.9} | kw
 
 
@@ -218,21 +218,36 @@ def test_prompt_lists_parts():
     assert "whole（全体）" in prompt and "railing（欄干・手すり）" in prompt and "{parts}" not in prompt
 
 
-# ---- ありふれたものは話さない（11/6 夜）----
+# ---- 話す価値があるものだけ話す（11/6 夜はありふれたもの、11/7 夜に逆の聞き方へ）----
 
-def test_commonplace_true_becomes_unknown():
-    assert pp(ans(commonplace=True, result="unlisted", object_name="緑の箱", description="緑色の箱が並んでいます。"))["result"] == "unknown"
-    assert pp(ans(commonplace=True, result="matched", landmark_id="lm_0001", part="window",
+def test_not_worth_telling_becomes_unknown():
+    assert pp(ans(worth_telling=False, result="unlisted", object_name="緑の箱", description="緑色の箱が並んでいます。"))["result"] == "unknown"
+    assert pp(ans(worth_telling=False, result="matched", landmark_id="lm_0001", part="window",
                   description="窓が大きいです。"))["result"] == "unknown"
 
 
-def test_commonplace_false_or_missing_keeps_answer():
-    assert pp(ans(commonplace=False, result="unlisted", object_name="木造の蔵", description="黒い瓦の蔵です。"))["result"] == "unlisted"
+def test_worth_telling_missing_becomes_unknown():
+    # 答えていないときは話さない（迷ったら false の決まりと同じ側）
+    a = ans(result="unlisted", object_name="木造の蔵", description="黒い瓦の蔵です。")
+    del a["worth_telling"]
+    assert pp(a)["result"] == "unknown"
+
+
+def test_worth_telling_true_keeps_answer():
     assert pp(ans(result="unlisted", object_name="木造の蔵", description="黒い瓦の蔵です。"))["result"] == "unlisted"
 
 
-@pytest.mark.parametrize("name", ["自動販売機", "雪の積もった駐車場", "ふつうの街路樹", "コンビニ"])
+def test_matched_whole_is_kept_even_if_not_worth_telling():
+    # 全体は B では話さず A に任せる（engine が見送る）ので、価値の判定に関係なく matched・whole のまま
+    r = pp(ans(worth_telling=False, result="matched", landmark_id="lm_0001", part="whole"))
+    assert r["result"] == "matched" and r["part"] == "whole"
+
+
+@pytest.mark.parametrize("name", ["自動販売機", "雪の積もった駐車場", "ふつうの街路樹", "コンビニ",
+                                  "衝撃吸収クッションドラム", "シェアサイクルのポート", "散策路に埋め込まれたフットライト",
+                                  "点字ブロック", "赤い幟旗"])
 def test_commonplace_generic_names_become_unknown(name):
+    # 11/7 夜に実機で話してしまったもの（クッションドラム・シェアサイクル・フットライトなど）も止める
     assert pp(ans(result="unlisted", object_name=name, named=False, description="緑色の本体が並んでいます。"))["result"] == "unknown"
 
 
@@ -241,10 +256,73 @@ def test_named_object_is_not_blocked_by_generic_words():
     assert r["result"] == "unlisted" and r["object_name"] == "旧森田家住宅"
 
 
-def test_response_schema_asks_commonplace_first():
+def test_response_schema_asks_worth_telling_first():
     from app.gemini import RESPONSE_SCHEMA
-    assert "commonplace" in RESPONSE_SCHEMA["required"]
-    assert RESPONSE_SCHEMA["propertyOrdering"][0] == "commonplace"
+    assert "worth_telling" in RESPONSE_SCHEMA["required"] and "commonplace" not in RESPONSE_SCHEMA["properties"]
+    assert RESPONSE_SCHEMA["propertyOrdering"][0] == "worth_telling"
+
+
+def test_prompt_asks_worth_and_name_rules():
+    c = FakeClient(ans())
+    GeminiVisualSearch(S, FakeTileSource(), client=c).search(request())
+    prompt = c.calls[0].contents[1]
+    assert "worth_telling" in prompt and "迷ったら false" in prompt
+    assert "つなげて名前を作らない" in prompt and "commonplace" not in prompt
+
+
+# ---- 名前：登録した場所の名前・別名（11/7 夜）----
+
+def _names(*lms):
+    from app.gemini import registered_names
+    return registered_names(list(lms))
+
+
+ARENA = {"id": "lm_0001", "name": "YKK AP ARENA", "aliases": ["富山市総合体育館", "富山市まちなかアリーナ"]}
+STATION = {"id": "lm_0003", "name": "富山駅"}
+
+
+def _pp_names(answer, cands, names):
+    text = json.dumps(answer, ensure_ascii=False)
+    return valid(postprocess(text, "s_000001", list(cands), [], S, names=names))
+
+
+def test_unlisted_with_alias_of_candidate_becomes_matched():
+    r = _pp_names(ans(result="unlisted", object_name="富山市総合体育館", named=True, part="sign",
+                      description="壁に銀色の立体的な文字が掲げられています。"), ("lm_0001",), _names(ARENA))
+    assert r["result"] == "matched" and r["landmark_id"] == "lm_0001" and r["part"] == "sign"
+    assert r["description"].startswith("壁に銀色")
+
+
+def test_unlisted_with_registered_name_not_in_candidates_is_dropped():
+    # 視線の外の登録地点の名前（古い名前を含む）は B で話さない（全体の紹介は A が行う）
+    r = _pp_names(ans(result="unlisted", object_name="富山駅", named=True, part="whole",
+                      description="大きな駅舎です。"), ("lm_0001",), _names(ARENA, STATION))
+    assert r["result"] == "unknown"
+
+
+def test_name_matching_ignores_width_and_spaces():
+    r = _pp_names(ans(result="unlisted", object_name="ＹＫＫ　ＡＰ　ＡＲＥＮＡ", named=True, part="whole"),
+                  ("lm_0001",), _names(ARENA))
+    assert r["result"] == "matched" and r["part"] == "whole"
+
+
+def test_other_names_are_untouched():
+    r = _pp_names(ans(result="unlisted", object_name="天門橋", named=True, part="whole",
+                      description="運河をまたぐ大きな橋です。"), ("lm_0001",), _names(ARENA, STATION))
+    assert r["result"] == "unlisted" and r["object_name"] == "天門橋"
+
+
+def test_prompt_lists_aliases_of_candidates():
+    class Tiles(FakeTileSource):
+        def landmarks_by_id(self, ids):
+            out = super().landmarks_by_id(ids)
+            for lm in out.values():
+                lm["aliases"] = ["見本の古い名前"]
+            return out
+
+    c = FakeClient(ans())
+    GeminiVisualSearch(S, Tiles(), client=c).search(request())
+    assert "別名：見本の古い名前" in c.calls[0].contents[1]
 
 
 # ---- 撮影の手がかり（context。11/7）----

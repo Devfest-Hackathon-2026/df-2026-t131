@@ -7,8 +7,12 @@
   matched・whole は説明を返さない（11/6 夜：B では全体の紹介をしない＝engine が A に任せて見送る）。
   matched・whole 以外は「登録したランドマークの特徴」で、見えていることだけの説明を返す（engine は全体の紹介とは別の話として扱う）。
   ありふれたもの（電柱・自動販売機など）や、見た目をなぞるだけの説明しか言えないものは unknown にさせる（11/6 夜、メンバー2の提案）。
-  プロンプトだけでは自動販売機・駐車場を答えてしまった（実測）ので、commonplace を必ず答えさせ、true なら unknown。
+  11/7 夜：「ありふれているか」を聞くと、例に無いもの（クッションドラム・シェアサイクル・フットライト）をすり抜けた（実機）。
+  そこで逆に「観光の案内として話す価値があるか」（worth_telling）を必ず答えさせ、false なら unknown にする。
   一般名（named=false）がありふれたものの名前でも unknown（COMMONPLACE_RE）。
+  名前（11/7 夜）：固有名は看板の文字で読めるか・形で確かに見分けられるときだけ。近くの場所の名前と一般名を
+  組み合わせた名前を作らない。登録した場所の名前・別名（aliases）と同じ名前で unlisted が返ったら、
+  候補なら matched に直し、候補でなければ unknown にする（古い名前で話さない。全体の紹介は A が行う）。
 
 後処理（AI の答えをそのまま信じない）:
   - JSON が壊れている・候補に無い ID を返した・名前が無い → unknown（推測で補わない）
@@ -49,6 +53,10 @@ NUMBER_RE = re.compile(
 COMMONPLACE_RE = re.compile(
     r"自動販売機|自販機|電柱|電線|信号|ガードレール|駐車場|駐輪場|コンビニ|住宅|民家|マンション|アパート"
     r"|街路樹|植え込み|道路|歩道|車道|横断歩道|標識|カーブミラー|マンホール|ゴミ箱|ごみ箱|フェンス|自動車|自転車|バス停"
+    # 11/7 夜に実機で話してしまったもの・その仲間
+    r"|クッションドラム|ラバーポール|ポストコーン|カラーコーン|三角コーン|車止め|シェアサイクル|レンタサイクル|サイクルポート"
+    r"|フットライト|足元灯|照明|街灯|ベンチ|点字ブロック|石畳|舗装|のぼり|幟|旗|広告|プランター|植木鉢|側溝|排水溝"
+    r"|消火栓|室外機|自動ドア|ポスト|公衆電話|案内板"
 )
 SENTENCE_RE = re.compile(r"[^。！？!?]+[。！？!?]?")
 
@@ -64,8 +72,13 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 
 # 答え方
 - 目的は、ふだん見過ごしてしまうものに気づくきっかけを短く伝えること
-- commonplace に、中央にあるのが、どこにでもあるもの（電柱・信号・自動販売機・ふつうの住宅・駐車場・チェーン店・コンビニ・
-  ふつうの街路樹・ガードレール・ふつうの道路や歩道など）かどうかを true/false で必ず入れる。true なら result="unknown" にする
+- worth_telling に、中央にあるものが観光の案内として話す価値があるかを true/false で必ず入れる。true にしてよいのは次のどれかのときだけ：
+  (1) 観光案内・公式サイト・説明板で紹介されるような場所や作品（名所・文化財・パブリックアート・記念碑など）
+  (2) 固有の名前・作者・由来があるもの
+  (3) その場所ならではのデザイン（特徴的な建築の部分・凝った装飾・珍しい形）
+  街の設備や日用品（交通安全の設備・シェアサイクル・照明・ベンチ・点字ブロック・舗装・のぼり旗や広告・店の看板・車・人など）や、
+  どこにでもあるもの（電柱・信号・自動販売機・住宅・駐車場・チェーン店・コンビニ・街路樹・ガードレール・道路など）は false。
+  迷ったら false。false なら result="unknown" にする
 - part に、中央に写っているのがどの部分かを、次の一覧から1つ選んで入れる（unknown のときは null）
   {parts}
   対象のそのもの全体（建物の外観全体・像全体・橋全体など）なら "whole"、特定の部分が中心なら、その部分を選ぶ。
@@ -79,8 +92,11 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 - 候補ではないが何か分かるなら result="unlisted"。object_name に名前を入れる。
   固有の名前（例：〇〇橋）まで分かったときだけ named=true、一般的な名前（例：木造の蔵）なら named=false
   description に、歩きながら一度聞いて分かる話し言葉の説明を入れる（目安{max_chars}字以内、1〜2文）
-- 固有の名前は、写真に写っている形・色・看板の文字などから、それだと確かに見分けられるときだけ答える。
+- 固有の名前（named=true）は、次のどちらかのときだけ答える：看板・銘板の文字で名前が読める／形・色から、それだと確かに見分けられる
+  有名な場所（例：天門橋）。どちらでもなければ named=false にして、一般的な名前で答える
   エリアの中にいるからといって、エリアで有名な場所の名前を当てはめない（写っていないものの名前を言わない）
+- 近くの場所の名前と一般名をつなげて名前を作らない（例：「〇〇ビルのV字の柱」は固有名ではない）。
+- 候補の場所は、別名や古い名前で呼ばれることがある（候補の「別名」）。別名に当たるものなら、その候補として result="matched" にする
 - 中央に写っているのが道・地面・水面・空・人などで、名前の付いたものが写っていないときは、
   一般的な名前（例：運河沿いの散策路）で named=false にするか、result="unknown" にする
 - 分からない・自信がないなら result="unknown"。推測で答えない
@@ -91,7 +107,7 @@ PROMPT = """あなたは、富山市を歩く人のための音声ガイドで�
 {grounding_rule}
 # 出力
 次の JSON だけを出力する。
-{{"commonplace": true/false, "result": "matched|unlisted|unknown", "landmark_id": "lm_0001 または null", "object_name": "名前 または null",
+{{"worth_telling": true/false, "result": "matched|unlisted|unknown", "landmark_id": "lm_0001 または null", "object_name": "名前 または null",
   "named": true/false, "description": "説明 または null", "part": "whole など または null", "confidence": 0.0}}
 """
 
@@ -109,8 +125,9 @@ GROUNDING_RULE = "- 名前は Google マップの場所のデータで確かめ�
 RESPONSE_SCHEMA = {
     "type": "OBJECT",
     "properties": {
-        # どこにでもあるものか。先に答えさせ、true なら後処理で unknown にする（プロンプトだけでは守られなかった。11/6 夜に実測）
-        "commonplace": {"type": "BOOLEAN"},
+        # 観光の案内として話す価値があるか。先に答えさせ、false なら後処理で unknown にする
+        # （11/6 夜は「ありふれているか」を聞いていたが、例に無いものがすり抜けた。11/7 夜に逆にした）
+        "worth_telling": {"type": "BOOLEAN"},
         "result": {"type": "STRING", "enum": list(RESULTS)},
         "landmark_id": {"type": "STRING", "nullable": True},
         "object_name": {"type": "STRING", "nullable": True},
@@ -119,8 +136,8 @@ RESPONSE_SCHEMA = {
         "part": {"type": "STRING", "enum": list(PARTS), "nullable": True},
         "confidence": {"type": "NUMBER"},
     },
-    "required": ["commonplace", "result", "landmark_id", "object_name", "named", "description", "part", "confidence"],
-    "propertyOrdering": ["commonplace", "result", "landmark_id", "object_name", "named", "part", "description", "confidence"],
+    "required": ["worth_telling", "result", "landmark_id", "object_name", "named", "description", "part", "confidence"],
+    "propertyOrdering": ["worth_telling", "result", "landmark_id", "object_name", "named", "part", "description", "confidence"],
 }
 
 
@@ -175,8 +192,30 @@ def clean_description(text: str, max_chars: int) -> str | None:
     return out or None
 
 
-def postprocess(raw_text: str, search_id: str, candidate_ids: list[str], sources: list[dict], settings: Settings) -> dict:
-    """Gemini の答え（文字列）→ schema の形。おかしな答えは unknown にする。"""
+def norm_name(name: str) -> str:
+    """名前の照合用：全角半角・空白・中黒・括弧の違いをならす。"""
+    import unicodedata
+
+    return re.sub(r"[\s・･「」『』（）()]", "", unicodedata.normalize("NFKC", name or "")).lower()
+
+
+def registered_names(landmarks: list[dict]) -> dict[str, str]:
+    """登録したランドマークの名前と別名（aliases）→ ID。"""
+    out: dict[str, str] = {}
+    for lm in landmarks:
+        for n in [lm.get("name", ""), *(lm.get("aliases") or [])]:
+            if norm_name(n):
+                out.setdefault(norm_name(n), lm["id"])
+    return out
+
+
+def postprocess(raw_text: str, search_id: str, candidate_ids: list[str], sources: list[dict], settings: Settings,
+                names: dict[str, str] | None = None) -> dict:
+    """Gemini の答え（文字列）→ schema の形。おかしな答えは unknown にする。
+
+    names：登録したランドマークの名前・別名 → ID（候補とタイルの中のもの）。unlisted の名前がこれと同じなら、
+    候補なら matched に直し、候補でなければ unknown にする（11/7 夜）。
+    """
     m = re.search(r"\{.*\}", raw_text or "", re.S)
     try:
         data = json.loads(m.group(0)) if m else None
@@ -190,8 +229,17 @@ def postprocess(raw_text: str, search_id: str, candidate_ids: list[str], sources
         conf = 0.0
     if data["result"] == "unknown" or conf < settings.visual_min_confidence:
         return unknown(search_id, conf)
-    if data.get("commonplace") is True:  # どこにでもあるもの → 話さない
-        return unknown(search_id, conf)
+    if data.get("worth_telling") is not True:  # 話す価値がない（または答えていない）→ 話さない
+        # matched・whole は B では話さず A に任せるので、価値の判定に関係なくそのまま返す
+        if not (data["result"] == "matched" and data.get("part") == "whole"):
+            return unknown(search_id, conf)
+    # 登録した場所の名前・別名で unlisted が返った → 候補なら matched、候補でなければ話さない
+    if data["result"] == "unlisted" and names:
+        hit = names.get(norm_name(data.get("object_name") or ""))
+        if hit:
+            if hit not in candidate_ids:
+                return unknown(search_id, conf)
+            data = data | {"result": "matched", "landmark_id": hit}
 
     base = unknown(search_id, conf)
     part = data.get("part")
@@ -243,7 +291,9 @@ class GeminiVisualSearch:
     def _prompt(self, req: dict, candidates: list[dict]) -> str:
         s, n, w, e = tile_bounds(req["tile"]["x"], req["tile"]["y"])
         cand = "\n".join(
-            f"  - {c['id']}：{c['name']}（{c['kind']}）見た目：{c.get('visual_hint') or '不明'}。{c.get('script_short', '')}"
+            f"  - {c['id']}：{c['name']}（{c['kind']}）"
+            + (f"別名：{'・'.join(c['aliases'])}。" if c.get("aliases") else "")
+            + f"見た目：{c.get('visual_hint') or '不明'}。{c.get('script_short', '')}"
             for c in candidates
         ) or "  - （なし）"
         area = req.get("area")
@@ -302,6 +352,9 @@ class GeminiVisualSearch:
         ids = list(request["candidate_ids"]) + ([near] if near and near not in request["candidate_ids"] else [])
         known = self._tiles.landmarks_by_id(ids)
         candidates = [known[i] for i in ids if i in known]
+        # 名前の照合用：候補と、同じタイルにある登録したランドマーク（名前と別名）
+        tile_ids = [lm["id"] for lm in self._tiles.get_tile(request["tile"]["x"], request["tile"]["y"])["landmarks"]]
+        names = registered_names(candidates + list(self._tiles.landmarks_by_id(tile_ids).values()))
         try:
             res = self._client.models.generate_content(
                 model=self._s.gemini_model,
@@ -316,7 +369,8 @@ class GeminiVisualSearch:
         finally:
             del image
         _log_usage(res)
-        return postprocess(res.text or "", request["search_id"], [c["id"] for c in candidates], self._sources(res), self._s)
+        return postprocess(res.text or "", request["search_id"], [c["id"] for c in candidates], self._sources(res), self._s,
+                           names=names)
 
 
 def _log_usage(res) -> None:

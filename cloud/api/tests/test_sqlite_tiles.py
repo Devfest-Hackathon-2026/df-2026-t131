@@ -301,3 +301,13 @@ def test_api_serves_shapes_only_when_tile_shapes_on(tmp_path):
 def test_tile_shapes_setting_is_checked():
     with pytest.raises(ValueError):
         Settings(tile_shapes="yes").check()
+
+
+def test_aliases_never_go_into_tiles_but_are_kept_for_names(tmp_path):
+    """別名は B の名前の照合だけに使う。タイルには入れない（engine は読まない）が、landmarks_by_id には残す。"""
+    src = SqliteTileSource(_real(tmp_path), include_shapes=True)
+    arena = home_tile({"lat": 36.70675, "lon": 137.214056})
+    tile = src.get_tile(*arena)
+    assert any(lm["id"] == "lm_0007" for lm in tile["landmarks"])
+    assert all("aliases" not in lm for lm in tile["landmarks"])
+    assert "富山市総合体育館" in src.landmarks_by_id(["lm_0007"])["lm_0007"]["aliases"]

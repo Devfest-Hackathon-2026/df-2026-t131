@@ -313,37 +313,9 @@ class Engine {
     _prefetch(s.tMs, out);
     _updateArea();
     _updateZones(s.tMs);
-    _updateCrosswalkSeen(s);
     _tryNext(s.tMs, out);
     _maybeSearch(s, out);
   }
-
-  /// 画像の縞模様（横断歩道）を見た時刻と、見えない状態が続いている始まりを更新する（11/7）。
-  ///
-  /// 使うのは、画質が足りて（ぶれ・明るさ）、カメラで調べない区域の外で、縞模様の値がある画像だけ。
-  /// 使えない画像のときは「見えない」の数え始めを消す（暗い・ぶれた画像で「無い」と決めつけない）。
-  void _updateCrosswalkSeen(SensorFrame s) {
-    final q = s.imageQuality;
-    final score = q?.crosswalk;
-    final usable =
-        score != null && !_inNoCameraZone && _qualityBlock(s) == null;
-    if (!usable) {
-      _crosswalkClearSinceMs = null;
-      return;
-    }
-    if (score >= config.crossingVisualMinScore) {
-      _crosswalkSeenMs = s.tMs;
-      _crosswalkClearSinceMs = null;
-    } else {
-      _crosswalkClearSinceMs ??= s.tMs;
-    }
-  }
-
-  /// 最後に縞模様（横断歩道）が写った時刻。
-  int? _crosswalkSeenMs;
-
-  /// 使える画像で縞模様が写らない状態が続いている始まり。
-  int? _crosswalkClearSinceMs;
 
   void _updatePosition(SensorFrame s, int? lastMs) {
     final projection = _projection ??= LocalProjection(s.lat, s.lon);
@@ -904,30 +876,12 @@ class Engine {
     return null;
   }
 
-  /// 横断歩道・信号が手前（一定距離内で、まだ渡っていない側）にあるか。
-  /// 横断歩道・信号の手前か（地図＋画像。11/7）。
+  /// 横断歩道・信号の手前か：地図（OSM）の横断歩道・信号が [EngineConfig.crossingDistanceM]（15m）以内の前にある。
   ///
-  /// 1. 地図の横断歩道が [EngineConfig.crossingNearM]（8m）以内の前にある → 手前（画像に関係なく）
-  /// 2. 画像に縞模様が写ってから [EngineConfig.crossingVisualHoldMs]（3秒）以内 → 手前
-  ///    （地図に無い・位置がずれた横断歩道も拾う）
-  /// 3. 地図の横断歩道が [EngineConfig.crossingDistanceM]（15m）以内の前にある → 手前。
-  ///    ただし画質の足りる画像で縞模様が写らない状態が [EngineConfig.crossingVisualClearMs]（2秒）
-  ///    続いていれば、手前とはみなさない（GPS のずれで止まりすぎない）
-  ///
-  /// 縞模様の値が無い画像（古いログ・計算しない端末）だけなら、前と同じく地図の15m だけで決まる。
-  bool _crossingAhead() {
-    if (_mapCrossingAhead(config.crossingNearM)) return true;
-    final t = _sensor?.tMs;
-    final seen = _crosswalkSeenMs;
-    if (t != null && seen != null && t - seen <= config.crossingVisualHoldMs) {
-      return true;
-    }
-    if (!_mapCrossingAhead(config.crossingDistanceM)) return false;
-    final clear = _crosswalkClearSinceMs;
-    return !(t != null &&
-        clear != null &&
-        t - clear >= config.crossingVisualClearMs);
-  }
+  /// 11/7 夜：画像の縞模様で横断歩道を見つける判定は外した（並木や柵の影・舗装の模様でも反応し、
+  /// 実機の15分の歩行で約25%の時間を「横断歩道の手前」にしてしまったため。メンバー1の判断）。
+  /// 縞模様の値（ImageQuality.crosswalk）は歩行ログに残るが、判断には使わない。
+  bool _crossingAhead() => _mapCrossingAhead(config.crossingDistanceM);
 
   /// 地図の横断歩道が [distanceM] 以内の前にあるか（止まっているときは向きを問わない）。
   bool _mapCrossingAhead(double distanceM) {

@@ -554,6 +554,9 @@ final class LandmarkRecord {
   final String id;
   final String name;
   final String nameKana;
+
+  /// 別名・古い名前（任意。11/7 夜）。B の名前の照合に API だけが使う（タイルには入らない）。
+  final List<String>? aliases;
   final double lat;
   final double lon;
   final String kind;
@@ -573,6 +576,7 @@ final class LandmarkRecord {
     required this.id,
     required this.name,
     required this.nameKana,
+    required this.aliases,
     required this.lat,
     required this.lon,
     required this.kind,
@@ -591,6 +595,7 @@ final class LandmarkRecord {
     required String id,
     required String name,
     required String nameKana,
+    List<String>? aliases,
     required double lat,
     required double lon,
     required String kind,
@@ -607,6 +612,7 @@ final class LandmarkRecord {
     "id": id,
     "name": name,
     "name_kana": nameKana,
+    if (aliases != null) "aliases": List.of(aliases),
     "lat": lat,
     "lon": lon,
     "kind": kind,
@@ -640,6 +646,7 @@ final class LandmarkRecord {
         "id",
         "name",
         "name_kana",
+        "aliases",
         "lat",
         "lon",
         "kind",
@@ -662,6 +669,14 @@ final class LandmarkRecord {
         "name_kana",
         pattern: r'^[ぁ-ゖー・\s]+$',
       ),
+      aliases: json.containsKey("aliases")
+          ? wireList(
+              json["aliases"],
+              "aliases",
+              (value) => wireString(value, "aliases", minLength: 1),
+              max: 10,
+            )
+          : null,
       lat: wireDouble(json["lat"], "lat", min: -90, max: 90),
       lon: wireDouble(json["lon"], "lon", min: -180, max: 180),
       kind: wireString(
@@ -735,6 +750,8 @@ final class LandmarkRecord {
     "id": id,
     "name": name,
     "name_kana": nameKana,
+    if (_presentKeys.contains("aliases"))
+      "aliases": aliases == null ? null : List.of(aliases!),
     "lat": lat,
     "lon": lon,
     "kind": kind,

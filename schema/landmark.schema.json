@@ -34,6 +34,16 @@
       "pattern": "^[ぁ-ゖー・\\s]+$",
       "description": "ひらがなの読み"
     },
+    "aliases": {
+      "type": "array",
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "別名・古い名前（任意。11/7 夜）。B の答えの名前を登録した場所と照合するためだけに使い、タイルには入れない（API が外す）。出典で確かめられる名前だけ"
+    },
     "lat": {
       "$ref": "common.schema.json#/$defs/lat"
     },
