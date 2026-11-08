@@ -10,6 +10,7 @@ import 'demo_map.dart';
 import 'map_view.dart';
 import 'replay.dart';
 import 'search_photo.dart';
+import 'walk_video.dart';
 
 /// 最初から入れておく歩行ログ（assets/walks/index.json）の1件。
 final class BundledWalk {
@@ -17,12 +18,22 @@ final class BundledWalk {
 
   /// AI に送った画像の置き場所（`images`。無いログもある）。
   final WalkImages? images;
-  const BundledWalk(this.file, this.title, this.note, {this.images});
+
+  /// 歩いたときの動画（`video`。無いログもある）。
+  final WalkVideo? video;
+  const BundledWalk(
+    this.file,
+    this.title,
+    this.note, {
+    this.images,
+    this.video,
+  });
   factory BundledWalk.fromJson(Map<String, dynamic> j) => BundledWalk(
     j['file'] as String,
     j['title'] as String,
     j['note'] as String? ?? '',
     images: WalkImages.fromJson(j['images']),
+    video: WalkVideo.fromJson(j['video']),
   );
 }
 
@@ -45,6 +56,7 @@ class _ViewerPageState extends State<ViewerPage> {
   String? _title, _note, _error;
   Replay? _replay;
   WalkImages? _images;
+  WalkVideo? _video;
   int _nowMs = 0;
   int _speed = 5;
   bool _hideFetch = true;
@@ -92,7 +104,7 @@ class _ViewerPageState extends State<ViewerPage> {
 
   Future<void> _openBundled(BundledWalk w) async {
     final text = await rootBundle.loadString('assets/walks/${w.file}');
-    _load(text, w.title, w.note, images: w.images);
+    _load(text, w.title, w.note, images: w.images, video: w.video);
   }
 
   Future<void> _openFile() async {
@@ -105,13 +117,20 @@ class _ViewerPageState extends State<ViewerPage> {
     _load(await file.readAsString(), file.name, '手元のファイル');
   }
 
-  void _load(String text, String title, String note, {WalkImages? images}) {
+  void _load(
+    String text,
+    String title,
+    String note, {
+    WalkImages? images,
+    WalkVideo? video,
+  }) {
     _pause();
     try {
       final replay = Replay.run(parseWalkLog(text), config: config);
       setState(() {
         _replay = replay;
         _images = images;
+        _video = video;
         _title = title;
         _note = note;
         _error = null;
@@ -217,6 +236,15 @@ class _ViewerPageState extends State<ViewerPage> {
         ],
       ),
     );
+    // 動画のあるログは、地図の欄の上半分に動画を出す
+    final video = _video == null
+        ? null
+        : WalkVideoPanel(
+            video: _video!,
+            sinceStartMs: _nowMs - r.startMs,
+            playing: _timer != null,
+            speed: _speed,
+          );
     final images = _images;
     final state = _StatePanel(
       frame: frame,
@@ -252,13 +280,25 @@ class _ViewerPageState extends State<ViewerPage> {
                 ? Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(flex: 5, child: map),
+                      Expanded(
+                        flex: 5,
+                        child: video == null
+                            ? map
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(child: video),
+                                  Expanded(child: map),
+                                ],
+                              ),
+                      ),
                       SizedBox(width: 340, child: state),
                       SizedBox(width: 380, child: log),
                     ],
                   )
                 : ListView(
                     children: [
+                      if (video != null) SizedBox(height: 260, child: video),
                       SizedBox(height: 360, child: map),
                       // 状態の欄は中で ListView を使うので、高さを決めて入れる
                       // （決めないと幅の狭い画面で状態の欄と判断ログが出ない）
@@ -452,7 +492,8 @@ class _StatePanel extends StatelessWidget {
                 style: const TextStyle(fontFamily: 'monospace'),
               ),
               if (reasonLabels[last.reason] case final label?) Text(label),
-              if (isDemoDecision(last)) const Text(_demoNote, style: _demoStyle),
+              if (isDemoDecision(last))
+                const Text(_demoNote, style: _demoStyle),
             ],
           ]),
           section('読み上げ中', [Text(frame.speaking?.text ?? '（なし）')]),
@@ -597,7 +638,10 @@ class _DecisionList extends StatelessWidget {
                               imgs,
                               photoId,
                               d.tMs,
-                              replay.outcomeAt(photoId, replay.frames.length - 1),
+                              replay.outcomeAt(
+                                photoId,
+                                replay.frames.length - 1,
+                              ),
                               clock,
                             ),
                             child: ClipRRect(
@@ -622,9 +666,13 @@ class _DecisionList extends StatelessWidget {
 }
 
 /// デモ撮影のためにワンタップで流したもの（11/7）。本物の警報・案内と同じ場所に出し、デモと添える。
-const _demoNote = 'デモ：撮影のためにアプリからワンタップで流したものです（実際の警報・案内の場面ではありません）。'
+const _demoNote =
+    'デモ：撮影のためにアプリからワンタップで流したものです（実際の警報・案内の場面ではありません）。'
     '流れ（割り込み・順番待ち・記録）は本物と同じです。';
-const _demoStyle = TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold);
+const _demoStyle = TextStyle(
+  color: Colors.deepOrange,
+  fontWeight: FontWeight.bold,
+);
 
 class _DemoBadge extends StatelessWidget {
   const _DemoBadge();

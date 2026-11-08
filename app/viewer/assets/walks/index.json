@@ -2,9 +2,17 @@
   {
     "file": "walk_20261108T044257Z.jsonl",
     "title": "デモ動画の歩き：富山駅から富岩運河環水公園まで（12分）",
-    "note": "実機で記録（11/8 13:42。デモ動画と同じ歩き。スマートグラスの代わりに、スマホを首の高さで構えて撮影）。ランドマークの範囲は実際の形で判定しています。確認用のデモの警報1件と、カメラで調べない区域への出入りを含みます。B で撮った画像（AI に送った画像。顔はアプリでぼかし済み）を、デモの説明のため Cloud Storage に置いて表示します",
+    "note": "実機で記録（11/8 13:42。デモ動画と同じ歩き。スマートグラスの代わりに、スマホを首の高さで構えて撮影）。ランドマークの範囲は実際の形で判定しています。確認用のデモの警報1件と、カメラで調べない区域への出入りを含みます。歩いたときのアプリの画面の録画（通行人の顔はぼかし、音声なし）と、B で撮った画像（AI に送った画像。顔はアプリでぼかし、取りこぼしの2枚は公開の前に手でぼかしを足した）を、デモの説明のため Cloud Storage に置いて表示します",
     "images": {
-      "base_url": "https://storage.googleapis.com/ambient-guide-toyama-2026-viewer-images/walk_20261108T044257Z"
+      "base_url": "https://storage.googleapis.com/ambient-guide-toyama-2026-viewer-images/walk_20261108T044257Z",
+      "manual_blur": [
+        "s_000001",
+        "s_000006"
+      ]
+    },
+    "video": {
+      "url": "https://storage.googleapis.com/ambient-guide-toyama-2026-viewer-images/walk_20261108T044257Z.mp4",
+      "offset_ms": 2200
     }
   }
 ]

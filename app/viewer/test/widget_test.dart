@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:viewer/main.dart';
+import 'package:viewer/src/walk_video.dart';
 
 void main() {
   testWidgets('起動すると同梱の歩行ログを読み込み、再生の操作と判断ログを出す', (tester) async {
@@ -26,7 +27,9 @@ void main() {
     expect(find.text('判断画面（歩行ログの再生）'), findsOneWidget);
     expect(find.byTooltip('再生'), findsOneWidget);
     expect(find.text('判断ログ（新しい順）'), findsOneWidget);
-    expect(find.textContaining('スマートグラスの代わりにスマホ'), findsOneWidget);
+    expect(find.textContaining('実機の記録は、スマートグラスの代わりにスマホ'), findsOneWidget);
+    // デモの歩きには動画があり、地図の欄の上に断り書きと一緒に出す
+    expect(find.text(walkVideoNotice), findsOneWidget);
     // 地図の出典（地理院タイル・OpenStreetMap）は常に出す
     expect(find.text('地理院タイル（国土地理院）'), findsOneWidget);
     expect(find.text('© OpenStreetMap contributors'), findsOneWidget);

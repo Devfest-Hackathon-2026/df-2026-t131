@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:viewer/src/demo_map.dart';
 import 'package:viewer/src/replay.dart';
 import 'package:viewer/src/search_photo.dart';
+import 'package:viewer/src/walk_video.dart';
 
 import '../tool/build_map.dart';
 
@@ -177,6 +178,26 @@ void main() {
         expect(images.baseUrl, startsWith('https://'));
         expect(images.urlFor('s_000001'), endsWith('/s_000001.jpg'));
       }
+    });
+
+    test('動画（video）は、歩行ログの最初を動画の offset_ms に合わせる', () {
+      final index = jsonDecode(
+        File('assets/walks/index.json').readAsStringSync(),
+      ) as List;
+      final demo = index.cast<Map<String, dynamic>>().firstWhere(
+        (w) => w['file'] == 'walk_20261108T044257Z.jsonl',
+      );
+      final video = WalkVideo.fromJson(demo['video'])!;
+      expect(video.url, startsWith('https://'));
+      expect(video.url, endsWith('.mp4'));
+      expect(video.offsetMs, 2200);
+      expect(video.positionSec(0), 2.2);
+      expect(video.positionSec(60000), 62.2);
+      expect(WalkVideo.fromJson(null), isNull);
+      expect(WalkVideo.fromJson({'url': ''}), isNull);
+      // 手でぼかしを足した画像は、画面でそう断る
+      final images = WalkImages.fromJson(demo['images'])!;
+      expect(images.manualBlur, {'s_000001', 's_000006'});
     });
 
     test('一覧に載せた歩行ログは、すべて読めて再生できる', () {
