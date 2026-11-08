@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'demo_map.dart';
+import 'open_url.dart';
 import 'replay.dart';
 
 // 地図：チームの確認用の地図（cloud/data/scripts/preview_map.py が作る map.html）と同じ作り。
@@ -25,6 +26,15 @@ const _trackColor = Color(0xFF3949AB);
 const _gsiStd = 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png';
 const _gsiPhoto =
     'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg';
+
+/// 出典のリンク先。地理院タイルは「国土地理院」の表示に一覧ページへのリンクを付ける決まり
+/// （国土地理院「測量成果の利用手続」Q&A Q1-12）。OpenStreetMap は著作権のページ。
+const _gsiTilesUrl = 'https://maps.gsi.go.jp/development/ichiran.html';
+const _osmCopyrightUrl = 'https://www.openstreetmap.org/copyright';
+
+/// これより小さくは縮めない。写真（シームレス空中写真）はズーム14未満で衛星画像
+/// （Landsat8 など）に切り替わり、別の出典の表示が要るため。標準地図もそろえる。
+const _minZoom = 14.0;
 
 class MapView extends StatefulWidget {
   final Replay replay;
@@ -78,6 +88,7 @@ class _MapViewState extends State<MapView> {
       ]),
       padding: const EdgeInsets.all(80),
       maxZoom: 17,
+      minZoom: _minZoom,
     );
   }
 
@@ -137,6 +148,7 @@ class _MapViewState extends State<MapView> {
             initialCameraFit: _trackFit,
             initialCenter: const LatLng(36.7016, 137.2129), // 富山駅（ログが無いとき）
             initialZoom: 16,
+            minZoom: _minZoom,
             maxZoom: 18,
             onMapReady: () => _ready = true,
             onPositionChanged: (_, hasGesture) {
@@ -301,15 +313,29 @@ class _MapViewState extends State<MapView> {
           ],
         ),
         // 出典は畳まずに常に出す（地理院タイル・OpenStreetMap の決まり）
+        // 幅の狭い画面では折り返す（地図の幅を超えて切れないように）
         Positioned(
+          left: 0,
           right: 0,
           bottom: 0,
-          child: Container(
-            color: Colors.white.withValues(alpha: 0.8),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            child: const Text(
-              '地図：地理院タイル（国土地理院）　横断歩道・信号の位置：© OpenStreetMap contributors',
-              style: TextStyle(fontSize: 11, color: Colors.black87),
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              color: Colors.white.withValues(alpha: 0.8),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              child: const Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  _AttributionText('地図：'),
+                  _AttributionLink('地理院タイル（国土地理院）', _gsiTilesUrl),
+                  _AttributionText('　ランドマークの範囲・横断歩道・信号：'),
+                  _AttributionLink(
+                    '© OpenStreetMap contributors',
+                    _osmCopyrightUrl,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -454,3 +480,34 @@ class _PositionMark extends StatelessWidget {
 /// 視線から見た角度を「右前方 30°」のような言い方にする（画面の表示用）。
 String relativeLabel(double deg, EngineConfig config) =>
     '${directionWord(deg, config)} ${deg.abs().round()}°';
+
+class _AttributionText extends StatelessWidget {
+  final String text;
+  const _AttributionText(this.text);
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: const TextStyle(fontSize: 11, color: Colors.black87),
+  );
+}
+
+/// 出典のリンク（押すと新しいタブで開く）。
+class _AttributionLink extends StatelessWidget {
+  final String text, url;
+  const _AttributionLink(this.text, this.url);
+  @override
+  Widget build(BuildContext context) => Tooltip(
+    message: url,
+    child: InkWell(
+      onTap: () => openUrl(url),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          color: Color(0xFF1A0DAB),
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    ),
+  );
+}

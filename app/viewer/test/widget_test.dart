@@ -27,6 +27,9 @@ void main() {
     expect(find.byTooltip('再生'), findsOneWidget);
     expect(find.text('判断ログ（新しい順）'), findsOneWidget);
     expect(find.textContaining('スマートグラスの代わりにスマホ'), findsOneWidget);
+    // 地図の出典（地理院タイル・OpenStreetMap）は常に出す
+    expect(find.text('地理院タイル（国土地理院）'), findsOneWidget);
+    expect(find.text('© OpenStreetMap contributors'), findsOneWidget);
 
     // 終わりまで進めると、判断ログが並ぶ
     final slider = tester.widget<Slider>(find.byType(Slider));
