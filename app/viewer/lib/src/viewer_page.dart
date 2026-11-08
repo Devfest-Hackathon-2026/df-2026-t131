@@ -260,7 +260,9 @@ class _ViewerPageState extends State<ViewerPage> {
                 : ListView(
                     children: [
                       SizedBox(height: 360, child: map),
-                      state,
+                      // 状態の欄は中で ListView を使うので、高さを決めて入れる
+                      // （決めないと幅の狭い画面で状態の欄と判断ログが出ない）
+                      SizedBox(height: 640, child: state),
                       SizedBox(height: 420, child: log),
                     ],
                   ),
