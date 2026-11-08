@@ -114,7 +114,7 @@ dart run tool/roundtrip_examples.dart
 
 ## 判断ログのfixtures
 
-- `test/fixtures/walks/*.jsonl`：実機の歩行ログ（member3から受け取って置く）。今は `walk_20261107T071038Z.jsonl`（11/7 16:10、富山駅から富岩運河環水公園まで15分。viewer の最初のログと同じもの）
+- `test/fixtures/walks/*.jsonl`：実機の歩行ログ（member3から受け取って置く）。今は `walk_20261108T044257Z.jsonl`（11/8 13:42、デモ動画と同じ歩き、12分。範囲は実際の形で判定。viewer の最初のログと同じもの）と `walk_20261107T071038Z.jsonl`（11/7 16:10、15分。範囲は円で判定していたころの記録）
 - `test/fixtures/decisions/*.jsonl`：見本の `walk_short.jsonl` と上の歩行ログを、Engineで再生して書き出した判断ログ
 
 Engineの判断を変えたら、次で書き出し直してコミットする。古いままだと `dart test` が失敗する。
