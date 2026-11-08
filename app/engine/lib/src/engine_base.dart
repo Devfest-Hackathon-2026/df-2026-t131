@@ -1774,7 +1774,7 @@ final class _VisualAnswer {
   });
 }
 
-/// B で話した話のかぎ（場所, part）。B の仕様書 5章・CLAUDE.md 6章「B の仕様」。
+/// B で話した話のかぎ（場所, part）。CLAUDE.md 6章「B の仕様」。
 ///
 /// 場所は、登録したランドマークの特徴なら landmarkId。候補外の対象なら、固有名はエリア＋名前、
 /// 一般名は名前＋撮った場所（genericRadiusM 以内）。ランドマーク全体の紹介はここに入れず、ID で A と共有する。

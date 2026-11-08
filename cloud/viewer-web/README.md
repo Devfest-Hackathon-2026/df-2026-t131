@@ -12,7 +12,7 @@
 | ファイル | 役割 |
 | :-- | :-- |
 | `Dockerfile` | 1段目：Flutter 3.47.9（チームの版。公開イメージが無いので Google が配る本体を取る）で `flutter build web`。2段目：nginx で `build/web` を配る |
-| `nginx.conf` | 8080 で待つ。`json`・`jsonl`・`index.html` などは `no-cache`、それ以外の移動は `index.html` に返す |
+| `nginx.conf` | 8080 で待つ。すべてのファイルを `no-cache`（毎回確かめる。Flutter Web のファイル名は版が変わっても同じなので、古い版が残らないように）。それ以外の移動は `index.html` に返す |
 | `cloudbuild.yaml` | Cloud Build でイメージを作り、Artifact Registry `app/viewer:latest` に置く（時間の上限 30分） |
 | `.gcloudignore` | Cloud Build に送るのは `app/engine`・`app/viewer`・`cloud/viewer-web` だけ（一番上の `.gcloudignore` は API 用で `app/` を除くため） |
 

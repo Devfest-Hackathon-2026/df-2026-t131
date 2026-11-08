@@ -179,7 +179,7 @@ def test_real_mode_requires_project():
         create_app(settings=Settings(gemini_mode="real", app_token="t", gcp_project=""))
 
 
-# ---- 部分（part。B の仕様書 5章） ----
+# ---- 部分（part。CLAUDE.md 6章「B の仕様」） ----
 
 def test_matched_whole_has_no_description():
     r = pp(ans(result="matched", landmark_id="lm_0001", part="whole", description="大きな公園です。"))

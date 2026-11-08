@@ -72,7 +72,7 @@
         "other",
         null
       ],
-      "description": "中央に写っているのがどの部分か（B の仕様書 5章）。whole＝そのもの全体、ほかは特定の部分（window 窓／entrance 入口・門／roof 屋根／wall 壁・外壁／pillar 柱／sign 看板・文字／statue 像・彫刻／railing 欄干・手すり／planting 植え込み・木／waterside 水辺・川・運河／other その他）。unknown のときだけ null。重複判定は（場所, part）で行う"
+      "description": "中央に写っているのがどの部分か（CLAUDE.md 6章「B の仕様」）。whole＝そのもの全体、ほかは特定の部分（window 窓／entrance 入口・門／roof 屋根／wall 壁・外壁／pillar 柱／sign 看板・文字／statue 像・彫刻／railing 欄干・手すり／planting 植え込み・木／waterside 水辺・川・運河／other その他）。unknown のときだけ null。重複判定は（場所, part）で行う"
     },
     "confidence": {
       "type": "number",
