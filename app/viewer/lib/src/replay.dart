@@ -84,12 +84,30 @@ typedef ReplaySearch = ({
   CaptureAndSearch search,
 });
 
+/// B の撮影1件に返ってきた答え（歩行ログの visual_result / visual_error）。
+typedef SearchOutcome = ({
+  int frameIndex,
+  int tMs,
+
+  /// `matched`・`unlisted`・`unknown`、エラーのときは `error`。
+  String result,
+  double? confidence,
+  String? objectName,
+  String? description,
+
+  /// エラーの種類（`server` など）。エラーでなければ null。
+  String? error,
+});
+
 /// 歩行ログ1本を最後まで流した結果。シークはフレームの番号で行う。
 final class Replay {
   final List<ReplayFrame> frames;
   final List<ReplayDecision> decisions;
   final List<ReplaySpeak> speaks;
   final List<ReplaySearch> searches;
+
+  /// 撮影の番号（`s_000001` など）ごとの答え。
+  final Map<String, SearchOutcome> outcomes;
 
   /// タイルで届いたランドマーク・エリア（同じ ID は1つにまとめる）。
   final List<Landmark> landmarks;
@@ -103,6 +121,7 @@ final class Replay {
     required this.decisions,
     required this.speaks,
     required this.searches,
+    required this.outcomes,
     required this.landmarks,
     required this.crossings,
     required this.track,
@@ -118,6 +137,7 @@ final class Replay {
     final decisions = <ReplayDecision>[];
     final speaks = <ReplaySpeak>[];
     final searches = <ReplaySearch>[];
+    final outcomes = <String, SearchOutcome>{};
     final landmarks = <String, Landmark>{};
     final crossings = <String, Crossing>{};
     final track = <({int tMs, LatLon position})>[];
@@ -142,6 +162,26 @@ final class Replay {
           }
         case TtsFinished():
           if (speaking?.utteranceId == event.utteranceId) speaking = null;
+        case VisualResult(:final response):
+          outcomes[response.searchId] = (
+            frameIndex: index,
+            tMs: event.tMs,
+            result: response.result,
+            confidence: response.confidence,
+            objectName: response.objectName,
+            description: response.description,
+            error: null,
+          );
+        case VisualError():
+          outcomes[event.searchId] = (
+            frameIndex: index,
+            tMs: event.tMs,
+            result: 'error',
+            confidence: null,
+            objectName: null,
+            description: null,
+            error: event.error,
+          );
         default:
           break;
       }
@@ -184,6 +224,7 @@ final class Replay {
       decisions: List.unmodifiable(decisions),
       speaks: List.unmodifiable(speaks),
       searches: List.unmodifiable(searches),
+      outcomes: Map.unmodifiable(outcomes),
       landmarks: List.unmodifiable(sortedLandmarks),
       crossings: List.unmodifiable(sortedCrossings),
       track: List.unmodifiable(track),
@@ -207,6 +248,22 @@ final class Replay {
       }
     }
     return lo;
+  }
+
+  /// フレーム `frameIndex` までに撮った最後の1件（まだ撮っていなければ null）。
+  ReplaySearch? lastSearchAt(int frameIndex) {
+    ReplaySearch? last;
+    for (final s in searches) {
+      if (s.frameIndex > frameIndex) break;
+      last = s;
+    }
+    return last;
+  }
+
+  /// 撮影 `searchId` の答えのうち、フレーム `frameIndex` までに届いたもの（まだなら null）。
+  SearchOutcome? outcomeAt(String searchId, int frameIndex) {
+    final o = outcomes[searchId];
+    return o == null || o.frameIndex > frameIndex ? null : o;
   }
 
   /// 判断ログのうち、フレーム `frameIndex` までに出たものの件数。

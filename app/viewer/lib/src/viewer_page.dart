@@ -9,15 +9,20 @@ import 'package:flutter/services.dart';
 import 'demo_map.dart';
 import 'map_view.dart';
 import 'replay.dart';
+import 'search_photo.dart';
 
 /// 最初から入れておく歩行ログ（assets/walks/index.json）の1件。
 final class BundledWalk {
   final String file, title, note;
-  const BundledWalk(this.file, this.title, this.note);
+
+  /// AI に送った画像の置き場所（`images`。無いログもある）。
+  final WalkImages? images;
+  const BundledWalk(this.file, this.title, this.note, {this.images});
   factory BundledWalk.fromJson(Map<String, dynamic> j) => BundledWalk(
     j['file'] as String,
     j['title'] as String,
     j['note'] as String? ?? '',
+    images: WalkImages.fromJson(j['images']),
   );
 }
 
@@ -39,6 +44,7 @@ class _ViewerPageState extends State<ViewerPage> {
   DemoMap _map = DemoMap.empty;
   String? _title, _note, _error;
   Replay? _replay;
+  WalkImages? _images;
   int _nowMs = 0;
   int _speed = 5;
   bool _hideFetch = true;
@@ -86,7 +92,7 @@ class _ViewerPageState extends State<ViewerPage> {
 
   Future<void> _openBundled(BundledWalk w) async {
     final text = await rootBundle.loadString('assets/walks/${w.file}');
-    _load(text, w.title, w.note);
+    _load(text, w.title, w.note, images: w.images);
   }
 
   Future<void> _openFile() async {
@@ -99,12 +105,13 @@ class _ViewerPageState extends State<ViewerPage> {
     _load(await file.readAsString(), file.name, '手元のファイル');
   }
 
-  void _load(String text, String title, String note) {
+  void _load(String text, String title, String note, {WalkImages? images}) {
     _pause();
     try {
       final replay = Replay.run(parseWalkLog(text), config: config);
       setState(() {
         _replay = replay;
+        _images = images;
         _title = title;
         _note = note;
         _error = null;
@@ -210,10 +217,19 @@ class _ViewerPageState extends State<ViewerPage> {
         ],
       ),
     );
+    final images = _images;
     final state = _StatePanel(
       frame: frame,
       config: config,
       reasonLabels: _reasonLabels,
+      photo: images == null
+          ? null
+          : LastSearchPhoto(
+              replay: r,
+              frameIndex: frameIndex,
+              images: images,
+              clock: _clock,
+            ),
     );
     final log = _DecisionList(
       replay: r,
@@ -223,6 +239,7 @@ class _ViewerPageState extends State<ViewerPage> {
       clock: _clock,
       onTap: _seek,
       controller: _listController,
+      images: images,
     );
     return Padding(
       padding: const EdgeInsets.all(8),
@@ -383,10 +400,14 @@ class _StatePanel extends StatelessWidget {
   final ReplayFrame frame;
   final EngineConfig config;
   final Map<String, String> reasonLabels;
+
+  /// B で最後に撮った画像（画像の置き場所が無いログでは null）。
+  final Widget? photo;
   const _StatePanel({
     required this.frame,
     required this.config,
     required this.reasonLabels,
+    this.photo,
   });
 
   @override
@@ -463,6 +484,7 @@ class _StatePanel extends StatelessWidget {
               Text('見送り：${reasonLabels[reason] ?? reason}'),
             if (v.searchesLeft case final left?) Text('この歩行であと $left 回'),
           ]),
+          if (photo case final p?) section('B で最後に撮った画像', [p]),
           section('近くのランドマーク', [
             if (v.nearby.isEmpty) const Text('（150 m 以内にありません）'),
             for (final n in v.nearby)
@@ -502,6 +524,9 @@ class _DecisionList extends StatelessWidget {
   final String Function(int tMs) clock;
   final void Function(int tMs) onTap;
   final ScrollController controller;
+
+  /// AI に送った画像の置き場所（無ければ撮った行に画像を出さない）。
+  final WalkImages? images;
   const _DecisionList({
     required this.replay,
     required this.frameIndex,
@@ -510,6 +535,7 @@ class _DecisionList extends StatelessWidget {
     required this.clock,
     required this.onTap,
     required this.controller,
+    this.images,
   });
 
   @override
@@ -537,6 +563,8 @@ class _DecisionList extends StatelessWidget {
               itemCount: items.length,
               itemBuilder: (context, i) {
                 final d = items[i];
+                final photoId = d.kind == 'search' ? d.targetId : null;
+                final imgs = images;
                 return ListTile(
                   dense: true,
                   leading: _KindBadge(kind: d.kind),
@@ -557,6 +585,29 @@ class _DecisionList extends StatelessWidget {
                       if (d.text != null) '「${d.text}」',
                     ].join('　'),
                   ),
+                  trailing: imgs == null || photoId == null
+                      ? null
+                      : Tooltip(
+                          message: 'AI に送った画像を大きく見る',
+                          child: InkWell(
+                            onTap: () => showSearchPhoto(
+                              context,
+                              imgs,
+                              photoId,
+                              d.tMs,
+                              replay.outcomeAt(photoId, replay.frames.length - 1),
+                              clock,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(3),
+                              child: SizedBox(
+                                width: 64,
+                                height: 36,
+                                child: SearchImage(url: imgs.urlFor(photoId)),
+                              ),
+                            ),
+                          ),
+                        ),
                   onTap: () => onTap(d.tMs),
                 );
               },

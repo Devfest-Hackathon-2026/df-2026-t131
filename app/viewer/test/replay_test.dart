@@ -5,6 +5,7 @@ import 'package:engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:viewer/src/demo_map.dart';
 import 'package:viewer/src/replay.dart';
+import 'package:viewer/src/search_photo.dart';
 
 import '../tool/build_map.dart';
 
@@ -145,6 +146,37 @@ void main() {
         jsonDecode(File('assets/reason_codes.json').readAsStringSync()),
         jsonDecode(readRepo('schema/reason_codes.json')),
       );
+    });
+
+    test('撮影ごとの答えを引ける（送った画像と並べるため）', () {
+      final r = Replay.run(
+        parseWalkLog(
+          File('assets/walks/walk_20261108T044257Z.jsonl').readAsStringSync(),
+        ),
+      );
+      expect(r.searches, hasLength(23));
+      expect(r.outcomes, hasLength(23));
+      expect(r.outcomes['s_000003']?.result, 'error');
+      expect(r.outcomes['s_000021']?.objectName, '天門橋');
+      final first = r.searches.first;
+      expect(r.lastSearchAt(first.frameIndex)?.search.searchId, 's_000001');
+      expect(r.lastSearchAt(first.frameIndex - 1), isNull);
+      // 答えは撮った直後にはまだ無く、届いたフレームから見える
+      expect(r.outcomeAt('s_000001', first.frameIndex), isNull);
+      final o = r.outcomes['s_000001']!;
+      expect(r.outcomeAt('s_000001', o.frameIndex)?.result, 'unknown');
+    });
+
+    test('画像の置き場所（images）は、書いてあればその URL を指す', () {
+      final index = jsonDecode(
+        File('assets/walks/index.json').readAsStringSync(),
+      ) as List;
+      for (final w in index.cast<Map<String, dynamic>>()) {
+        final images = WalkImages.fromJson(w['images']);
+        if (images == null) continue;
+        expect(images.baseUrl, startsWith('https://'));
+        expect(images.urlFor('s_000001'), endsWith('/s_000001.jpg'));
+      }
     });
 
     test('一覧に載せた歩行ログは、すべて読めて再生できる', () {
