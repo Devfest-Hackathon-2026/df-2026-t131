@@ -10,7 +10,7 @@
     gcloud auth application-default login
     （プロジェクトは環境変数 GOOGLE_CLOUD_PROJECT か --project で指定）
 
-決まり（CLAUDE.md 3章2・7、tasks/member1_leader.md 3章）:
+決まり（docs/design.md 3章2・7）:
   - 読むのは cloud/data/manual/landmarks/<ID>.json（1件1ファイル）。書くのは cloud/data/drafts/<ID>.json だけ
     （manual/ と reviewed の原稿は絶対に書き換えない）
   - 下書きを作るのは status が draft のランドマークだけ

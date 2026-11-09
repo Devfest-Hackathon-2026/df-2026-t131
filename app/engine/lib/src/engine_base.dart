@@ -91,7 +91,7 @@ class Engine {
   String? _currentAreaId;
   final Map<String, Town> _towns = {};
 
-  // ---- カメラで調べない区域（CLAUDE.md 6章「B の仕様」、11/7 決定）----
+  // ---- カメラで調べない区域（docs/design.md 6章「B の仕様」、11/7 決定）----
   final Map<String, Zone> _zones = {};
 
   /// いま中にいる区域。入るのは半径以内、出るのは半径＋zoneExitMarginM より外（その間は前の状態のまま）。
@@ -126,7 +126,7 @@ class Engine {
   Vec2? _lastCapturePos;
   double? _lastCaptureGaze;
 
-  /// 結果を待っている検索。1件ずつしか出さない（tasks/README.md 2.3）。
+  /// 結果を待っている検索。1件ずつしか出さない（docs/design.md 17.3）。
   _Search? _inflight;
 
   /// 結果が来ないので諦めた検索。あとから届いた結果は期限切れとして記録する。
@@ -859,7 +859,7 @@ class Engine {
     return null;
   }
 
-  /// A の文脈ゲート（CLAUDE.md 5章）。null なら話してよい。
+  /// A の文脈ゲート（docs/design.md 5章）。null なら話してよい。
   String? _narrativeGate(SensorFrame s, int t, bool busy, int intervalMs) {
     final audio = _audioBlock(s);
     if (audio != null) return audio;
@@ -1064,7 +1064,7 @@ class Engine {
   }
 
   // ======================================================================
-  // B：視界の定期検索（CLAUDE.md 6章、伝言「B_発火タイミングの論点」）
+  // B：視界の定期検索（docs/design.md 6章、伝言「B_発火タイミングの論点」）
   // ======================================================================
 
   /// 計測するかを決め、するなら `CaptureAndSearch` を出す。
@@ -1265,7 +1265,7 @@ class Engine {
     _log(out, t, 'search', reason, id, priority: 6);
   }
 
-  /// B の計測の文脈ゲート（CLAUDE.md 5章の B の列と、論点3・4・11）。
+  /// B の計測の文脈ゲート（docs/design.md 5章の B の列と、論点3・4・11）。
   /// B の文脈ゲート。撮ってよければ null、止めるなら理由コード（11/7：理由ごとにコードを分けた。
   /// 前はすべて search_skip:gate_blocked。判断の順番と条件は同じ）。
   String? _searchBlock(SensorFrame s, int t) {
@@ -1346,11 +1346,11 @@ class Engine {
         return;
       }
       if (r.part == 'whole') {
-        // ランドマーク全体は B では話さない。全体の紹介は A が近づいたときに行う（CLAUDE.md 6章、11/6 夜決定）。
+        // ランドマーク全体は B では話さない。全体の紹介は A が近づいたときに行う（docs/design.md 6章、11/6 夜決定）。
         _logAnswer(out, t, 'answer:whole_left_to_narrative', lm.id, r);
         return;
       }
-      // 画像から見つけた特徴は、根拠が地図にないので0.7（CLAUDE.md 6章「B の仕様」）。
+      // 画像から見つけた特徴は、根拠が地図にないので0.7（docs/design.md 6章「B の仕様」）。
       if (r.confidence < config.unlistedMinConfidence) {
         _logAnswer(out, t, 'answer:low_confidence', search.id, r);
         return;
@@ -1774,7 +1774,7 @@ final class _VisualAnswer {
   });
 }
 
-/// B で話した話のかぎ（場所, part）。CLAUDE.md 6章「B の仕様」。
+/// B で話した話のかぎ（場所, part）。docs/design.md 6章「B の仕様」。
 ///
 /// 場所は、登録したランドマークの特徴なら landmarkId。候補外の対象なら、固有名はエリア＋名前、
 /// 一般名は名前＋撮った場所（genericRadiusM 以内）。ランドマーク全体の紹介はここに入れず、ID で A と共有する。

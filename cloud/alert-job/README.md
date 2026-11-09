@@ -31,7 +31,7 @@ Cloud Scheduler（1分おき）→ POST /run
 | ② 一覧 | `https://storage.googleapis.com/<ALERT_BUCKET>/alerts/current/<区域7桁>.json` | `schema/api/alerts_current.schema.json`（見本 `schema/examples/alerts/current_1620100.json`） | 一覧が変わったとき。警報が無くても `"alerts": []` で置く |
 
 * ① と ② の同じ警報は**同じ `alert_id`**。同じ警報が続いている間は ID が変わらないので、端末は ② を取り直しても同じ警報として捨てられる
-* ① の文は「気象庁は、富山市に警戒レベル4の大雨危険警報を発表しました。」、② の文は後から入った人向けに「…を発表しています。」。**気象庁の発表を伝えていることが分かる文にする**（気象業務法 第23条：気象庁以外の者は警報をしてはならない。CLAUDE.md 3章8）
+* ① の文は「気象庁は、富山市に警戒レベル4の大雨危険警報を発表しました。」、② の文は後から入った人向けに「…を発表しています。」。**気象庁の発表を伝えていることが分かる文にする**（気象業務法 第23条：気象庁以外の者は警報をしてはならない。docs/design.md 3章8）
 * ② は `Cache-Control: public, max-age=60`。端末は ETag をつけて取りに来る（変わっていなければ 304）
 * **移行の間**は、富山市の ① を前のトピック `alert_16201` にも送る（mobile が `alert_1620100` に切り替えたら `FCM_LEGACY_TOPIC=""` で止める）
 

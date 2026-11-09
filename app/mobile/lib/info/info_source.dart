@@ -5,7 +5,7 @@ import 'info_kind.dart';
 /// 外から届いた情報1件（警報・気象・交通・イベント）。
 ///
 /// どの種類も同じ形にそろえ、[InfoHub] が重複の除去・期限・優先度をまとめて扱う。
-/// 文はテンプレートで作ったものだけを入れる（AI に書かせない。CLAUDE.md 3章）。
+/// 文はテンプレートで作ったものだけを入れる（AI に書かせない。docs/design.md 3章）。
 class InfoItem {
   const InfoItem({
     required this.id,
@@ -36,7 +36,7 @@ class InfoItem {
   /// 種類ごとの元の値（歩行ログや engine に渡すため）。
   final Map<String, Object?> data;
 
-  /// 今の読み上げに割り込むか（レベル4以上の警報だけ。CLAUDE.md 4章）。
+  /// 今の読み上げに割り込むか（レベル4以上の警報だけ。docs/design.md 4章）。
   bool get interrupts => kind == InfoKind.alert && (level ?? 0) >= 4;
 }
 

@@ -6,7 +6,7 @@ import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
-/// 「検索して」「調べて」と言われたかを聞き取る係（CLAUDE.md 7章：マイクはこれだけに使う）。
+/// 「検索して」「調べて」と言われたかを聞き取る係（docs/design.md 7章：マイクはこれだけに使う）。
 ///
 /// - 聞き取った文字は合図の判定だけに使い、保存・記録・送信しない
 /// - スマホが読み上げている間も聞く（警報以外は、頼まれた検索が割り込む）。
@@ -60,7 +60,7 @@ class BeepMuter {
 /// Android の認識は数秒の無音で止まるので、止まるたびに聞き直す。
 /// 聞き直すたびに鳴る起動音は [BeepMuter] で消す（音を出すのは読み上げの合図音だけにする）。
 /// アプリが話しているときは、読み上げを消さないようメディアの音は消さない。
-/// 認識は**端末内だけ**で行う（`onDevice`）。音声をサーバーに送らない（CLAUDE.md 7章）。
+/// 認識は**端末内だけ**で行う（`onDevice`）。音声をサーバーに送らない（docs/design.md 7章）。
 /// 端末が端末内の認識に対応していなければ、聞き取りをやめる（検索はボタンで頼める）。
 class SpeechVoiceCommandSource implements VoiceCommandSource {
   SpeechVoiceCommandSource({

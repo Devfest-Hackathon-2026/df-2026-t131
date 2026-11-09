@@ -1,4 +1,4 @@
-"""イベントの開催状態（予定・開催中・中止）。変わるデータなので Firestore に置く（CLAUDE.md 8章）。
+"""イベントの開催状態（予定・開催中・中止）。変わるデータなので Firestore に置く（docs/design.md 8章）。
 
 イベントそのもの（名前・場所・時間）は SQLite（manual/events.json）にあり、ここでは状態だけを上書きする。
 デモでは Firestore の画面で event_status/<イベント ID> の status を "cancelled" にすると、

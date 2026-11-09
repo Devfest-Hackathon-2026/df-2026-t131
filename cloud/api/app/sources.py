@@ -1,4 +1,4 @@
-"""データの入口（Repository / Source）。fake と本物を差し替えられるようにする（CLAUDE.md 14章）。
+"""データの入口（Repository / Source）。fake と本物を差し替えられるようにする（docs/design.md 14章）。
 
   - タイル：FakeTileSource（見本）／SqliteTileSource（build_sqlite.py が作った SQLite）。TILE_SOURCE で選ぶ
   - 視界の検索：FakeVisualSearch（見本）。GeminiVisualSearch（Vertex AI）に差し替える予定

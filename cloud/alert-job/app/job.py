@@ -10,7 +10,7 @@
   - 前回より上がり、かつ ALERT_MIN_LEVEL 以上になったときだけ送る（同じ警報を何度も送らない）
   - 下がったとき・解除のときは送らない（覚えている値と一覧だけ更新する）
   - 訓練・試験の電文は読まない
-  - 文はテンプレートで作る（AI は使わない。CLAUDE.md 3章7・8）
+  - 文はテンプレートで作る（AI は使わない。docs/design.md 3章7・8）
 """
 import json
 import logging
@@ -38,7 +38,7 @@ MOCK_PREFIX = "これは訓練用の模擬の警報で、実際の警報では�
 
 def build_text(area_name: str, level: int, kind_name: str, mock: bool, current: bool = False) -> str:
     """current=False は FCM 用（発表しました）、True は一覧用（後から入った人向け：発表しています）。
-    本物は「気象庁は、〜を発表しました」と、気象庁の発表を伝えていることが分かる文にする（CLAUDE.md 3章8）。
+    本物は「気象庁は、〜を発表しました」と、気象庁の発表を伝えていることが分かる文にする（docs/design.md 3章8）。
     模擬は「〜が出た、という想定です」とし、気象庁の名前は出さない。"""
     if mock:
         parts = [MOCK_PREFIX, f"{area_name}に警戒レベル{level}の{kind_name}が出た、という想定です。"]

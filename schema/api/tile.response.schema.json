@@ -113,7 +113,7 @@
               "type": "string"
             },
             "maxItems": 30,
-            "description": "area だけ。エリア内の名前付きの対象の名前だけの一覧。**今は使わない方針**。デモ撮影で B の特定の失敗が続いたときの予備（CLAUDE.md 6章）"
+            "description": "area だけ。エリア内の名前付きの対象の名前だけの一覧。**今は使わない方針**。デモ撮影で B の特定の失敗が続いたときの予備（docs/design.md 6章）"
           }
         },
         "description": "landmark から status を除いたもの。reviewed のものだけが返る",

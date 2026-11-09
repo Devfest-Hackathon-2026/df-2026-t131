@@ -26,7 +26,7 @@ class SpeakRequest {
   final String utteranceId;
   final String text;
 
-  /// CLAUDE.md 4章の優先度 1〜6（1 が警報）。小さいほど大事。
+  /// docs/design.md 4章の優先度 1〜6（1 が警報）。小さいほど大事。
   final int priority;
 
   /// true なら今の読み上げを止めてすぐ話す。ただし今の発話の方が大事（priority が小さい）なら止めない。
@@ -84,7 +84,7 @@ abstract class Chime {
 
 /// 読み上げを実行する（engine の `Speak` を受ける）。判断はしない。
 ///
-/// - 1件ずつ話す。待っている依頼は優先度（CLAUDE.md 4章）の順に並べ、同じ優先度なら来た順
+/// - 1件ずつ話す。待っている依頼は優先度（docs/design.md 4章）の順に並べ、同じ優先度なら来た順
 /// - `interrupt` で、今の発話より大事なとき（[SpeakRequest.outranks]）か、今の発話が警報でないとき
 ///   （「検索します」や頼まれた B の答えは A に割り込む）、今の読み上げを止めて先に話す。
 ///   止めた方にも `TtsFinished` を返す（TODO(質問) 1）。警報には警報より大事なときしか割り込まない

@@ -12,7 +12,7 @@ from pathlib import Path
 
 DATA = Path(__file__).resolve().parents[1]
 OUT = DATA / "build" / "preview.html"
-# tasks/README.md 2.5 のジオフェンス半径（既定）。radius_m が無いランドマークに使う
+# docs/design.md 17.5 のジオフェンス半径（既定）。radius_m が無いランドマークに使う
 DEFAULT_GEOFENCE_M = 25
 # 横断歩道・信号を取り出した範囲（cloud/data/README.md の --bbox）
 CROSSING_BBOX = (36.6610, 137.1685, 36.7130, 137.2195)

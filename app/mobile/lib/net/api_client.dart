@@ -39,7 +39,7 @@ class ServerStatus {
   bool get ok => health.ok && auth.ok;
 }
 
-/// Cloud Run の API（tasks/README.md 2.4）を呼ぶ。
+/// Cloud Run の API（docs/design.md 17.4）を呼ぶ。
 ///
 /// - `/health`：生存確認（トークン不要）
 /// - `/v1/…`：`X-App-Token` ヘッダーを付ける。トークンは画面・ログ・print に出さない

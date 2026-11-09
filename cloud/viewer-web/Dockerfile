@@ -4,7 +4,7 @@
 # 画面の中身はメンバー2（app/viewer）、このフォルダ（ビルドと配信）はメンバー1。
 
 # ---- 1. Flutter Web をビルドする ----
-# チームの版（tasks/README.md・CI と同じ 3.47.9）。この版の公開イメージが無いので、Google が配る本体を取ってくる
+# チームの版（docs/design.md 19章・CI と同じ 3.47.9）。この版の公開イメージが無いので、Google が配る本体を取ってくる
 FROM debian:bookworm-slim AS build
 ARG FLUTTER_VERSION=3.47.9
 RUN apt-get update \

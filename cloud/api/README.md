@@ -1,6 +1,6 @@
 # cloud/api — Cloud Run の API
 
-持ち主：メンバー1。形式は `schema/api/`、決まりは `tasks/README.md` 2.4。
+持ち主：メンバー1。形式は `schema/api/`、決まりは `docs/design.md` 17.4。
 
 | ルート | 中身 | 認証 |
 | :---- | :---- | :---- |

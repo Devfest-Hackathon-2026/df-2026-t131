@@ -3,22 +3,90 @@
 スマートグラスをかけて歩くと、通り道のランドマークの話を数秒〜15秒で耳元に語る音声ガイド。
 **観光地に行かなくても、いつもの道が観光になる。**
 
-DevFest GDGoC Japan Hackathon 2026（カテゴリ：観光）の提出作品。デモでは**スマートグラスの代わりに Android スマホ**を首の高さで構えて使う。
+DevFest GDGoC Japan Hackathon 2026（カテゴリ：観光）の提出作品。
 
-> このリポジトリの設計・ルールは [`CLAUDE.md`](CLAUDE.md)、4人のつなぎ方は [`tasks/README.md`](tasks/README.md) にある。
+> **デモについて**：スマートグラスはまだ用意できないため、**Android スマホを横持ちにして首の高さで構え、スマートグラスの代わりに使っています**（スマホの向き＝視線の向き）。
+
+| | |
+| :---- | :---- |
+| 判断画面（審査用のデプロイ URL） | https://viewer-566419227445.asia-northeast1.run.app （11/14 まで動かし続けます） |
+| デモエリア | 富山県富山市の富山駅付近（富岩運河環水公園・富山駅・富山県美術館など） |
+| 設計書（何を・なぜそう作ったか） | [`docs/design.md`](docs/design.md) |
+| 出典・ライセンス | [`docs/attribution.md`](docs/attribution.md) |
+
+## 解決したいこと
+
+歩いていて「あれは何だろう」と思っても、スマホを出して調べるほどではない。そうした小さな好奇心は、調べる手間に負けて毎回捨てられています。
+まちトークは、**画面を見ずに歩いているだけで**、通り道のランドマークの由来や、今目の前にあるものを短く語ります。たくさん語ることより、**黙るべきときに黙ること**（横断歩道の手前・乗り物の中・同じ話の繰り返しなど）を優先しています。
+
+## 2つの機能
+
+| | A. ランドマーク案内 | B. 視界の定期検索 |
+| :---- | :---- | :---- |
+| きっかけ | 位置。登録したランドマークに近づいたとき | 時間。前回の撮影から約20秒ごと、または「調べて」と声をかけたとき |
+| 話す内容 | 自分たちで作り、人が確認した地図（DB）の原稿 | カメラの画像の中央にあるもの（建物の窓・入口・像など）を Gemini が見分けた短い説明 |
+| 「話すか」の判断 | 端末内の決定論的なアルゴリズム（AI を使わない） | 端末内の決定論的なアルゴリズム。AI は「何が写っているか」だけに使う |
+
+ほかに、気象庁の警報（警戒レベル4以上は今の話に割り込む）・当日のイベントを、優先度をつけて1本の音声にまとめます。
+話す・黙る・撮る・撮らないの**判断にはすべて理由コードを付けて記録**し、判断画面で「なぜ話したか・なぜ黙ったか」を再生できます。
+
+## 使った Google 技術と選んだ理由
+
+| 技術 | 使いどころ | 選んだ理由 |
+| :---- | :---- | :---- |
+| **Vertex AI（Gemini）** | B：画像に写っているものの判定（構造化出力の JSON）。A：原稿の下書き（人が確認してから DB へ） | マップにないものにも答えられる。速さと正確さを実際の写真で比べて `gemini-3.6-flash` を選んだ（設計書 15章） |
+| **Cloud Run** | API（A のタイル配信・B の検索）・警報ジョブ・判断画面の Web 版 | 使われないときはゼロまで縮むので待機費用がほぼかからない。API・ジョブ・画面の実行基盤と手順を1つにそろえた |
+| **Cloud Scheduler** | 警報ジョブを1分おきに起動 | サーバーを置かずに気象庁の電文を定期確認できる |
+| **Firestore** | イベントの開催状態・警報の前回の状態 | インスタンスの間で変わるデータを共有する |
+| **Firebase Cloud Messaging** | 警報の一斉配信（市町村トピック） | 端末が問い合わせ続けなくても、すぐに届く |
+| **ML Kit Face Detection** | B で送る前に、端末内で人の顔をぼかす | 画像を端末の外に出す前に処理できる |
+| **Flutter** | Android アプリ・判断画面（Web） | 同じ判断エンジン（`app/engine`、純粋な Dart）を、アプリと判断画面の両方で動かせる |
+| Fused Location・Activity Recognition・CameraX | 位置・行動（歩行・停止・乗り物）・カメラ | 省電力で常時取得できる |
+
+採用を見送ったもの（Google マップでのグラウンディング、Google Maps の地図表示、Firebase Hosting）とその理由は、設計書 10章・15章にあります。
+
+## プライバシーと安全のための決めごと
+
+* 正確な座標を端末の外に出さない。サーバーに送るのは地図タイルの番号・10°単位の方位・候補の ID など（設計書 3章）
+* カメラ画像は保存しない。送る前に端末内で顔をぼかし、検索が終わったらすぐ捨てる
+* 時刻・数字・警報の文は AI に書かせず、テンプレートで作る。気象は気象庁の発表をそのまま伝える（自分たちで予想しない）
+* API キーなどの秘密情報はリポジトリに入れない（CI の `check_forbidden.py` で確かめる）
 
 ## 構成
 
-| ディレクトリ | 中身 | 担当 |
-| :---- | :---- | :---- |
-| `schema/` | API と歩行ログの JSON Schema・見本データ・検証スクリプト | メンバー1 |
-| `cloud/api/` | Cloud Run：タイル API（A）と視界の検索 API（B、Vertex AI Gemini） | メンバー1 |
-| `cloud/alert-job/` | Cloud Run：気象警報の取得 → FCM 配信 | メンバー1 |
-| `cloud/data/` | データ準備（スクリプトはメンバー1、データはメンバー4） | メンバー1・4 |
-| `app/engine/` | 判断エンジン（純粋な Dart） | メンバー2 |
-| `app/viewer/` | 判断画面の Web 版（Flutter Web） | メンバー2 |
-| `app/mobile/` | Android アプリ（Flutter） | メンバー3 |
-| `docs/` | 出典・ライセンス（`attribution.md`）など | メンバー4 |
+```
+app/engine/       判断エンジン（純粋な Dart。A の発話判定・B の撮影判定・重複判定・理由コード）
+app/mobile/       Android アプリ（Flutter。センサー・カメラ・顔ぼかし・読み上げ・グラス視点の画面）
+app/viewer/       判断画面の Web 版（Flutter Web。歩行ログを engine に流し直して再生）
+cloud/api/        Cloud Run：A のタイル API と B の視界の検索 API（FastAPI ＋ Vertex AI Gemini）
+cloud/alert-job/  Cloud Run：気象庁の防災情報XML → 差分判定 → FCM 配信
+cloud/viewer-web/ Cloud Run：判断画面を nginx で配る
+cloud/data/       自前の地図のデータ（ランドマーク・横断歩道）と、SQLite を作るスクリプト
+schema/           API と歩行ログの JSON Schema（Dart と Python の共通の定義）・見本データ
+docs/             設計書・出典・プロダクト説明・著作物利用シートの下書きなど
+```
+
+全体の図と部品のつなぎ方は、設計書の 10章（システム構成）・17章（契約）にあります。
+
+## 動かし方（テスト）
+
+版は Flutter 3.47.9 / Dart 3.13.7 / Python 3.12（設計書 19章）。
+
+```sh
+pip install -r schema/requirements.txt
+python schema/validate.py                    # データ形式の検証
+python .github/scripts/check_forbidden.py    # 画像・秘密情報・engine の決定論の検出
+```
+
+```sh
+cd app/engine && dart pub get && dart test         # 歩行ログを流し直す判断エンジンのテスト
+cd app/mobile && flutter pub get && flutter test
+cd app/viewer && flutter pub get && flutter test
+cd cloud/api && pip install -r requirements.txt && pytest
+```
+
+同じ歩行ログを入れれば、判断エンジンは必ず同じ判断を返します（乱数・AI・時計を使わない）。スマホが無くても、テストと判断画面で実機の歩きを再現できます。
+アプリを実機で動かす手順は [`app/mobile/README.md`](app/mobile/README.md)、API のデプロイは [`cloud/api/README.md`](cloud/api/README.md) にあります。
 
 ## データの出典
 
@@ -29,20 +97,8 @@ DevFest GDGoC Japan Hackathon 2026（カテゴリ：観光）の提出作品。�
 | ランドマークの原稿 | 自治体・施設の公式ページなど（ランドマークごとに [`docs/attribution.md`](docs/attribution.md)） | 事実だけを参照し、自分たちの言葉で書いた。写真・他人の文章は使っていない |
 
 気象警報は気象庁の発表をそのまま伝えるだけで、自分たちで予想や警報はしない（気象業務法 第17条・第23条）。デモ用の模擬の警報は、文の頭で「訓練用の模擬の警報で、実際の警報ではありません」と断っている。
+ライブラリ・読み上げの声などの一覧は [`docs/attribution.md`](docs/attribution.md) にあります。
 
-## はじめに（全員）
+## チーム
 
-```sh
-pip install -r schema/requirements.txt
-python schema/validate.py                    # 形式の検証
-python .github/scripts/check_forbidden.py    # 禁止事項の検出
-```
-
-* PR は使わず `main` に直接 push する。作業前と push 前に `git pull --rebase origin main`
-* push の前に上の2つと自分のテストを通す。CI が赤くなったら push した人がすぐ直す（`tasks/README.md` 5章）
-* コミットしないもの：`.env`、鍵、`google-services.json`、`cloud/data/raw/`、`cloud/data/build/`、カメラ画像
-* AI エージェントには、会話の最初に [`tasks/START_PROMPTS.md`](tasks/START_PROMPTS.md) の自分の欄を貼る
-
-## 版
-
-[`tasks/README.md`](tasks/README.md) 10章を参照。
+4人で開発しました。担当と役割は設計書 16章にあります。

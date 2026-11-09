@@ -1,4 +1,4 @@
-"""Cloud Run の API（tasks/README.md 2.4）。
+"""Cloud Run の API（docs/design.md 17.4）。
 
   GET  /health                 生存確認（認証なし）
   GET  /v1/tiles/16/{x}/{y}    A：タイル単位のランドマーク・電停・横断歩道・イベント

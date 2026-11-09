@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'replay.dart';
 
-// B で AI に送った画像を、撮った判断と並べて見せる（11/8 決定。CLAUDE.md 3章6の例外）。
+// B で AI に送った画像を、撮った判断と並べて見せる（11/8 決定。docs/design.md 3章6の例外）。
 // 画像はリポジトリにも viewer のイメージにも入れず、Cloud Storage から読む。
 // 顔はアプリ（ML Kit）でぼかしたもの。公開の前に人が確かめ、取りこぼしは手でぼかした。
 

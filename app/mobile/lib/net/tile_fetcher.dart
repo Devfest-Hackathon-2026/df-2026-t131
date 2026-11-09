@@ -131,7 +131,7 @@ class TileCache {
 /// - [inRange] が分かっていれば、範囲の外のタイルは問い合わせもしない（TODO(サーバー)：データのある
 ///   タイルの一覧をメンバー1が公開したら、それを渡す）
 /// - 失敗したタイルは [retryAfter] の間は頼み直さない。トークンが無い・違うときは全体を止める
-/// - 送るのはタイル番号だけ（正確な位置は送らない。CLAUDE.md 3章5）
+/// - 送るのはタイル番号だけ（正確な位置は送らない。docs/design.md 3章5）
 class TileFetcher {
   TileFetcher({
     required this.api,

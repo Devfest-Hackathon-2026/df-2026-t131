@@ -1,9 +1,9 @@
-"""B：視界の検索の本物（Vertex AI の Gemini）。CLAUDE.md 6章。
+"""B：視界の検索の本物（Vertex AI の Gemini）。docs/design.md 6章。
 
 1回の呼び出しで「候補のどれか（matched）／候補外の名前と説明（unlisted）／わからない（unknown）」と
 自信の度合いを返させ、ここで後処理してから schema の形で返す。
 
-部分（part）：中央に写っているのが対象の全体（whole）か、窓・入口などの特定の部分か（CLAUDE.md 6章「B の仕様」）。
+部分（part）：中央に写っているのが対象の全体（whole）か、窓・入口などの特定の部分か（docs/design.md 6章「B の仕様」）。
   matched・whole は説明を返さない（11/6 夜：B では全体の紹介をしない＝engine が A に任せて見送る）。
   matched・whole 以外は「登録したランドマークの特徴」で、見えていることだけの説明を返す（engine は全体の紹介とは別の話として扱う）。
   ありふれたもの（電柱・自動販売機など）や、見た目をなぞるだけの説明しか言えないものは unknown にさせる（11/6 夜、メンバー2の提案）。
@@ -16,7 +16,7 @@
 
 後処理（AI の答えをそのまま信じない）:
   - JSON が壊れている・候補に無い ID を返した・名前が無い → unknown（推測で補わない）
-  - 説明から、数字・年号を含む文を落とす（AI が作った数字は読み上げない。CLAUDE.md 3章7）
+  - 説明から、数字・年号を含む文を落とす（AI が作った数字は読み上げない。docs/design.md 3章7）
   - 説明は目安100字で切る
   - part が一覧に無い → other。matched で part が whole 以外なのに説明が残らない → matched・whole に戻す（安全側）
   - 自信が VISUAL_MIN_CONFIDENCE 未満 → unknown（話すかどうかの本当のしきい値は engine の定数）

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
 
-/// B で送る画像の長辺の上限（CLAUDE.md 6章「B の仕様」）。
+/// B で送る画像の長辺の上限（docs/design.md 6章「B の仕様」）。
 const int searchImageMaxEdge = 640;
 
 /// 顔の枠（元のカメラ画像を、向きを直したあとの座標で）。

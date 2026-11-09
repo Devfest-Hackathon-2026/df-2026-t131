@@ -6,7 +6,6 @@
 /.devcontainer/
 /app/
 /docs/
-/tasks/
 /cloud/data/raw/
 **/tests/
 **/__pycache__/

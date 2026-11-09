@@ -71,7 +71,7 @@ class AlertSource implements InfoSource {
 
 /// 骨組みだけの入口（気象・路面電車・イベント）。中身を作るときに置き換える。
 ///
-/// それぞれ、文はテンプレートで作り（AI に書かせない）、正確な位置は外に出さない（CLAUDE.md 3章）。
+/// それぞれ、文はテンプレートで作り（AI に書かせない）、正確な位置は外に出さない（docs/design.md 3章）。
 List<PlannedSource> plannedSources() => [
   PlannedSource(
     InfoKind.weather,

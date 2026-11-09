@@ -1,4 +1,4 @@
-# CI（tasks/README.md 5章）。赤いものは main にマージしない。
+# CI（docs/design.md 16章）。赤いものは main にマージしない。
 # ジョブ名はブランチ保護の「必須チェック」に登録するので変えない。
 # まだ中身が無いディレクトリ（engine・cloud のテスト）は、そのステップを飛ばして緑にする。
 name: CI
@@ -62,7 +62,7 @@ jobs:
       - id: has_engine
         run: |
           if [ -f app/engine/pubspec.yaml ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
-      # Dart の版は tasks/README.md 10章（Flutter 3.47.9 に同梱の Dart）にそろえる
+      # Dart の版は docs/design.md 19章（Flutter 3.47.9 に同梱の Dart）にそろえる
       - uses: dart-lang/setup-dart@v1
         if: steps.has_engine.outputs.exists == 'true'
         with:
@@ -86,7 +86,7 @@ jobs:
       - id: has_viewer
         run: |
           if [ -f app/viewer/pubspec.yaml ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
-      # Flutter の版は tasks/README.md 10章にそろえる
+      # Flutter の版は docs/design.md 19章にそろえる
       - uses: subosito/flutter-action@v2
         if: steps.has_viewer.outputs.exists == 'true'
         with:
@@ -112,7 +112,7 @@ jobs:
       - id: has_mobile
         run: |
           if [ -f app/mobile/pubspec.yaml ]; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
-      # Flutter の版は tasks/README.md 10章にそろえる
+      # Flutter の版は docs/design.md 19章にそろえる
       - uses: subosito/flutter-action@v2
         if: steps.has_mobile.outputs.exists == 'true'
         with:

@@ -369,7 +369,7 @@ class _ViewerPageState extends State<ViewerPage> {
   }
 }
 
-/// 審査で必ず示すこと（CLAUDE.md 1章・9章）。
+/// 審査で必ず示すこと（docs/design.md 1章・9章）。
 class _Notice extends StatelessWidget {
   const _Notice();
   @override

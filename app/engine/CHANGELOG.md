@@ -22,14 +22,14 @@
 - 一致の答えは、その検索で送った候補の ID だけを受け付ける。見本の答え4種（`visual_search_response_*.json`）で判断を確かめるテストを追加。
 - 場面ごとのテスト（`test/engine_b_test.dart`）を追加。場面づくりの道具を `test/support/scenario.dart` に分けた。
 - 共有の仕様書（visual-search-spec.md）に合わせて直した：
-  - 「調べて」の入力イベント `SearchRequested`（歩行ログの `search_request`）と理由コード `search:user_requested` を追加（schema に追加。CLAUDE.md の B の仕様で決定）。
+  - 「調べて」の入力イベント `SearchRequested`（歩行ログの `search_request`）と理由コード `search:user_requested` を追加（schema に追加。docs/design.md の B の仕様で決定）。
   - B を話すと直後の A に間に合わないときは B を捨てる（`answer:yield_to_narrative`。schema に追加）。
   - 最初の1枚の基準を「タイルが初めて届いた時刻」から「位置と向きが初めて取れた時刻」に変えた。
   - `EngineView` に `currentArea`・`searchSkipReason` を追加し、`NearbyLandmark.relativeDeg` を `relativeBearingDeg` に改名（リーダーの案に合わせた）。
 - B の応答の `part`（どの部分か）に対応（メンバー1の m1/visual-part）：`VisualSearchResponse.part`、`visualPartLabels`。登録したランドマークの特徴（`answer:landmark_feature`）を話す。重複は（場所, part）で見る。
 - B の1回の歩行での回数の上限を既定で外した（`EngineConfig.maxSearchesPerWalk` は `int?`、既定 null＝上限なし）。値を入れれば今までどおり `search_skip:limit_reached` で止まる。`EngineView.searchesLeft` も上限なしのとき null。
 - B の計測の間隔の既定を60秒から20秒に短くした（60秒では約80mに1枚で見逃しが多いため。試し歩きで調整する）。
-- B はランドマーク全体を話さない（`answer:whole_left_to_narrative`）、全体の紹介（A）より先に部分やエリアの中のものを話さない（`answer:feature_before_intro`）。11/6 夜のメンバー1の決定（CLAUDE.md 6章）。理由コードを schema に追加。`answer:matched_landmark` は出さなくなり、`minConfidence`（0.6）は使わなくなった。B で話しても A で話した扱いにはしない。
+- B はランドマーク全体を話さない（`answer:whole_left_to_narrative`）、全体の紹介（A）より先に部分やエリアの中のものを話さない（`answer:feature_before_intro`）。11/6 夜のメンバー1の決定（docs/design.md 6章）。理由コードを schema に追加。`answer:matched_landmark` は出さなくなり、`minConfidence`（0.6）は使わなくなった。B で話しても A で話した扱いにはしない。
 - タイルの応答の町丁目（`towns`、メンバー1の m1/tile-towns）に対応：`Town`、`TileResponse.towns`（無い古いタイルは空として読み、書き出しでも足さない）。
 - 立ち止まりの前倒しの「前に撮ってから」を30秒から10秒に下げた（間隔20秒より長く、前倒しにならなかったため）。
 - 今の町丁目 `Engine.currentTown`・`EngineView.currentTown` を追加：持っているタイルの町丁目のうち、いちばん近い代表点（距離が同じなら ID の小さい方）。`townMaxDistanceM`（800m）より遠ければ null。決め方は cloud/data/scripts/town_lookup.py と同じ。

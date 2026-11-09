@@ -206,7 +206,7 @@ void main() {
     expect(x.subtitle.value, isNull);
   });
 
-  group('優先度と割り込み（CLAUDE.md 4章）', () {
+  group('優先度と割り込み（docs/design.md 4章）', () {
     SpeakRequest req(
       String id, {
       int priority = 5,

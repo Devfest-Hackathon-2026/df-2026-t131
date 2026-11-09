@@ -1,6 +1,6 @@
 const currentSchemaVersion = '0.3';
 
-/// tasks/README.md 2.5の初期値。時間の単位はミリ秒。
+/// docs/design.md 17.5の初期値。時間の単位はミリ秒。
 final class EngineConfig {
   final int sensorIntervalMs,
       prefetchHorizonMs,
@@ -19,7 +19,7 @@ final class EngineConfig {
   /// 呼びすぎはサーバーの回数上限が止めるため、既定では外した。必要なら値を入れて使う。
   final int? maxSearchesPerWalk;
 
-  // ---- ここから下は tasks/README.md 2.5 にない、engine の内部の仮の値（実機で調整する）----
+  // ---- ここから下は docs/design.md 17.5 にない、engine の内部の仮の値（実機で調整する）----
 
   /// これより遅いと止まっているとみなす（m/s）。最接近の計算と先読みで使う。
   final double minMovingMps;
@@ -44,7 +44,7 @@ final class EngineConfig {
   /// センサーがこれより長く途切れたら、位置の推定を作り直す。
   final int kalmanResetGapMs;
 
-  /// このレベル以上の警報は今の読み上げに割り込む（CLAUDE.md 4章）。
+  /// このレベル以上の警報は今の読み上げに割り込む（docs/design.md 4章）。
   final int alertInterruptLevel;
 
   /// 方向の言い方の境目（進行方向からの角度の絶対値、度）。
@@ -85,7 +85,7 @@ final class EngineConfig {
   // ---- 話の続け方と中断（11/6 夕、メンバー3。実機で調整する）----
 
   /// A → A、警報 → A の間に空ける時間。話題の間隔（topicIntervalMs）は
-  /// 「B が続けて話し続けないように」（CLAUDE.md 4章）のためなので、B の前後だけに使う。
+  /// 「B が続けて話し続けないように」（docs/design.md 4章）のためなので、B の前後だけに使う。
   /// A のあとに20秒空けると、続くランドマークの範囲を歩き過ぎて話せなくなるため。
   final int narrativeChainGapMs;
 

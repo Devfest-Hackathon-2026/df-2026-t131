@@ -1,4 +1,4 @@
-"""クラウド側の定数と設定（tasks/README.md 2.5）。
+"""クラウド側の定数と設定（docs/design.md 17.5）。
 
 値は環境変数で上書きできる。Cloud Run では環境変数（秘密は Secret Manager）で渡す。
 既定値は「誤って課金しない」側に倒してある（GEMINI_MODE=fake）。
@@ -33,9 +33,9 @@ class Settings:
     event_status: str = field(default_factory=lambda: _env("EVENT_STATUS", "file"))
     # fake：schema/examples の見本を返す（課金なし）／real：Vertex AI の Gemini を呼ぶ
     gemini_mode: str = field(default_factory=lambda: _env("GEMINI_MODE", "fake"))
-    # maps：Google マップでのグラウンディングを付ける／off：付けない（CLAUDE.md 6章）
+    # maps：Google マップでのグラウンディングを付ける／off：付けない（docs/design.md 6章）
     gemini_grounding: str = field(default_factory=lambda: _env("GEMINI_GROUNDING", "off"))
-    # 11/5 に実際の写真で比べて決めた（tasks/member1_progress.md）。gemini-3.6-flash は global でだけ使える。
+    # 11/5 に実際の写真で比べて決めた（docs/design.md 15章）。gemini-3.6-flash は global でだけ使える。
     # 考える量を LOW にすると 2〜3 秒で、写っていない名前を言う誤りもなかった
     vertex_location: str = field(default_factory=lambda: _env("VERTEX_LOCATION", "global"))
     gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-3.6-flash"))

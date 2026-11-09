@@ -114,7 +114,7 @@
         "type": "string"
       },
       "maxItems": 30,
-      "description": "area だけ。エリア内の名前付きの対象の名前だけの一覧。**今は使わない方針**。デモ撮影で B の特定の失敗が続いたときの予備（CLAUDE.md 6章）"
+      "description": "area だけ。エリア内の名前付きの対象の名前だけの一覧。**今は使わない方針**。デモ撮影で B の特定の失敗が続いたときの予備（docs/design.md 6章）"
     }
   },
   "description": "draft の間は script_short・script_long・visual_hint を空文字にしてよい。reviewed では原稿2つが必須",

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'walk_video_player.dart';
 
 // 歩いたときの動画（アプリの画面の録画）を、歩行ログの再生と同じ時刻で並べて見せる（11/8）。
-// 動画はリポジトリにも viewer のイメージにも入れず、Cloud Storage から読む（CLAUDE.md 3章6）。
+// 動画はリポジトリにも viewer のイメージにも入れず、Cloud Storage から読む（docs/design.md 3章6）。
 // 通行人の顔はぼかし済み、音声は消してある。
 
 /// 歩行ログ1本ぶんの動画の置き場所と時刻のずれ（index.json の `video`）。
