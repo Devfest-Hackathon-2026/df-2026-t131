@@ -74,7 +74,7 @@
 
 ## 6. Google のサービス
 
-Cloud Run・Cloud Scheduler・Firestore・Cloud Storage・Firebase Cloud Messaging・Firebase Hosting・Vertex AI（Gemini）・Google Maps（判断画面の地図表示）。各サービスの利用規約に従う。
+Cloud Run・Cloud Scheduler・Firestore・Cloud Storage・Firebase Cloud Messaging・Vertex AI（Gemini）・ML Kit。各サービスの利用規約に従う。
 
 ## 7. 画像・音声・フォント
 
@@ -89,7 +89,7 @@ Cloud Run・Cloud Scheduler・Firestore・Cloud Storage・Firebase Cloud Messagi
 - 通行人の顔が映ったらぼかす
 - 映った建物・像・看板：**要確認**（像の作品が大きく映る場合の扱い）
 - BGM：**未定**（使うなら利用条件を確かめて、ここに書く）
-- 判断画面に OpenStreetMap・Google Maps の地図が映る場合は、出典表示が見えるようにする
+- 判断画面に地図（自前の地図・地理院タイル）が映る場合は、出典表示が見えるようにする
 
 ## 9. まだ確かめていないこと
 
