@@ -86,7 +86,7 @@ def create_app(
             event_status = FileEventStatus()
     limiter = DailyLimiter(settings.visual_search_daily_limit)
 
-    app = FastAPI(title="アンビエント・ナラティブガイド API", docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(title="まちトーク API", docs_url=None, redoc_url=None, openapi_url=None)
 
     # ---- エラーはすべて {"error": "<コード>"} にそろえる（中身の詳細は返さない）----
     @app.exception_handler(ApiError)

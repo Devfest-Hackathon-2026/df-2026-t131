@@ -117,7 +117,7 @@ void showAppLicenses(BuildContext context) {
   registerExtraLicenses();
   showLicensePage(
     context: context,
-    applicationName: 'アンビエント・ナラティブガイド',
+    applicationName: 'まちトーク',
     applicationLegalese: dataAttributions.join('\n'),
   );
 }

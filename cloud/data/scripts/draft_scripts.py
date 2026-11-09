@@ -143,7 +143,7 @@ class WebSourceReader:
         self._timeout = timeout
 
     def read(self, url: str) -> str:
-        req = urllib.request.Request(url, headers={"User-Agent": "ambient-guide-hackathon/0.1", "Accept-Language": "ja"})
+        req = urllib.request.Request(url, headers={"User-Agent": "machi-talk/0.1", "Accept-Language": "ja"})
         with urllib.request.urlopen(req, context=self._ctx, timeout=self._timeout) as r:
             raw = r.read().decode(r.headers.get_content_charset() or "utf-8", "replace")
         if "youtube.com/" in url:

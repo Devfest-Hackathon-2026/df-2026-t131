@@ -1,5 +1,5 @@
 name: engine
-description: アンビエント・ナラティブガイドの端末内判断エンジン。
+description: まちトークの端末内判断エンジン。
 version: 0.3.0
 publish_to: none
 

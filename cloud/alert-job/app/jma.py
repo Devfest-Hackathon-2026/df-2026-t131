@@ -117,7 +117,7 @@ class JmaFeedSource:
     """本物の気象庁のフィード。条件付き GET で、変わっていなければ本文を取らない。"""
 
     FEED_URL = "https://www.data.jma.go.jp/developer/xml/feed/extra.xml"
-    USER_AGENT = "ambient-narrative-guide/0.1 (DevFest GDGoC Japan Hackathon 2026)"
+    USER_AGENT = "machi-talk/0.1 (DevFest GDGoC Japan Hackathon 2026)"
 
     def __init__(self, timeout_s: float = 20.0):
         import httpx

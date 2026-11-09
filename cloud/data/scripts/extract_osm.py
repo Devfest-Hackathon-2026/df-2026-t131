@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / "cloud" / "data" / "osm" / "crossings.json"
 RAW = ROOT / "cloud" / "data" / "raw" / "osm_crossings.json"
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
-USER_AGENT = "ambient-narrative-guide/0.1 (DevFest GDGoC Japan Hackathon 2026)"
+USER_AGENT = "machi-talk/0.1 (DevFest GDGoC Japan Hackathon 2026)"
 SCHEMA_VERSION = "0.3"
 SOURCE = {
     "title": "© OpenStreetMap contributors",

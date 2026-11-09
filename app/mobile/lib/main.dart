@@ -42,7 +42,7 @@ class MobileApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'mobile',
+      title: 'まちトーク',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       builder: clampTextScale,

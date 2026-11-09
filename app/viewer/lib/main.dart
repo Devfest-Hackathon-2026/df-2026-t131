@@ -16,7 +16,7 @@ class ViewerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '判断画面｜アンビエント・ナラティブガイド',
+      title: '判断画面｜まちトーク',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
       home: ViewerPage(showMapTiles: showMapTiles),

@@ -1,11 +1,11 @@
 {
-    "name": "viewer",
-    "short_name": "viewer",
+    "name": "まちトーク 判断画面",
+    "short_name": "まちトーク",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "まちトークの判断画面（歩行ログの再生）",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
