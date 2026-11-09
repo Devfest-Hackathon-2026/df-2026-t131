@@ -99,6 +99,19 @@ cd cloud/api && pip install -r requirements.txt && pytest
 気象警報は気象庁の発表をそのまま伝えるだけで、自分たちで予想や警報はしない（気象業務法 第17条・第23条）。デモ用の模擬の警報は、文の頭で「訓練用の模擬の警報で、実際の警報ではありません」と断っている。
 ライブラリ・読み上げの声などの一覧は [`docs/attribution.md`](docs/attribution.md) にあります。
 
+## ライセンス
+
+このリポジトリのソースコードと、チームが書いた文書・原稿は [MIT License](LICENSE) です。
+
+ただし、次の第三者のデータとそこから作ったものは、MIT ではなく元のライセンス・利用条件に従います。
+
+| 対象 | ライセンス・条件 |
+| :---- | :---- |
+| OpenStreetMap から取り出したデータ（`cloud/data/osm/crossings.json`、ランドマークの位置と形、`app/viewer/assets/map.json`、歩行ログの中のタイルのデータ） | ODbL 1.0（© OpenStreetMap contributors） |
+| 町丁目の代表点（`cloud/data/address/towns.json`） | 国土交通省 位置参照情報の利用規約（出典の明記） |
+| 気象警報の電文から作った文 | 気象庁ホームページのコンテンツ利用条件（公共データ利用規約 第1.0版） |
+| 使っているライブラリ・読み上げの声（VOICEVOX など。リポジトリには含めず、ビルド時に取得） | それぞれのライセンス（[`docs/attribution.md`](docs/attribution.md)） |
+
 ## チーム
 
 4人で開発しました。担当と役割は設計書 16章にあります。
