@@ -1,7 +1,6 @@
 import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 
 /// engine に渡す行動の種類。
-/// TODO: engine の雛形が届いたら engine の Activity 型に置き換える。
 enum ActivityKind { walking, still, inVehicle, unknown }
 
 /// 対応（リーダー決定 11/5）：

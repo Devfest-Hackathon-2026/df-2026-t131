@@ -17,7 +17,6 @@ class CandidateMark {
 
 /// グラス視点の画面に重ねる、判断まわりの表示内容。
 /// engine の Command（LogDecision・Speak・CaptureAndSearch）と B の結果から作る。
-/// TODO: engine が届いたら、Executor がこの値を更新する。
 class GlassOverlay {
   const GlassOverlay({
     this.candidates = const [],

@@ -12,7 +12,6 @@ import '../sources/location_source.dart';
 import '../vision/face_detector.dart' show landscapeLeftRotation;
 
 /// 1秒分のセンサーの値をまとめたもの。
-/// TODO: engine の雛形が届いたら engine の SensorFrame（イベント）に変換して EngineRunner に渡す。
 class SensorSnapshot {
   const SensorSnapshot({
     required this.tMs,

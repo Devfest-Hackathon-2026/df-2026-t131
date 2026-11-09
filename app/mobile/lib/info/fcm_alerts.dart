@@ -25,7 +25,7 @@ PendingAlertStore pendingAlertStore() => PendingAlertStore(
 /// アプリが裏に回っている・閉じているときに届いた FCM（別の isolate で動く）。
 /// 前面のアプリが動いていればそちらへ渡して読み上げる。動いていなければファイルに預け、
 /// 次にアプリを開いたとき [FcmAlerts.connect] で読み上げる（古すぎるものは捨てる）。
-/// TODO(FCM): 閉じている間に Android の通知を出すかはチームで決める。
+/// 閉じている間に Android の通知は出さない。
 @pragma('vm:entry-point')
 Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
   final port = IsolateNameServer.lookupPortByName(_portName);

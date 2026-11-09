@@ -173,7 +173,6 @@ class SessionController extends ChangeNotifier {
   }
 
   /// 読み上げが終わったことを歩行ログに残す（engine に渡す `tts_finished` と同じ形）。
-  /// TODO(質問): engine の雛形が届いたら EngineRunner が TtsFinished を記録する形に置き換える。
   void recordTtsFinished(String utteranceId) =>
       recordEvent('tts_finished', {'utterance_id': utteranceId});
 

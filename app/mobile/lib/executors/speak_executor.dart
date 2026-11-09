@@ -9,7 +9,6 @@ import '../app/app_settings.dart';
 import 'voice_catalog.dart';
 
 /// 読み上げの依頼1件。
-/// TODO(質問): engine の雛形が届いたら engine の `Speak` コマンドに置き換える（項目は README 2.3 と同じ）。
 class SpeakRequest {
   const SpeakRequest({
     required this.utteranceId,
@@ -87,7 +86,7 @@ abstract class Chime {
 /// - 1件ずつ話す。待っている依頼は優先度（docs/design.md 4章）の順に並べ、同じ優先度なら来た順
 /// - `interrupt` で、今の発話より大事なとき（[SpeakRequest.outranks]）か、今の発話が警報でないとき
 ///   （「検索します」や頼まれた B の答えは A に割り込む）、今の読み上げを止めて先に話す。
-///   止めた方にも `TtsFinished` を返す（TODO(質問) 1）。警報には警報より大事なときしか割り込まない
+///   止めた方にも `TtsFinished` を返す。警報には警報より大事なときしか割り込まない
 /// - 文（「。」など）ごとに区切って話す。警報の割り込みはすぐ止めるが、それ以外の割り込みは
 ///   今の文を話し終えてから止める（文の途中で切ると不自然なため）。止めた発話の残りは話さない
 /// - 話す番が来たときに期限（`expiresMs`）を過ぎていたら話さずに捨てる

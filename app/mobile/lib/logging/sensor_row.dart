@@ -12,7 +12,6 @@ String activityToJson(ActivityKind a) => switch (a) {
 };
 
 /// [SensorSnapshot] を歩行ログの sensor 行（schema/eventlog.schema.json）にする。
-/// TODO(質問): engine の雛形が届いたら SensorFrame にして engine の eventToJson に置き換える。
 Map<String, Object?> sensorRowJson(SensorSnapshot s) {
   final loc = s.location;
   final q = s.imageQuality;

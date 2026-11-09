@@ -53,7 +53,6 @@ def check_jsonl(schema_rel: str, path: Path):
 
 
 # デモ範囲（富山市をおおまかに囲む四角）。緯度と経度の取り違え・桁違いを見つけるため。
-# TODO(メンバー1): デモルートが決まったら、ルートの周辺に狭める
 DEMO_BBOX = {"lat_min": 36.2, "lat_max": 36.9, "lon_min": 136.9, "lon_max": 137.7}
 
 

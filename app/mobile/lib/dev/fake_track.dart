@@ -199,8 +199,7 @@ class LogTrack implements FakeTrack {
 }
 
 /// デモルート：富山駅（北口）→ ゴールドジムと富山市総合体育館の間の歩道 → 天門橋。
-/// 経由点は map/manual/route.json と同じ。駅と天門橋はおおよその位置なので、
-/// TODO: 地図データ（OSM 抽出）の座標が決まったら合わせる。
+/// 経由点は map/manual/route.json と同じ。駅と天門橋はおおよその位置（開発用）。
 final demoRouteToyama = RouteTrack('デモルート（富山駅 → 天門橋）', const [
   LatLon(36.70220, 137.21330), // 富山駅 北口
   LatLon(36.70420, 137.21380),

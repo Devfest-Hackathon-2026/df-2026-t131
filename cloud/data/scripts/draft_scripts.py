@@ -46,7 +46,7 @@ LANDMARKS = ROOT / "cloud" / "data" / "manual" / "landmarks"
 DRAFTS = ROOT / "cloud" / "data" / "drafts"
 JST = timezone(timedelta(hours=9))
 
-# TODO(メンバー1): GCP の準備ができたら、実際に呼んで地域とモデル名を確定する
+# 11/5 に実際の写真で比べて決めたモデルと地域（docs/design.md 15章）
 DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 DEFAULT_LOCATION = os.environ.get("VERTEX_LOCATION", "global")
 

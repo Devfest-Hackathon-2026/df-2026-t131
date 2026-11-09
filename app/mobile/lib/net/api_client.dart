@@ -44,8 +44,6 @@ class ServerStatus {
 /// - `/health`：生存確認（トークン不要）
 /// - `/v1/…`：`X-App-Token` ヘッダーを付ける。トークンは画面・ログ・print に出さない
 /// - 8秒で打ち切る。呼びすぎないよう [limiter]（既定1分に30回）を通す
-///
-/// TODO: A のタイル取得（`FetchTiles`）と B の画像検索も、ここに足して同じ決まりで呼ぶ。
 class ApiClient {
   ApiClient({
     required this.baseUrl,

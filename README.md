@@ -65,7 +65,7 @@ cloud/alert-job/  Cloud Run：気象庁の防災情報XML → 差分判定 → F
 cloud/viewer-web/ Cloud Run：判断画面を nginx で配る
 cloud/data/       自前の地図のデータ（ランドマーク・横断歩道）と、SQLite を作るスクリプト
 schema/           API と歩行ログの JSON Schema（Dart と Python の共通の定義）・見本データ
-docs/             設計書・出典・プロダクト説明・著作物利用シートの下書きなど
+docs/             設計書・出典・観光地とオープンデータの調査
 ```
 
 全体の図と部品のつなぎ方は、設計書の 10章（システム構成）・17章（契約）にあります。

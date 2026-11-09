@@ -7,15 +7,13 @@ import 'info_source.dart';
 
 /// 届いた情報の行き先。
 ///
-/// 今は engine が無いので [DirectSpeakSink] で直接読み上げる。
-/// engine をつないだら、警報は `AlertReceived`、交通・イベントは engine の入力に渡す Sink に替える
-/// （話すか・待つか・捨てるかは engine が決める。docs/design.md 5章）。
+/// 警報は、計測中は engine の入力（`AlertReceived`）に渡す（`app_services.dart` の `_AlertSink`。
+/// 話すか・待つかは engine が決める。docs/design.md 5章）。警報以外の種類は [DirectSpeakSink] で直接読み上げる。
 abstract class InfoSink {
   void deliver(InfoItem item);
 }
 
-/// engine が来るまでの仮のつなぎ：優先度表（docs/design.md 4章）のとおりに読み上げに渡す。
-/// TODO(engine): engine の雛形をつないだら EngineSink に置き換える。
+/// 警報以外の種類を、優先度表（docs/design.md 4章）のとおりに読み上げに渡す。
 class DirectSpeakSink implements InfoSink {
   DirectSpeakSink(this.speaker);
 
