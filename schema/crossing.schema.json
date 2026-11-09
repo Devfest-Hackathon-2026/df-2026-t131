@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ambient-narrative.example/schema/crossing.schema.json",
+  "$id": "https://machi-talk.example/schema/crossing.schema.json",
   "title": "横断歩道・信号1件（OSM から抽出。タイル応答の crossings と cloud/data/osm/crossings.json で共通）",
   "type": "object",
   "additionalProperties": false,

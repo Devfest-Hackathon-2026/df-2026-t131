@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ambient-narrative.example/schema/fcm/alert.data.schema.json",
+  "$id": "https://machi-talk.example/schema/fcm/alert.data.schema.json",
   "title": "FCM で送る警報の data（alert-job → mobile）",
   "description": "FCM の data は値がすべて文字列なので、数も文字列で送る。mobile は受け取ったら level を整数に直し、受信時刻を t_ms にして AlertReceived（eventlog の alert）でエンジンへ渡す。送信先のトピックは alert_<区域コード7桁>（例：富山市は alert_1620100）。移行の間は前のトピック alert_16201 にも同じものを送る。通知（notification）は付けない data だけのメッセージで、Android の優先度は high。同じ警報は alerts/current/<区域7桁>.json（api/alerts_current.schema.json）にも同じ alert_id で載る",
   "type": "object",

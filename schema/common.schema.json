@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ambient-narrative.example/schema/common.schema.json",
+  "$id": "https://machi-talk.example/schema/common.schema.json",
   "title": "共通の型",
   "$defs": {
     "schema_version": {

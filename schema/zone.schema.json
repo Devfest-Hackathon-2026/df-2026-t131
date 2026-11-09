@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ambient-narrative.example/schema/zone.schema.json",
+  "$id": "https://machi-talk.example/schema/zone.schema.json",
   "title": "カメラで調べない区域（タイルの応答の zones の1件）",
   "description": "この円の中では B（画像での案内）を撮らない。A は続ける。入るのは中心から radius_m 以内、出るのは radius_m＋15m より外（engine の定数 zoneExitMarginM）。11/7 に追加",
   "type": "object",

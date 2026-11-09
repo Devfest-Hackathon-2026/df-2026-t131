@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ambient-narrative.example/schema/landmark.schema.json",
+  "$id": "https://machi-talk.example/schema/landmark.schema.json",
   "title": "ランドマーク1件（cloud/data/manual/landmarks.json の各要素）",
   "type": "object",
   "additionalProperties": false,

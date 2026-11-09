@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ambient-narrative.example/schema/eventlog.schema.json",
+  "$id": "https://machi-talk.example/schema/eventlog.schema.json",
   "title": "歩行ログ1行＝エンジンへの入力イベント1件（JSON Lines）",
   "description": "mobile が engine に渡した入力をすべてこの形で記録する。画像は含めない。",
   "oneOf": [
