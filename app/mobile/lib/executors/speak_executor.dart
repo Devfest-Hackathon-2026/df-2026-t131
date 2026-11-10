@@ -248,6 +248,22 @@ class SpeakExecutor {
     }
   }
 
+  /// 待っている依頼をすべて捨て、話している途中の文もすぐ止める（記録の終了で使う）。
+  /// 捨てた・止めた発話の終わりは [finished] に返す。このあとに来た依頼はふつうに話す。
+  void stopAll() {
+    for (final q in _queue) {
+      _emitFinished(q.utteranceId);
+    }
+    _queue.clear();
+    final cur = _current;
+    if (cur != null && !_interruptedCurrent) {
+      _emitFinished(cur.utteranceId);
+      _interruptedCurrent = true;
+      _skipNextChime = false;
+    }
+    unawaited(_guard(tts.stop));
+  }
+
   Future<void> dispose() async {
     _queue.clear();
     await _guard(tts.stop);

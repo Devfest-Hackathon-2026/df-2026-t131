@@ -517,6 +517,9 @@ class AppServices {
     _runner = null;
     _syncVoice();
     await r?.dispose();
+    // 記録を終えたら、話している途中・順番待ちの案内を残さない（終了画面で話し続けないため）。
+    // 計測していない間の警報は _AlertSink が預かり、次の計測で渡す
+    speaker.stopAll();
     // 途中だった検索の札は、次の計測に持ち越さない
     _searchIndicatorTimer?.cancel();
     _searchIndicatorTimer = null;

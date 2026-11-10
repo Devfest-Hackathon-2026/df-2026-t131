@@ -76,7 +76,7 @@ class GeolocatorLocationSource implements LocationSource {
       distanceFilter: 0,
       intervalDuration: AppConfig.sensorTick,
       foregroundNotificationConfig: const ForegroundNotificationConfig(
-        notificationTitle: 'まち歩きガイドが動いています',
+        notificationTitle: 'まちトークが動いています',
         notificationText: '画面を消しても、ランドマークの案内と警報を声で届けます',
         notificationChannelName: '歩行中の案内',
         // 画面を消しても CPU を止めない（1秒ごとの判断と読み上げを続けるため）

@@ -137,6 +137,25 @@ void main() {
     expect(finished, ['a', 'alert', 'b']);
   });
 
+  test('stopAll（記録の終了）は途中の文も待っている依頼も話さず、そのあとの依頼はふつうに話す', () async {
+    x.execute(const SpeakRequest(utteranceId: 'a', text: '一文目。二文目。'));
+    x.execute(const SpeakRequest(utteranceId: 'b', text: '次の案内'));
+    await settle();
+    expect(tts.spoken, ['一文目。']);
+    x.stopAll();
+    await settle();
+    expect(tts.stops, isNotEmpty);
+    expect(tts.spoken, ['一文目。']); // 二文目も次の案内も話さない
+    expect(finished, ['b', 'a']);
+    expect(x.speaking, isFalse);
+    expect(focus.log.last, 'release');
+
+    x.stopAll(); // 話していないときに呼んでも、次の依頼を止めない
+    x.execute(const SpeakRequest(utteranceId: 'c', text: 'あとの案内'));
+    await settle();
+    expect(tts.spoken.last, 'あとの案内');
+  });
+
   test('同じ group（試し聞き）は連打しても最後の1回だけ話し、合図音も重ねない', () async {
     SpeakRequest p(String id) => SpeakRequest(
       utteranceId: id,

@@ -173,7 +173,7 @@ class _StartScreenState extends State<StartScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const Text(
-                            'まち歩きガイド',
+                            'まちトーク',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,

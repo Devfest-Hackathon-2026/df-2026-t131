@@ -287,14 +287,7 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
               ),
             ),
           ),
-          // 開発者モード：フェイク GPS の操作盤（使っている間だけ、右の中ほど）
-          if (services.fakeGps case final gps?)
-            Positioned(
-              right: l.margin,
-              top: 0,
-              bottom: 0,
-              child: Center(child: FakeGpsPanel(controller: gps)),
-            ),
+
           // シートの上：方位テープと A の候補（約10Hzでなめらかに動く）
           Positioned(
             left: 0,
@@ -397,6 +390,19 @@ class _GlassViewScreenState extends State<GlassViewScreen> {
               ),
             ),
           ),
+          // 開発者モード：フェイク GPS の操作盤（使っている間だけ）。ほかの札やシートに隠れないよう
+          // 一番上に重ね、左のつまみを引いて好きな場所へ動かせる。最初は右の札の列の下に置く
+          if (services.fakeGps case final gps?)
+            Positioned.fill(
+              key: const ValueKey('fake_gps_layer'),
+              child: SafeArea(
+                child: MovableFakeGpsPanel(
+                  controller: gps,
+                  margin: l.margin,
+                  initialTop: l.margin + (l.compact ? 140 : 160),
+                ),
+              ),
+            ),
         ],
       ),
     );
