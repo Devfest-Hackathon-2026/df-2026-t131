@@ -16,6 +16,8 @@ import sys
 from datetime import datetime, timedelta, timezone
 
 START = datetime(2026, 11, 5, 10, 0, tzinfo=timezone(timedelta(hours=9)))
+# 運営が提出用リポジトリを用意したときの最初のコミット（自分たちのコードではない）
+ALLOWED_BEFORE_START = {"39fc6dc2319f6a6b64202d7908f2e2cf9c945c90"}
 BIG_COMMIT_LINES = 1500
 WATCH_PREFIXES = ("app/", "cloud/")
 GENERATED_SUFFIXES = (".lock", "pubspec.lock", ".g.dart", ".freezed.dart")  # 自動で作られるファイルは数えない
@@ -33,6 +35,8 @@ def main() -> int:
     merges = set(git("rev-list", "--merges", "HEAD").split())
     for line in git("log", "--format=%H%x09%aI%x09%cI%x09%an%x09%s", "HEAD").splitlines():
         h, a, c, who, subject = line.split("\t", 4)
+        if h in ALLOWED_BEFORE_START:
+            continue  # 運営の最初のコミットは、開始前の日時でも通す
         ad, cd = datetime.fromisoformat(a), datetime.fromisoformat(c)
         if ad < START or cd < START:
             bad.append(f"{h[:8]} 作者の日時 {a} / コミットの日時 {c}（{who}）{subject}")
